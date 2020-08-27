@@ -1,0 +1,17 @@
+{
+  "name": "pure-error-handling",
+  "version": "1.0.0",
+  "description": "Utilities for error handling",
+  "main": "index.js",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ivangeorgiew/pure-error-handling.git"
+  },
+  "author": "Ivan Georgiev <ivan_georgiew@yahoo.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ivangeorgiew/pure-error-handling/issues"
+  },
+  "homepage": "https://github.com/ivangeorgiew/pure-error-handling#readme"
+}
