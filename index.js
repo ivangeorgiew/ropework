@@ -1,7 +1,7 @@
 'use strict'
 
 const getErrorHandling = function ({ isProduction, notifyUser, loggingService } = {}) {
-    isProduction = typeof isProduction === 'boolean' ? isProduction : false
+    isProduction = typeof isProduction === 'boolean' ? isProduction : true
     notifyUser = typeof notifyUser === 'function' ? notifyUser : () => {}
     loggingService = typeof loggingService === 'function' ? loggingService : () => {}
 
@@ -174,19 +174,10 @@ const getErrorHandling = function ({ isProduction, notifyUser, loggingService } 
     const getWrapApp = app => createFunc(
         'Wrapping the server',
         (method, path, onTry) => {
-            if (
-                typeof method !== 'string' ||
-                typeof path !== 'string' ||
-                typeof onTry !== 'function' ||
-                app !== Object(app)
-            ) {
-                return
-            }
-
             app[method](path, createFunc(
                 `app.${method}('${path}')`,
                 onTry,
-                (req, res, next) => {
+                (req, res) => {
                     if (!res.headersSent) {
                         res.status(500).json({ message: 'Server error' })
                     }
@@ -197,10 +188,8 @@ const getErrorHandling = function ({ isProduction, notifyUser, loggingService } 
 
     const initUncaughtErrorHandling = createFunc(
         'Initializing uncaught errors handling',
-        (args = {}) => {
-            const server = args.server
-            const port = args.port || 8080
-            const sockets = args.sockets || new Set()
+        server => {
+            const sockets = new Set()
 
             const onUncaughtError = function(eventOrError) {
                 const funcDesc = 'The app crashed, please restart!'
@@ -247,11 +236,6 @@ const getErrorHandling = function ({ isProduction, notifyUser, loggingService } 
                         sockets.add(socket);
 
                         socket.on('close', () => { sockets.delete(socket) })
-                    })
-
-                    server.listen(port, err => {
-                        if (err) throw err
-                        console.log(`Server listening on ${port}`)
                     })
                 }
 
