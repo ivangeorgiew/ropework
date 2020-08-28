@@ -58,7 +58,14 @@ if (isNodeJS) {
         res.status(404).json({ message: 'Page not found' })
     })
 
-    initUncaughtErrorHandling({ server: http.createServer(app) })
+    const server = http.createServer(app)
+    const port = process.env.PORT || 8080
+
+    initUncaughtErrorHandling(server)
+    server.listen(port, function(err) {
+        if (err) throw err
+        console.log(`Server running at http://localhost:${port}`)
+    })
 }
 
 const printNum = createFunc(
@@ -83,8 +90,8 @@ const measureFib = createFunc(
             return n <= 1 ? n : fib(n-1) + fib(n-2)
         }
 
-        const startTime = Date.now()	
-    
+        const startTime = Date.now()
+
         try {
             return fib(num)
         } finally {
@@ -98,7 +105,7 @@ const delayReturn = createFunc(
     'Delaying async function',
     async (ms) => {
         await new Promise(resolve => setTimeout(resolve, ms))
-        
+
         if (typeof ms === 'number')
             return 'Proper result'
         else
