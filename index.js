@@ -1,6 +1,6 @@
 'use strict'
 
-const getErrorHandling = function ({ isProduction, notifyUser, loggingService } = {}) {
+const pureErrorHandling = function ({ isProduction, notifyUser, loggingService } = {}) {
     isProduction = typeof isProduction === 'boolean' ? isProduction : true
     notifyUser = typeof notifyUser === 'function' ? notifyUser : () => {}
     loggingService = typeof loggingService === 'function' ? loggingService : () => {}
@@ -85,20 +85,18 @@ const getErrorHandling = function ({ isProduction, notifyUser, loggingService } 
         if (isBrowser) {
             notifyUser(`Internal error with: ${funcDesc}`)
 
-            if (isProduction) {
-                loggingService(stringifyAll({
-                    ...commonProps,
-                    localUrl: window.location.href,
-                    machineInfo: {
-                        browserInfo: window.navigator.userAgent,
-                        language: window.navigator.language,
-                        osType: window.navigator.platform
-                    }
-                }))
-            }
+            loggingService(stringifyAll({
+                ...commonProps,
+                localUrl: window.location.href,
+                machineInfo: {
+                    browserInfo: window.navigator.userAgent,
+                    language: window.navigator.language,
+                    osType: window.navigator.platform
+                }
+            }))
         }
 
-        if (isNodeJS && isProduction) {
+        if (isNodeJS) {
             loggingService(stringifyAll({
                 ...commonProps,
                 localUrl: __filename,
@@ -157,7 +155,7 @@ const getErrorHandling = function ({ isProduction, notifyUser, loggingService } 
                     obj[key] = createFunc.call(obj,
                         `Executing method ${key}`,
                         obj[key],
-                        obj.onCatch
+                        obj[key + 'Catch']
                     )
                 }
             })
@@ -259,4 +257,4 @@ const getErrorHandling = function ({ isProduction, notifyUser, loggingService } 
     }
 }
 
-module.exports = getErrorHandling
+module.exports = pureErrorHandling
