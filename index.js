@@ -1,9 +1,19 @@
 'use strict'
 
-const pureErrorHandling = function ({ isProduction, notifyUser, loggingService } = {}) {
-    isProduction = typeof isProduction === 'boolean' ? isProduction : true
-    notifyUser = typeof notifyUser === 'function' ? notifyUser : () => {}
-    loggingService = typeof loggingService === 'function' ? loggingService : () => {}
+const pureErrorHandling = function({ isProduction, notifyUser, logInProd } = {}) {
+    if (typeof isProduction !== 'boolean') {
+        isProduction = typeof process === 'object' && typeof process.env === 'object' ?
+            process.env.NODE_ENV === 'production' :
+            true
+    }
+
+    if (typeof notifyUser !== 'function') {
+        notifyUser = () => {}
+    }
+
+    if (typeof logInProd !== 'function') {
+        logInProd = () => {}
+    }
 
     const isBrowser = typeof window !== 'undefined'
         && ({}).toString.call(window) === '[object Window]'
@@ -22,23 +32,7 @@ const pureErrorHandling = function ({ isProduction, notifyUser, loggingService }
                 }
 
                 if (typeof val === 'function') {
-                    if (/^\s*async\s+/g.test(val)) {
-                         return '[function Async]'
-                    }
-
-                    if (/^\s*class\s*\w*/g.test(val)) {
-                        return '[function Class]'
-                    }
-
-                    if (/^\s*function\s*\*/g.test(val)) {
-                        return '[function Generator]'
-                    }
-
-                    if (/^\s*\(.*\)\s+=>/g.test(val)) {
-                        return '[function Arrow]'
-                    }
-
-                    return '[function Function]'
+                    return '[function]'
                 }
 
                 return val
@@ -85,19 +79,21 @@ const pureErrorHandling = function ({ isProduction, notifyUser, loggingService }
         if (isBrowser) {
             notifyUser(`Internal error with: ${funcDesc}`)
 
-            loggingService(stringifyAll({
-                ...commonProps,
-                localUrl: window.location.href,
-                machineInfo: {
-                    browserInfo: window.navigator.userAgent,
-                    language: window.navigator.language,
-                    osType: window.navigator.platform
-                }
-            }))
+            if (isProduction) {
+                logInProd(stringifyAll({
+                    ...commonProps,
+                    localUrl: window.location.href,
+                    machineInfo: {
+                        browserInfo: window.navigator.userAgent,
+                        language: window.navigator.language,
+                        osType: window.navigator.platform
+                    }
+                }))
+            }
         }
 
-        if (isNodeJS) {
-            loggingService(stringifyAll({
+        if (isNodeJS && isProduction) {
+            logInProd(stringifyAll({
                 ...commonProps,
                 localUrl: __filename,
                 machineInfo: {
@@ -123,31 +119,28 @@ const pureErrorHandling = function ({ isProduction, notifyUser, loggingService }
             logError({ funcDesc, err, args })
 
             if (typeof onCatch === 'function') {
-                return createFunc('Catching errors', onCatch)
-                    .apply(this, args)
-            }
-        }
+                const catchFunc = createFunc('Catching errors', onCatch)
 
-        if (onTry.constructor.name === 'AsyncFunction') {
-            return async function(...args) {
-                try {
-                    return await onTry.apply(this, args)
-                } catch(err) {
-                    return innerCatch.call(this, { err, args })
-                }
+                return catchFunc.call(this, { funcDesc, err, args })
             }
         }
 
         return function(...args) {
             try {
-                return onTry.apply(this, args)
+                const result = onTry.apply(this, args)
+
+                if (typeof result === 'object' && typeof result.catch === 'function') {
+                    return result.catch(err => innerCatch.call(this, { err, args }))
+                }
+
+                return result
             } catch(err) {
                 return innerCatch.call(this, { err, args })
             }
         }
     }
 
-    const createMethods = createFunc(
+    const createObject = createFunc(
         'Error handling methods',
         (obj, shouldHandleProto = false) => {
             Object.getOwnPropertyNames(obj).forEach(key => {
@@ -161,7 +154,7 @@ const pureErrorHandling = function ({ isProduction, notifyUser, loggingService }
             })
 
             if(shouldHandleProto) {
-                createMethods(obj.prototype, false)
+                createObject(obj.prototype, false)
             }
 
             return obj
@@ -169,15 +162,20 @@ const pureErrorHandling = function ({ isProduction, notifyUser, loggingService }
         obj => obj
     )
 
-    const getWrapApp = app => createFunc(
-        'Wrapping the server',
+    const createAppWrapper = app => createFunc(
+        'Wrapping the server app',
         (method, path, onTry) => {
+            if (typeof path === 'function') {
+                onTry = path
+                path = '/'
+            }
+
             app[method](path, createFunc(
                 `app.${method}('${path}')`,
                 onTry,
-                (req, res) => {
+                ({ err, args: [req, res] }) => {
                     if (!res.headersSent) {
-                        res.status(500).json({ message: 'Server error' })
+                        res.status(500).json({ message: err.message })
                     }
                 }
             ))
@@ -188,40 +186,40 @@ const pureErrorHandling = function ({ isProduction, notifyUser, loggingService }
         'Initializing uncaught errors handling',
         server => {
             const sockets = new Set()
+            const onUncaughtError = createFunc(
+                'Handling uncaught errors',
+                eventOrError => {
+                    const funcDesc = 'The app crashed, please restart!'
 
-            const onUncaughtError = function(eventOrError) {
-                const funcDesc = 'The app crashed, please restart!'
+                    if (isBrowser) {
+                        if (eventOrError instanceof Event) {
+                            eventOrError.preventDefault()
+                            logError({ funcDesc, err: eventOrError.reason || eventOrError.error })
+                        }
 
-                if (isBrowser) {
-                    eventOrError.preventDefault()
-
-                    logError({ funcDesc, err: eventOrError.error || eventOrError.reason })
-
-                    // prevent user from interacting with the page
-                    if (isProduction) {
+                        // prevent user from interacting with the page
                         window.document.body.style['pointer-events'] = 'none'
                     }
+
+                    if (isNodeJS) {
+                        if (server === Object(server) && server.close) {
+                            server.close()
+                        }
+                        if (sockets instanceof Set) {
+                            sockets.forEach(socket => { socket.destroy() })
+                        }
+
+                        let exitCode = 0
+
+                        if (eventOrError instanceof Error) {
+                            exitCode = 1
+                            logError({ funcDesc, err: eventOrError })
+                        }
+
+                        setTimeout(() => { process.exit(exitCode) }, 1000).unref()
+                    }
                 }
-
-                if (isNodeJS) {
-                    if (server === Object(server) && server.close) {
-                        server.close()
-                    }
-                    if (sockets instanceof Set) {
-                        sockets.forEach(socket => { socket.destroy() })
-                    }
-
-                    let exitCode = 0
-
-                    if (eventOrError instanceof Error) {
-                        exitCode = 1
-                        logError({ funcDesc, err: eventOrError })
-                    }
-
-                    setTimeout(() => { process.exit(exitCode) }, 1000).unref()
-                }
-            }
-
+            )
 
             if (isBrowser) {
                 window.addEventListener('error', onUncaughtError, true)
@@ -249,10 +247,10 @@ const pureErrorHandling = function ({ isProduction, notifyUser, loggingService }
         isBrowser,
         isNodeJS,
         stringifyAll,
-        loggingService,
+        logError,
         createFunc,
-        createMethods,
-        getWrapApp,
+        createObject,
+        createAppWrapper,
         initUncaughtErrorHandling
     }
 }
