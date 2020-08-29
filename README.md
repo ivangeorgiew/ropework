@@ -118,69 +118,68 @@ server.listen(port, function(err) {
 
 ### API for `pureErrorHandling` (or whatever you call it):
 * `isProduction`
-    type: `boolean`
-    default: `process.env.NODE_ENV === 'production'`
-    description: Used for deciding which functionality to use (ex: use logInProd or not)
+    ** type: `boolean`
+    ** default: `process.env.NODE_ENV === 'production'`
+    ** description: Used for deciding which functionality to use (ex: use logInProd or not)
 
 * `notifyUser`
-    type: `userMsg` -> ?
-    default: `() => {}`
-    description: Called with the user message only in the browser
-    `userMsg`: `Internal error with: ${funcDesc}`
+    ** type: `userMsg` -> ?
+    ** default: `() => {}`
+    ** description: Called with the user message only in the browser
+    ** `userMsg`: `Internal error with: ${funcDesc}`
 
 * `logInProd`
-    type: `stringifiedParams` -> ?
-    default: `() => {}`
-    description: Called with the JSON string that contains info about the error
-    `stringifiedParams`:
-      `stringifyAll({ functionDescription, arguments, date, error, localUrl, machineInfo })`
+    ** type: `stringifiedParams` -> ?
+    ** default: `() => {}`
+    ** description: Called with the JSON string that contains info about the error
+    ** `stringifiedParams`: `stringifyAll({ functionDescription, arguments, date, error, localUrl, machineInfo })`
 
 ### API for `errorHandlers` (or whatever you call it):
 * `isBrowser`
-    type: `boolean`
-    description: Tells if in browser environment or not
+    ** type: `boolean`
+    ** description: Tells if in browser environment or not
 
 * `isNodeJS`
-    type: `boolean`
-    description: Tells if in Node.js environment or not
+    ** type: `boolean`
+    ** description: Tells if in Node.js environment or not
 
 * `stringifyAll`
-    type: `data` -> `stringified and parsed data`
-    description: Takes any data and tries to stringify and format it
-    `data`: Any data that we parse and stringify
+    ** type: `data` -> `stringified and parsed data`
+    ** description: Takes any data and tries to stringify and format it
+    ** `data`: Any data that we parse and stringify
 
 * `logError`
-    type: `({ funcDesc, err, args })` -> `undefined`
-    description: Takes an object with settings and logs both in dev and prod
-    `funcDesc`: String that describes the function
-    `err`: Error instance
-    `args`: Array from the function arguments
+    ** type: `({ funcDesc, err, args })` -> `undefined`
+    ** description: Takes an object with settings and logs both in dev and prod
+    ** `funcDesc`: String that describes the function
+    ** `err`: Error instance
+    ** `args`: Array from the function arguments
 
 * `createFunc`
-    type: `(funcDesc, onTry, onCatch)` -> `error handled function`
-    description: Error handles with try and catch any function
-    `funcDesc`: String that describes the function
-    `onTry`: Function which we actually want to use later
-    `onCatch`: Function which runs in addition to the logging of logError
+    ** type: `(funcDesc, onTry, onCatch)` -> `error handled function`
+    ** description: Error handles with try and catch any function
+    ** `funcDesc`: String that describes the function
+    ** `onTry`: Function which we actually want to use later
+    ** `onCatch`: Function which runs in addition to the logging of logError
       Has the same arguments as onTry and returns a value on error if you want
 
 * `createObject`
-    type: `obj` -> `error handled object`
-    description: Error handles every prop of an object
-    `obj`: Object which whose methods we want to error handle.
+    ** type: `obj` -> `error handled object`
+    ** description: Error handles every prop of an object
+    ** `obj`: Object which whose methods we want to error handle.
       For every method specified we can use `${methodName}Catch` to implement `onCatch`
       like in the createFunc function
 
 * `createAppWrapper`
-    type: `app` -> `(method, path, callback)` || `(method, callback)` -> `undefined`
-    description: Wrapper which takes an instance of `express()` and error handles it
-    `app`: Express.js object returned from `express()`
-    `method`: String used for `app.method()`
-    `path`: String used for `app.method(path, callback)` OR
+    ** type: `app` -> `(method, path, callback)` || `(method, callback)` -> `undefined`
+    ** description: Wrapper which takes an instance of `express()` and error handles it
+    ** `app`: Express.js object returned from `express()`
+    ** `method`: String used for `app.method()`
+    ** `path`: String used for `app.method(path, callback)` OR
             Function used for `app.method(middleware)`
-    `callback`: Function used for `app.method(path, callback)`
+    ** `callback`: Function used for `app.method(path, callback)`
 
 * `initUncaughtErrorHandling`
-    type: `server` -> `undefined`
-    description: Start the handling of uncaught errors
-    `server`: Object that is used only when the environment is Node.js
+    ** type: `server` -> `undefined`
+    ** description: Start the handling of uncaught errors
+    ** `server`: Object that is used only when the environment is Node.js
