@@ -12,11 +12,11 @@ To start using this package you need to first install locally:
 import pureErrorHandling from 'pure-error-handling'
 
 const errorHandlers = pureErrorHandling({ notifyUser: alert })
-const { createFunc, initUncaughtErrorHandling } = errorHandlers
+const { createData, initUncaughtErrorHandling } = errorHandlers
 
 initUncaughtErrorHandling()
 
-const printNum = createFunc(
+const printNum = createData(
     'Printing a number',
     num => {
         blabla
@@ -28,7 +28,7 @@ const printNum = createFunc(
     }
 )
 
-const measureFib = createFunc(
+const measureFib = createData(
     'Measuring time for fibonacci number',
     num => {
         const fib = n => {
@@ -49,7 +49,7 @@ const measureFib = createFunc(
     () => 'Incorrect fibonacchi calculation'
 )
 
-const delayReturn = createFunc(
+const delayReturn = createData(
     'Delaying async function',
     async (ms) => {
         await new Promise(resolve => setTimeout(resolve, ms))
@@ -62,7 +62,7 @@ const delayReturn = createFunc(
     () => 'Default result'
 )
 
-const undefinedFunc = createFunc()
+const undefinedFunc = createData()
 
 console.log('undefinedFunc(31)', undefinedFunc(31))
 console.log('printNum(9)', printNum(9))
@@ -87,24 +87,31 @@ const cors = require('cors')
 const pureErrorHandling = require('pure-error-handling')
 
 const app = express()
+const { createData, initUncaughtErrorHandling } = pureErrorHandling()
+const app = createData(
+    'Express application',
+    app,
+    ({ err, args: [req, res] }) => {
+        if (!res.headersSent) {
+            res.status(500).json({ message: err.message })
+        }
+    }
+)
 const server = http.createServer(app)
 const port = process.env.PORT || 8080
-const { createAppWrapper, initUncaughtErrorHandling } = pureErrorHandling()
-const wrapApp = createAppWrapper(app)
 
 initUncaughtErrorHandling(server)
 
-wrapApp('use', express.urlencoded({ extended: true }))
-wrapApp('use', express.json())
-wrapApp('use', cors())
+app.use(express.urlencoded({ extended: true }))
+app.use(express.json())
+app.use(cors())
 
-wrapApp('get', '/', (req, res, next) => {
+app.get('/', (req, res, next) => {
     res.send('Hello World!')
 
     throw new Error('whoops')
 })
-
-wrapApp('get', '/err', async (req, res, next) => {
+app.get('/err', async (req, res, next) => {
     await new Promise(resolve => setTimeout(resolve, 1000))
 
     throw new Error('Async whoops')
@@ -122,6 +129,12 @@ server.listen(port, function(err) {
   * default: `process.env.NODE_ENV === 'production'`
   * description: Used for deciding which functionality to use (ex: use logInProd or not)
 
+* `errorLogger`
+  * type: `devMsg` -> ?
+  * default: `console.error`
+  * description: Called with the development message NOT in production
+  * `devMsg`: ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
+
 * `notifyUser`
   * type: `userMsg` -> ?
   * default: `() => {}`
@@ -135,6 +148,10 @@ server.listen(port, function(err) {
   * `stringifiedParams`: `stringifyAll({ functionDescription, arguments, date, error, localUrl, machineInfo })`
 
 ### API for `errorHandlers` (or whatever you call it):
+* `isObject`
+  * type: val -> boolean
+  * description: Checks if the provided value is a true object {}
+
 * `isBrowser`
   * type: `boolean`
   * description: Tells if in browser environment or not
@@ -155,29 +172,16 @@ server.listen(port, function(err) {
   * `err`: Error instance
   * `args`: Array from the function arguments
 
-* `createFunc`
-  * type: `(funcDesc, onTry, onCatch)` -> `error handled function`
-  * description: Error handles with try and catch any function
-  * `funcDesc`: String that describes the function
-  * `onTry`: Function which we actually want to use later
-  * `onCatch`: Function which runs in addition to the logging of logError
-      Has the same arguments as onTry and returns a value on error if you want
-
-* `createObject`
-  * type: `obj` -> `error handled object`
-  * description: Error handles every prop of an object
-  * `obj`: Object which whose methods we want to error handle.
-      For every method specified we can use `${methodName}Catch` to implement `onCatch`
-      like in the createFunc function
-
-* `createAppWrapper`
-  * type: `app` -> `(method, path, callback)` || `(method, callback)` -> `undefined`
-  * description: Wrapper which takes an instance of `express()` and error handles it
-  * `app`: Express.js object returned from `express()`
-  * `method`: String used for `app.method()`
-  * `path`: String used for `app.method(path, callback)` OR
-            Function used for `app.method(middleware)`
-  * `callback`: Function used for `app.method(path, callback)`
+* `createData`
+  * type: `(descr, data, onCatch)` || `(data, onCatch)` -> `error handled data`
+  * description: Error handles every type of data that you give it
+  * `descr`: String that describes the data which you gave. Used for logging.
+  * `data`: Any data which we error handle deeply. Arrays, functions and their arguments,
+  objects and their methods, etc. Returns the error handled version. If object or function -
+  for every method specified we can use `${methodName}Catch` to implement `onCatch`.
+  * `onCatch`: Function which acts as default onCatch for the returned data. Accepts arguments
+  `({ descr, err, args })`, where `descr` is same as above, `err` is the error caught Error
+  and args are the arguments which were supplied to the tried function.
 
 * `initUncaughtErrorHandling`
   * type: `server` -> `undefined`

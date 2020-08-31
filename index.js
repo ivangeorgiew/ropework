@@ -1,19 +1,29 @@
 'use strict'
 
-const pureErrorHandling = function({ isProduction, notifyUser, logInProd } = {}) {
-    if (typeof isProduction !== 'boolean') {
-        isProduction = typeof process === 'object' && typeof process.env === 'object' ?
+const pureErrorHandling = function(params) {
+    const isObject = val => typeof val !== 'function' && val === Object(val)
+
+    params = isObject(params) ? params : {}
+
+    const isProduction = typeof params.isProduction === 'boolean' ?
+        params.isProduction :
+        isObject(process) && isObject(process.env) ?
             process.env.NODE_ENV === 'production' :
             true
-    }
 
-    if (typeof notifyUser !== 'function') {
-        notifyUser = () => {}
-    }
+    const errorLogger = typeof params.errorLogger === 'function' ?
+        params.errorLogger :
+        isObject(console) && typeof console.error === 'function' ?
+            console.error :
+            () => {}
 
-    if (typeof logInProd !== 'function') {
-        logInProd = () => {}
-    }
+    const notifyUser = typeof params.notifyUser === 'function' ?
+        params.notifyUser :
+        () => {}
+
+    const logInProdFunc = typeof params.logInProdFunc === 'function' ?
+        params.logInProdFunc :
+        () => {}
 
     const isBrowser = typeof window !== 'undefined'
         && ({}).toString.call(window) === '[object Window]'
@@ -39,147 +49,181 @@ const pureErrorHandling = function({ isProduction, notifyUser, logInProd } = {})
             }
 
             return JSON.stringify(data, parser)
-        } catch(e) {
+        } catch(err) {
             return JSON.stringify('[object Cyclic]')
         }
     }
 
     const logError = function (params) {
-        params = params === Object(params) ? params : {}
+        try {
+            params = isObject(params) ? params : {}
 
-        const funcDesc = typeof params.funcDesc === 'string' ?
-            params.funcDesc :
-            'Unknown function'
-        const err = params.err instanceof Error ?
-            params.err :
-            new Error('Unknown error')
-        const args = Array.isArray(params.args) ?
-            params.args.map(el => JSON.parse(stringifyAll(el))) :
-            ['[unknown]']
+            const descr = typeof params.descr === 'string' ?
+                params.descr :
+                'Unknown function'
+            const err = params.err instanceof Error ?
+                params.err :
+                new Error('Unknown error')
+            const args = Array.isArray(params.args) ?
+                params.args.map(el => JSON.parse(stringifyAll(el))) :
+                ['[unknown]']
 
-        const stringOfArgs = args.reduce((acc, arg, idx) => {
-            const stringifiedArg = stringifyAll(arg)
+            const stringOfArgs = args.reduce((acc, arg, idx) => {
+                const stringifiedArg = stringifyAll(arg)
 
-            return idx === 0 ? `${acc} ${stringifiedArg}` : `${acc} , ${stringifiedArg}`
-        }, '')
+                return idx === 0 ? `${acc} ${stringifiedArg}` : `${acc} , ${stringifiedArg}`
+            }, '')
 
-        if (!isProduction) {
-            console.log()
-            console.error(` Issue with: ${funcDesc}\n Function arguments: ${stringOfArgs}\n`, err)
-            console.log()
-        }
+            if (!isProduction) {
+                errorLogger(
+                    ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`,
+                    err
+                )
+            }
 
-        const commonProps = {
-            functionDescription: funcDesc,
-            arguments: args,
-            date: new Date().toUTCString(),
-            error: err
-        }
+            const commonProps = {
+                description: descr,
+                arguments: args,
+                date: new Date().toUTCString(),
+                error: err
+            }
 
-        if (isBrowser) {
-            notifyUser(`Internal error with: ${funcDesc}`)
+            if (isBrowser) {
+                notifyUser(`Internal error with: ${descr}`)
 
-            if (isProduction) {
-                logInProd(stringifyAll({
+                if (isProduction) {
+                    logInProdFunc(stringifyAll({
+                        ...commonProps,
+                        localUrl: window.location.href,
+                        machineInfo: {
+                            browserInfo: window.navigator.userAgent,
+                            language: window.navigator.language,
+                            osType: window.navigator.platform
+                        }
+                    }))
+                }
+            }
+
+            if (isNodeJS && isProduction) {
+                logInProdFunc(stringifyAll({
                     ...commonProps,
-                    localUrl: window.location.href,
+                    localUrl: __filename,
                     machineInfo: {
-                        browserInfo: window.navigator.userAgent,
-                        language: window.navigator.language,
-                        osType: window.navigator.platform
+                        cpuArch: process.arch,
+                        osType: process.platform,
+                        depVersions: process.versions
                     }
                 }))
             }
-        }
-
-        if (isNodeJS && isProduction) {
-            logInProd(stringifyAll({
-                ...commonProps,
-                localUrl: __filename,
-                machineInfo: {
-                    cpuArch: process.arch,
-                    osType: process.platform,
-                    depVersions: process.versions
-                }
-            }))
-        }
-    }
-
-    const createFunc = function(funcDesc, onTry, onCatch) {
-        if (typeof onTry !== 'function') {
-            logError({
-                funcDesc: 'Undefined function',
-                err: new Error(`Instead of function was given ${onTry}`)
-            })
-
-            return function() {}
-        }
-
-        const innerCatch = function({ err, args }) {
-            logError({ funcDesc, err, args })
-
-            if (typeof onCatch === 'function') {
-                const catchFunc = createFunc('Catching errors', onCatch)
-
-                return catchFunc.call(this, { funcDesc, err, args })
-            }
-        }
-
-        return function(...args) {
-            try {
-                const result = onTry.apply(this, args)
-
-                if (typeof result === 'object' && typeof result.catch === 'function') {
-                    return result.catch(err => innerCatch.call(this, { err, args }))
-                }
-
-                return result
-            } catch(err) {
-                return innerCatch.call(this, { err, args })
+        } catch(err) {
+            if (!isProduction) {
+                errorLogger(` Error during logging\n`, err)
             }
         }
     }
 
-    const createObject = createFunc(
-        'Error handling methods',
-        (obj, shouldHandleProto = false) => {
-            Object.getOwnPropertyNames(obj).forEach(key => {
-                if (key !== 'constructor' && obj[key] instanceof Function) {
-                    obj[key] = createFunc.call(obj,
-                        `Executing method ${key}`,
-                        obj[key],
-                        obj[key + 'Catch']
-                    )
+    const createFunc = function(descr, onTry, onCatch, shouldHandleArgs = false) {
+        try {
+            if (typeof onTry !== 'function') {
+                logError({
+                    descr: 'Undefined function',
+                    err: new Error(`Instead of function was given ${onTry}`)
+                })
+
+                return function(){}
+            }
+
+            const innerCatch = function({ err, args }) {
+                logError({ descr, err, args })
+
+                if (typeof onCatch === 'function') {
+                    return createFunc(`Catching errors at ${descr}`, onCatch)
+                        .call(this, { descr, err, args })
                 }
-            })
-
-            if(shouldHandleProto) {
-                createObject(obj.prototype, false)
             }
 
-            return obj
-        },
-        obj => obj
-    )
-
-    const createAppWrapper = app => createFunc(
-        'Wrapping the server app',
-        (method, path, onTry) => {
-            if (typeof path === 'function') {
-                onTry = path
-                path = '/'
-            }
-
-            app[method](path, createFunc(
-                `app.${method}('${path}')`,
-                onTry,
-                ({ err, args: [req, res] }) => {
-                    if (!res.headersSent) {
-                        res.status(500).json({ message: err.message })
+            return function(...args) {
+                try {
+                    if (shouldHandleArgs) {
+                        args = args.map(el => typeof el === 'function' ?
+                            createFunc(`Executing function argument`, el, onCatch) :
+                            el
+                        )
                     }
+                } catch(err) {
+                    logError({ descr: 'Error handling function arguments', err })
                 }
-            ))
+
+                try {
+                    const result = onTry.apply(this, args)
+
+                    //if the function returns a promise
+                    if (isObject(result) && typeof result.catch === 'function') {
+                        return result.catch(err => innerCatch.call(this, { err, args }))
+                    }
+
+                    return result
+                } catch(err) {
+                    return innerCatch.call(this, { err, args })
+                }
+            }
+        } catch(err) {
+            logError({ descr: 'Error handling function', err })
+
+            return typeof onTry === 'function' ? onTry : function(){}
         }
+    }
+
+    const createData = createFunc(
+        'Creating wrapper for any data type',
+        (...args) => {
+            let [descr, data, onCatch] = args
+
+            if (typeof descr !== 'string') {
+                descr = 'Unknown action or data'
+                data = args[0]
+                onCatch = args[1]
+            }
+
+            if(Array.isArray(data)) {
+                return data.map(
+                    el => createData(`Executing element ${key} of ${descr}`, el, onCatch)
+                )
+            }
+
+            if (typeof data === 'function' || isObject(data)) {
+                const shouldHandleArgs = true
+                const handledData = typeof data === 'function' ?
+                    createFunc(descr, data, onCatch, shouldHandleArgs) :
+                    {}
+
+                const descriptors = Object.getOwnPropertyDescriptors(data)
+
+                Object.keys(descriptors).forEach(key => {
+                    if (descriptors[key].configurable) {
+                        const value = typeof data[key] === 'function' ?
+                            createFunc(
+                                `Executing method ${key}`,
+                                data[key],
+                                data[key + 'Catch'] || onCatch, //TODO ??
+                                shouldHandleArgs
+                            ).bind(data) :
+                            data[key]
+
+                        Object.defineProperty(
+                            handledData,
+                            key,
+                            Object.assign(descriptors[key], { value })
+                        )
+                    }
+                })
+
+                return handledData
+            }
+
+            return data
+        },
+        ({ args: [descr, data] }) => typeof descr === 'string' ? data : descr
     )
 
     const initUncaughtErrorHandling = createFunc(
@@ -189,12 +233,15 @@ const pureErrorHandling = function({ isProduction, notifyUser, logInProd } = {})
             const onUncaughtError = createFunc(
                 'Handling uncaught errors',
                 eventOrError => {
-                    const funcDesc = 'The app crashed, please restart!'
+                    const descr = 'Running the app, please reload!'
 
                     if (isBrowser) {
                         if (eventOrError instanceof Event) {
                             eventOrError.preventDefault()
-                            logError({ funcDesc, err: eventOrError.reason || eventOrError.error })
+                            logError({
+                                descr,
+                                err: eventOrError.reason || eventOrError.error //TODO ??
+                            })
                         }
 
                         // prevent user from interacting with the page
@@ -202,7 +249,7 @@ const pureErrorHandling = function({ isProduction, notifyUser, logInProd } = {})
                     }
 
                     if (isNodeJS) {
-                        if (server === Object(server) && server.close) {
+                        if (isObject(server) && typeof server.close === 'function') {
                             server.close()
                         }
                         if (sockets instanceof Set) {
@@ -213,7 +260,7 @@ const pureErrorHandling = function({ isProduction, notifyUser, logInProd } = {})
 
                         if (eventOrError instanceof Error) {
                             exitCode = 1
-                            logError({ funcDesc, err: eventOrError })
+                            logError({ descr, err: eventOrError })
                         }
 
                         setTimeout(() => { process.exit(exitCode) }, 1000).unref()
@@ -227,7 +274,7 @@ const pureErrorHandling = function({ isProduction, notifyUser, logInProd } = {})
             }
 
             if (isNodeJS) {
-                if (server === Object(server)) {
+                if (isObject(server) && typeof server.on === 'function') {
                     server.on('connection', socket => {
                         sockets.add(socket);
 
@@ -244,13 +291,12 @@ const pureErrorHandling = function({ isProduction, notifyUser, logInProd } = {})
     )
 
     return {
+        isObject,
         isBrowser,
         isNodeJS,
         stringifyAll,
         logError,
-        createFunc,
-        createObject,
-        createAppWrapper,
+        createData,
         initUncaughtErrorHandling
     }
 }
