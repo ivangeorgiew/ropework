@@ -15,7 +15,7 @@
   },
   "homepage": "https://github.com/ivangeorgiew/pure-error-handling#readme",
   "scripts": {
-    "build": "babel --minified source.js -o index.js",
+    "build": "babel --no-comments --minified source.js -o index.js",
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
