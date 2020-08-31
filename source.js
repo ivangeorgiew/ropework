@@ -205,7 +205,7 @@ const pureErrorHandling = function(params) {
                             createFunc(
                                 `Executing method ${key}`,
                                 data[key],
-                                data[key + 'Catch'] || onCatch, //TODO ??
+                                data[key + 'Catch'] ?? onCatch,
                                 shouldHandleArgs
                             ).bind(data) :
                             data[key]
@@ -240,7 +240,7 @@ const pureErrorHandling = function(params) {
                             eventOrError.preventDefault()
                             logError({
                                 descr,
-                                err: eventOrError.reason || eventOrError.error //TODO ??
+                                err: eventOrError.reason ?? eventOrError.error
                             })
                         }
 

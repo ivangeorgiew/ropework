@@ -1,7 +1,7 @@
 # pure-error-handling
 Error handling functions, object methods and whatever you can think of...
 
-!!! Do note that this is the documentation for V3.0.0 !!!
+!!! Do note that this is the documentation for V4.0.0 !!!
 
 ## Usage
 To start using this package you need to first install locally:

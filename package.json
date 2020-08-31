@@ -13,5 +13,19 @@
   "bugs": {
     "url": "https://github.com/ivangeorgiew/pure-error-handling/issues"
   },
-  "homepage": "https://github.com/ivangeorgiew/pure-error-handling#readme"
+  "homepage": "https://github.com/ivangeorgiew/pure-error-handling#readme",
+  "scripts": {
+    "build": "babel --minified source.js -o index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.10.5",
+    "@babel/core": "^7.11.4",
+    "@babel/preset-env": "^7.11.0"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ]
+  }
 }
