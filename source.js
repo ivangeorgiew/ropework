@@ -186,9 +186,11 @@ const pureErrorHandling = function(params) {
             }
 
             if(Array.isArray(data)) {
-                return data.map(
-                    el => createData(`Executing element ${key} of ${descr}`, el, onCatch)
-                )
+                return data.map((el, idx) => createData(
+                    `Executing element num ${idx} of ${descr}`,
+                    el,
+                    onCatch
+                ))
             }
 
             if (typeof data === 'function' || isObject(data)) {
