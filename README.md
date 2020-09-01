@@ -1,4 +1,6 @@
-# Tied Pants - error handling utilities for better user and developer experience
+# Tied Pants
+Error handling utilities for better user and developer experience.
+
 In programming most errors could have been caught by developers, but they were
 lazy or negligent. This is me trying (pun intended) to semi-automate the process
 of catching errors so your app DOESN'T crash when it doesn't need to
