@@ -2,6 +2,7 @@
 
 const getErrorHandling = function(params) {
     const isObject = val => typeof val !== 'function' && val === Object(val)
+
     const defaultLogger = isObject(console) && typeof console.error === 'function' ?
         console.error :
         () => {}
@@ -19,7 +20,7 @@ const getErrorHandling = function(params) {
             try {
                 params.devErrorLogger.apply(this, args)
             } catch(err) {
-                devErrorLogger(` Issue with: devErrorLogger\n`, err)
+                defaultLogger(` Issue with: Parameter devErrorLogger\n`, err)
                 defaultLogger.apply(this, args)
             }
         } :
@@ -30,7 +31,7 @@ const getErrorHandling = function(params) {
             try {
                 params.onError.apply(this, args)
             } catch(err) {
-                devErrorLogger(` Issue with: onError\n`, err)
+                devErrorLogger(` Issue with: Parameter onError\n`, err)
             }
         } :
         () => {}
