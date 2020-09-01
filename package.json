@@ -17,7 +17,7 @@
   "scripts": {
     "build": "babel --no-comments --minified source.js -o index.js",
     "version": "npm i && npm run build && git add -A",
-    "postversion": "git push"
+    "postversion": "git push && npm publish"
   },
   "devDependencies": {
     "@babel/cli": "^7.10.5",
