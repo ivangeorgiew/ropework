@@ -16,7 +16,8 @@
   "homepage": "https://github.com/ivangeorgiew/pure-error-handling#readme",
   "scripts": {
     "build": "babel --no-comments --minified source.js -o index.js",
-    "prepublishOnly": "npm run build"
+    "version": "npm run build && git add -A",
+    "postversion": "git push"
   },
   "devDependencies": {
     "@babel/cli": "^7.10.5",
