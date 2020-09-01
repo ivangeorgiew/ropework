@@ -2,6 +2,9 @@
 
 const getErrorHandling = function(params) {
     const isObject = val => typeof val !== 'function' && val === Object(val)
+    const defaultLogger = isObject(console) && typeof console.error === 'function' ?
+        console.error :
+        () => {}
 
     params = isObject(params) ? params : {}
 
@@ -12,13 +15,23 @@ const getErrorHandling = function(params) {
             true
 
     const devErrorLogger = typeof params.devErrorLogger === 'function' ?
-        params.devErrorLogger :
-        isObject(console) && typeof console.error === 'function' ?
-            console.error :
-            () => {}
+        function(...args) {
+            try {
+                params.devErrorLogger.apply(this, args)
+            } catch(err) {
+                defaultLogger.apply(this, args)
+            }
+        } :
+        defaultLogger
 
     const onError = typeof params.onError === 'function' ?
-        params.onError :
+        function(...args) {
+            try {
+                params.onError.apply(this, args)
+            } catch(err) {
+                devErrorLogger(` Issue with: onError function`, err)
+            }
+        } :
         () => {}
 
     const isBrowser = typeof window !== 'undefined'
@@ -241,7 +254,7 @@ const getErrorHandling = function(params) {
                 { on: () => {}, close: () => {} }
 
             const onUncaughtError = typeof params.onUncaughtError === 'function' ?
-                params.onUncaughtError :
+                createFunc('Logging on uncaught error', params.onUncaughtError) :
                 onError
 
             const sockets = new Set()
