@@ -315,4 +315,3 @@ const getErrorHandling = function(params) {
 }
 
 module.exports = getErrorHandling
-g
