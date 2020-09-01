@@ -20,8 +20,10 @@ const getErrorHandling = function(params) {
             try {
                 params.devErrorLogger.apply(this, args)
             } catch(err) {
-                defaultLogger(` Issue with: Parameter devErrorLogger\n`, err)
-                defaultLogger.apply(this, args)
+                if (!isProduction) {
+                    defaultLogger(` Issue with: Parameter devErrorLogger\n`, err)
+                    defaultLogger.apply(this, args)
+                }
             }
         } :
         defaultLogger
@@ -31,7 +33,9 @@ const getErrorHandling = function(params) {
             try {
                 params.onError.apply(this, args)
             } catch(err) {
-                devErrorLogger(` Issue with: Parameter onError\n`, err)
+                if (!isProduction) {
+                    devErrorLogger(` Issue with: Parameter onError\n`, err)
+                }
             }
         } :
         () => {}
