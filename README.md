@@ -16,8 +16,8 @@ To start using this package you need to first install locally:
 ```
 import getErrorHandling from 'tied-pants'
 
-const { useMessages, createData, initUncaughtErrorHandling } = getErrorHandling({
-    useMessages: ({ userMsg, prodMsg }) => {
+const { onError, createData, initUncaughtErrorHandling } = getErrorHandling({
+    onError: ({ userMsg, prodMsg }) => {
         //log the errors
         /*
         alert(userMsg)
@@ -29,8 +29,7 @@ const { useMessages, createData, initUncaughtErrorHandling } = getErrorHandling(
     }
 })
 
-// or specify different function for uncaught errors only
-initUncaughtErrorHandling({ useUncaughtMessages: useMessages })
+initUncaughtErrorHandling()
 
 const printNum = createData(
     'Printing a number',
@@ -148,7 +147,7 @@ server.listen(port, function(err) {
   * description: Function for logging developer errors
   * `devMsg`: ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
 
-* `useMessages`
+* `onError`
   * type: `({ userMsg, prodMsg })` -> ?
   * default: `() => {}`
   * description: Function for notifying the user with friendly error messages
@@ -165,7 +164,7 @@ server.listen(port, function(err) {
   * type: `devMsg` -> ?
   * description: Function that was parsed from `getErrorHandling`
 
-* `useMessages`
+* `onError`
   * type: `({ userMsg, prodMsg })` -> ?
   * description: Function that was parsed from `getErrorHandling`
 
@@ -198,8 +197,9 @@ server.listen(port, function(err) {
   is the error caught Error, `args` are the arguments which were supplied to the tried function.
 
 * `initUncaughtErrorHandling`
-  * type: `({ server, useUncaughtMessages })` -> ?
+  * type: `({ server, onUncaughtError })` -> ?
   * description: Start the handling of uncaught errors
   * `server`: Object that is used only when the environment is Node.js
-  * `useUncaughtMessages`: Function that gets the args `({ userMsg, prodMsg })`.
+  * `onUncaughtError`: Function that gets the args `({ userMsg, prodMsg })`.
+  Defaults to `onError` which was set from the imported function.
   Useful for notifying the user with friendly error messages and logging in production.

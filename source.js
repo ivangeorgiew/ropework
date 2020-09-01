@@ -17,8 +17,8 @@ const getErrorHandling = function(params) {
             console.error :
             () => {}
 
-    const useMessages = typeof params.useMessages === 'function' ?
-        params.useMessages :
+    const onError = typeof params.onError === 'function' ?
+        params.onError :
         () => {}
 
     const isBrowser = typeof window !== 'undefined'
@@ -137,7 +137,7 @@ const getErrorHandling = function(params) {
             }
 
             const innerCatch = function(err, args) {
-                useMessages(logError({ descr, err, args }))
+                onError(logError({ descr, err, args }))
 
                 if (typeof onCatch === 'function') {
                     return createFunc(`Catching errors at ${descr}`, onCatch)
@@ -240,12 +240,12 @@ const getErrorHandling = function(params) {
                 params.server :
                 { on: () => {}, close: () => {} }
 
-            const useUncaughtMessages = typeof params.useUncaughtMessages === 'function' ?
-                params.useUncaughtMessages :
-                () => {}
+            const onUncaughtError = typeof params.onUncaughtError === 'function' ?
+                params.onUncaughtError :
+                onError
 
             const sockets = new Set()
-            const onUncaughtError = createFunc(
+            const handleUncaughtError = createFunc(
                 'Handling uncaught errors',
                 eventOrError => {
                     const descr = 'Running the app!!!'
@@ -254,7 +254,7 @@ const getErrorHandling = function(params) {
                         if (eventOrError instanceof Event) {
                             eventOrError.preventDefault()
 
-                            useUncaughtMessages(logError({
+                            onUncaughtError(logError({
                                 descr,
                                 err: eventOrError.reason ?? eventOrError.error
                             }))
@@ -273,7 +273,7 @@ const getErrorHandling = function(params) {
                         if (eventOrError instanceof Error) {
                             exitCode = 1
 
-                            useUncaughtMessages(logError({ descr, err: eventOrError }))
+                            onUncaughtError(logError({ descr, err: eventOrError }))
                         }
 
                         setTimeout(() => { process.exit(exitCode) }, 1000).unref()
@@ -282,8 +282,8 @@ const getErrorHandling = function(params) {
             )
 
             if (isBrowser) {
-                window.addEventListener('error', onUncaughtError, true)
-                window.addEventListener('unhandledrejection', onUncaughtError, true)
+                window.addEventListener('error', handleUncaughtError, true)
+                window.addEventListener('unhandledrejection', handleUncaughtError, true)
             }
 
             if (isNodeJS) {
@@ -293,10 +293,10 @@ const getErrorHandling = function(params) {
                     socket.on('close', () => { sockets.delete(socket) })
                 })
 
-                process.on('uncaughtException', onUncaughtError)
-                process.on('unhandledRejection', onUncaughtError)
-                process.on('SIGTERM', onUncaughtError)
-                process.on('SIGINT', onUncaughtError)
+                process.on('uncaughtException', handleUncaughtError)
+                process.on('unhandledRejection', handleUncaughtError)
+                process.on('SIGTERM', handleUncaughtError)
+                process.on('SIGINT', handleUncaughtError)
             }
         }
     )
@@ -304,7 +304,7 @@ const getErrorHandling = function(params) {
     return {
         isProduction,
         devErrorLogger,
-        useMessages,
+        onError,
         isObject,
         isBrowser,
         isNodeJS,
