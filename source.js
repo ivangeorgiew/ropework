@@ -19,6 +19,7 @@ const getErrorHandling = function(params) {
             try {
                 params.devErrorLogger.apply(this, args)
             } catch(err) {
+                devErrorLogger(` Issue with: devErrorLogger\n`, err)
                 defaultLogger.apply(this, args)
             }
         } :
@@ -29,7 +30,7 @@ const getErrorHandling = function(params) {
             try {
                 params.onError.apply(this, args)
             } catch(err) {
-                devErrorLogger(` Issue with: onError function`, err)
+                devErrorLogger(` Issue with: onError\n`, err)
             }
         } :
         () => {}
@@ -254,7 +255,7 @@ const getErrorHandling = function(params) {
                 { on: () => {}, close: () => {} }
 
             const onUncaughtError = typeof params.onUncaughtError === 'function' ?
-                createFunc('Logging on uncaught error', params.onUncaughtError) :
+                createFunc('Logging on uncaught errors', params.onUncaughtError) :
                 onError
 
             const sockets = new Set()
