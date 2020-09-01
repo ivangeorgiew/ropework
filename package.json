@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/ivangeorgiew/tied-pants#readme",
   "scripts": {
-    "build": "babel --no-comments --minified source.js -o index.js",
+    "build": "babel source.js -o index.js",
     "version": "npm i && npm run build && git add -A",
     "postversion": "git push && npm publish"
   },
