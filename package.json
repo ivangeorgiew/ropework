@@ -1,19 +1,24 @@
 {
-  "name": "pure-error-handling",
-  "version": "4.3.1",
+  "name": "tied-pants",
+  "version": "1.0.0",
   "description": "Utilities for error handling",
   "main": "index.js",
   "private": false,
+  "keywords": [
+    "error",
+    "handling",
+    "logging"
+  ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ivangeorgiew/pure-error-handling.git"
+    "url": "git+https://github.com/ivangeorgiew/tied-pants.git"
   },
   "author": "Ivan Georgiev <ivan_georgiew@yahoo.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ivangeorgiew/pure-error-handling/issues"
+    "url": "https://github.com/ivangeorgiew/tied-pants/issues"
   },
-  "homepage": "https://github.com/ivangeorgiew/pure-error-handling#readme",
+  "homepage": "https://github.com/ivangeorgiew/tied-pants#readme",
   "scripts": {
     "build": "babel --no-comments --minified source.js -o index.js",
     "version": "npm i && npm run build && git add -A",

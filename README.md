@@ -1,13 +1,18 @@
-# pure-error-handling
-Error handling functions, object methods and whatever you can think of...
+# Tied Pants - error handling utilities for better user and developer experience
+In programming most errors could have been caught by developers, but they were
+lazy or negligent. This is me trying (pun intended) to semi-automate the process
+of catching errors so your app DOESN'T crash when it doesn't need to
+and that it DOES when it should. All done with useful and friendly logging.
+
+Be a good developer, tie your pants...
 
 ## Usage
 To start using this package you need to first install locally:
-`npm i pure-error-handling` or `yarn add pure-error-handling`
+`npm i tied-pants` or `yarn add tied-pants`
 
 ## Front-end Example:
 ```
-import getErrorHandling from 'pure-error-handling'
+import getErrorHandling from 'tied-pants'
 
 const { useMessages, createData, initUncaughtErrorHandling } = getErrorHandling({
     useMessages: ({ userMsg, prodMsg }) => {
@@ -90,7 +95,7 @@ setTimeout(() => { uncaughtSyncFunc() }, 500)
 const http = require('http')
 const express = require('express')
 const cors = require('cors')
-const getErrorHandling = require('pure-error-handling')
+const getErrorHandling = require('tied-pants')
 
 const app = express()
 const { createData, initUncaughtErrorHandling } = getErrorHandling()
