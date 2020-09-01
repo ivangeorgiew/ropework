@@ -9,18 +9,18 @@ const getErrorHandling = function(params) {
 
     params = isObject(params) ? params : {}
 
-    const isProduction = typeof params.isProduction === 'boolean' ?
-        params.isProduction :
+    const isDevelopment = typeof params.isDevelopment === 'boolean' ?
+        params.isDevelopment :
         isObject(process) && isObject(process.env) ?
-            process.env.NODE_ENV === 'production' :
-            true
+            process.env.NODE_ENV !== 'production' :
+            false
 
     const devErrorLogger = typeof params.devErrorLogger === 'function' ?
         function(...args) {
             try {
                 params.devErrorLogger.apply(this, args)
             } catch(err) {
-                if (!isProduction) {
+                if (isDevelopment) {
                     defaultLogger(` Issue with: Parameter devErrorLogger\n`, err)
                     defaultLogger.apply(this, args)
                 }
@@ -33,7 +33,7 @@ const getErrorHandling = function(params) {
             try {
                 params.onError.apply(this, args)
             } catch(err) {
-                if (!isProduction) {
+                if (isDevelopment) {
                     devErrorLogger(` Issue with: Parameter onError\n`, err)
                 }
             }
@@ -89,7 +89,7 @@ const getErrorHandling = function(params) {
                 return idx === 0 ? `${acc} ${stringifiedArg}` : `${acc} , ${stringifiedArg}`
             }, '')
 
-            if (!isProduction) {
+            if (isDevelopment) {
                 devErrorLogger(
                     ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`,
                     err
@@ -133,7 +133,7 @@ const getErrorHandling = function(params) {
         } catch(err) {
             const descr = 'Logging the errors'
 
-            if (!isProduction) {
+            if (isDevelopment) {
                 devErrorLogger(` Issue with: ${descr}\n`, err)
             }
 
@@ -321,7 +321,7 @@ const getErrorHandling = function(params) {
     )
 
     return {
-        isProduction,
+        isDevelopment,
         devErrorLogger,
         onError,
         isObject,

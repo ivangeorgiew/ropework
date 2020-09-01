@@ -18,11 +18,11 @@ import getErrorHandling from 'tied-pants'
 
 const { onError, createData, initUncaughtErrorHandling } = getErrorHandling({
     onError: ({ userMsg, prodMsg }) => {
-        //log the errors
-        /*
+        // TODO change with actual notifier
         alert(userMsg)
 
-        if (isProduction) {
+        /* TODO change with actual production logger
+        if (!isDevelopment) {
             prodLogger(prodMsg)
         }
         */
@@ -136,9 +136,9 @@ server.listen(port, function(err) {
 ```
 
 ### API for parameters passed to imported function:
-* `isProduction`
+* `isDevelopment`
   * type: `boolean`
-  * default: `process.env.NODE_ENV === 'production'`
+  * default: `process.env.NODE_ENV !== 'production'`
   * description: Boolean to decide if we should log devMsg
 
 * `devErrorLogger`
@@ -156,7 +156,7 @@ server.listen(port, function(err) {
   * `prodMsg`: Stringified JSON that consists of useful info for production logging
 
 ### API for returned values from the imported function:
-* `isProduction`
+* `isDevelopment`
   * type: `boolean`
   * description: Boolean that was parsed from `getErrorHandling`
 
