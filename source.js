@@ -1,6 +1,6 @@
 'use strict'
 
-const pureErrorHandling = function(params) {
+const getErrorHandling = function(params) {
     const isObject = val => typeof val !== 'function' && val === Object(val)
 
     params = isObject(params) ? params : {}
@@ -11,18 +11,14 @@ const pureErrorHandling = function(params) {
             process.env.NODE_ENV === 'production' :
             true
 
-    const notifyUser = typeof params.notifyUser === 'function' ?
-        params.notifyUser :
-        () => {}
-
-    const logInDevelopment = typeof params.logInDevelopment === 'function' ?
-        params.logInDevelopment :
+    const devErrorLogger = typeof params.devErrorLogger === 'function' ?
+        params.devErrorLogger :
         isObject(console) && typeof console.error === 'function' ?
             console.error :
             () => {}
 
-    const logInProduction = typeof params.logInProduction === 'function' ?
-        params.logInProduction :
+    const useMessages = typeof params.useMessages === 'function' ?
+        params.useMessages :
         () => {}
 
     const isBrowser = typeof window !== 'undefined'
@@ -31,7 +27,7 @@ const pureErrorHandling = function(params) {
     const isNodeJS = typeof global !== "undefined" 
         && ({}).toString.call(global) === '[object global]'
 
-    const stringifyAll = function (data) {
+    const stringifyAll = function(data) {
         try {
             const parser = function(_key, val) {
                 if (val instanceof Error) {
@@ -54,13 +50,13 @@ const pureErrorHandling = function(params) {
         }
     }
 
-    const logError = function (params) {
+    const logError = function(params) {
         try {
             params = isObject(params) ? params : {}
 
             const descr = typeof params.descr === 'string' ?
                 params.descr :
-                'Unknown function'
+                'Unknown error'
             const err = params.err instanceof Error ?
                 params.err :
                 new Error('Unknown error')
@@ -75,7 +71,7 @@ const pureErrorHandling = function(params) {
             }, '')
 
             if (!isProduction) {
-                logInDevelopment(
+                devErrorLogger(
                     ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`,
                     err
                 )
@@ -84,28 +80,26 @@ const pureErrorHandling = function(params) {
             const commonProps = {
                 description: descr,
                 arguments: args,
-                date: new Date().toUTCString(),
+                date: (new Date()).toUTCString(),
                 error: err
             }
 
-            if (isBrowser) {
-                notifyUser(`Internal error with: ${descr}`)
+            let prodMsg = stringifyAll(commonProps)
 
-                if (isProduction) {
-                    logInProduction(stringifyAll({
-                        ...commonProps,
-                        localUrl: window.location.href,
-                        machineInfo: {
-                            browserInfo: window.navigator.userAgent,
-                            language: window.navigator.language,
-                            osType: window.navigator.platform
-                        }
-                    }))
-                }
+            if (isBrowser) {
+                prodMsg = stringifyAll({
+                    ...commonProps,
+                    localUrl: window.location.href,
+                    machineInfo: {
+                        browserInfo: window.navigator.userAgent,
+                        language: window.navigator.language,
+                        osType: window.navigator.platform
+                    }
+                })
             }
 
-            if (isNodeJS && isProduction) {
-                logInProduction(stringifyAll({
+            if (isNodeJS) {
+                prodMsg = stringifyAll({
                     ...commonProps,
                     localUrl: __filename,
                     machineInfo: {
@@ -113,11 +107,20 @@ const pureErrorHandling = function(params) {
                         osType: process.platform,
                         depVersions: process.versions
                     }
-                }))
+                })
             }
+
+            return { userMsg: `Issue with: ${descr}`, prodMsg }
         } catch(err) {
+            const descr = 'Logging the errors'
+
             if (!isProduction) {
-                logInDevelopment(` Error during logging\n`, err)
+                devErrorLogger(` Issue with: ${descr}\n`, err)
+            }
+
+            return {
+                userMsg: `Issue with: ${descr}`,
+                prodMsg: stringifyAll({ description: descr, error: err })
             }
         }
     }
@@ -133,8 +136,8 @@ const pureErrorHandling = function(params) {
                 return function(){}
             }
 
-            const innerCatch = function({ err, args }) {
-                logError({ descr, err, args })
+            const innerCatch = function(err, args) {
+                useMessages(logError({ descr, err, args }))
 
                 if (typeof onCatch === 'function') {
                     return createFunc(`Catching errors at ${descr}`, onCatch)
@@ -159,12 +162,12 @@ const pureErrorHandling = function(params) {
 
                     //if the function returns a promise
                     if (isObject(result) && typeof result.catch === 'function') {
-                        return result.catch(err => innerCatch.call(this, { err, args }))
+                        return result.catch(err => innerCatch.apply(this, [err, args]))
                     }
 
                     return result
                 } catch(err) {
-                    return innerCatch.call(this, { err, args })
+                    return innerCatch.apply(this, [err, args])
                 }
             }
         } catch(err) {
@@ -229,21 +232,32 @@ const pureErrorHandling = function(params) {
     )
 
     const initUncaughtErrorHandling = createFunc(
-        'Initializing uncaught errors handling',
-        server => {
+        'Initializing uncaught error handling',
+        params => {
+            params = isObject(params) ? params : {}
+
+            const server = isObject(params.server) ?
+                params.server :
+                { on: () => {}, close: () => {} }
+
+            const useUncaughtMessages = typeof params.useUncaughtMessages === 'function' ?
+                params.useUncaughtMessages :
+                () => {}
+
             const sockets = new Set()
             const onUncaughtError = createFunc(
                 'Handling uncaught errors',
                 eventOrError => {
-                    const descr = 'Running the app, please reload!'
+                    const descr = 'Running the app!!!'
 
                     if (isBrowser) {
                         if (eventOrError instanceof Event) {
                             eventOrError.preventDefault()
-                            logError({
+
+                            useUncaughtMessages(logError({
                                 descr,
                                 err: eventOrError.reason ?? eventOrError.error
-                            })
+                            }))
                         }
 
                         // prevent user from interacting with the page
@@ -251,18 +265,15 @@ const pureErrorHandling = function(params) {
                     }
 
                     if (isNodeJS) {
-                        if (isObject(server) && typeof server.close === 'function') {
-                            server.close()
-                        }
-                        if (sockets instanceof Set) {
-                            sockets.forEach(socket => { socket.destroy() })
-                        }
+                        server.close()
+                        sockets.forEach(socket => { socket.destroy() })
 
                         let exitCode = 0
 
                         if (eventOrError instanceof Error) {
                             exitCode = 1
-                            logError({ descr, err: eventOrError })
+
+                            useUncaughtMessages(logError({ descr, err: eventOrError }))
                         }
 
                         setTimeout(() => { process.exit(exitCode) }, 1000).unref()
@@ -276,13 +287,11 @@ const pureErrorHandling = function(params) {
             }
 
             if (isNodeJS) {
-                if (isObject(server) && typeof server.on === 'function') {
-                    server.on('connection', socket => {
-                        sockets.add(socket);
+                server.on('connection', socket => {
+                    sockets.add(socket);
 
-                        socket.on('close', () => { sockets.delete(socket) })
-                    })
-                }
+                    socket.on('close', () => { sockets.delete(socket) })
+                })
 
                 process.on('uncaughtException', onUncaughtError)
                 process.on('unhandledRejection', onUncaughtError)
@@ -294,14 +303,16 @@ const pureErrorHandling = function(params) {
 
     return {
         isProduction,
+        devErrorLogger,
+        useMessages,
         isObject,
         isBrowser,
         isNodeJS,
         stringifyAll,
-        logError,
         createData,
         initUncaughtErrorHandling
     }
 }
 
-module.exports = pureErrorHandling
+module.exports = getErrorHandling
+g

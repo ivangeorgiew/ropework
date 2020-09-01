@@ -7,12 +7,23 @@ To start using this package you need to first install locally:
 
 ## Front-end Example:
 ```
-import pureErrorHandling from 'pure-error-handling'
+import getErrorHandling from 'pure-error-handling'
 
-const errorHandlers = pureErrorHandling({ notifyUser: alert })
-const { createData, initUncaughtErrorHandling } = errorHandlers
+const { useMessages, createData, initUncaughtErrorHandling } = getErrorHandling({
+    useMessages: ({ userMsg, prodMsg }) => {
+        //log the errors
+        /*
+        alert(userMsg)
 
-initUncaughtErrorHandling()
+        if (isProduction) {
+            prodLogger(prodMsg)
+        }
+        */
+    }
+})
+
+// or specify different function for uncaught errors only
+initUncaughtErrorHandling({ useUncaughtMessages: useMessages })
 
 const printNum = createData(
     'Printing a number',
@@ -60,9 +71,6 @@ const delayReturn = createData(
     () => 'Default result'
 )
 
-const undefinedFunc = createData()
-
-console.log('undefinedFunc(31)', undefinedFunc(31))
 console.log('printNum(9)', printNum(9))
 delayReturn(10).then(val => console.log('delayReturn(10) ' + val))
 console.log('measureFib(35)', measureFib(35))
@@ -82,10 +90,10 @@ setTimeout(() => { uncaughtSyncFunc() }, 500)
 const http = require('http')
 const express = require('express')
 const cors = require('cors')
-const pureErrorHandling = require('pure-error-handling')
+const getErrorHandling = require('pure-error-handling')
 
 const app = express()
-const { createData, initUncaughtErrorHandling } = pureErrorHandling()
+const { createData, initUncaughtErrorHandling } = getErrorHandling()
 const app = createData(
     'Express application',
     app,
@@ -98,7 +106,7 @@ const app = createData(
 const server = http.createServer(app)
 const port = process.env.PORT || 8080
 
-initUncaughtErrorHandling(server)
+initUncaughtErrorHandling({ server })
 
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
@@ -121,35 +129,38 @@ server.listen(port, function(err) {
 })
 ```
 
-### API for `pureErrorHandling` (or whatever you call it):
+### API for parameters passed to imported function:
 * `isProduction`
   * type: `boolean`
   * default: `process.env.NODE_ENV === 'production'`
-  * description: Used for deciding which functionality to use
-  (ex: use logInProduction or logInDevelopment)
+  * description: Boolean to decide if we should log devMsg
 
-* `notifyUser`
-  * type: `userMsg` -> ?
-  * default: `() => {}`
-  * description: Called with the user message only in the browser
-  * `userMsg`: `Internal error with: ${funcDesc}`
-
-* `logInDevelopment`
+* `devErrorLogger`
   * type: `devMsg` -> ?
   * default: `console.error`
-  * description: Called with the development message NOT in production
+  * description: Function for logging developer errors
   * `devMsg`: ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
 
-* `logInProduction`
-  * type: `prodMsg` -> ?
+* `useMessages`
+  * type: `({ userMsg, prodMsg })` -> ?
   * default: `() => {}`
-  * description: Called with the JSON string that contains info about the error
-  * `prodMsg`: `stringifyAll({ description, arguments, date, error, localUrl, machineInfo })`
+  * description: Function for notifying the user with friendly error messages
+  and logging in production.
+  * `userMsg`: ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
+  * `prodMsg`: Stringified JSON that consists of useful info for production logging
 
-### API for `errorHandlers` (or whatever you call it):
+### API for returned values from the imported function:
 * `isProduction`
   * type: `boolean`
-  * description: Boolean that was calculated from `pureErrorHandling`
+  * description: Boolean that was parsed from `getErrorHandling`
+
+* `devErrorLogger`
+  * type: `devMsg` -> ?
+  * description: Function that was parsed from `getErrorHandling`
+
+* `useMessages`
+  * type: `({ userMsg, prodMsg })` -> ?
+  * description: Function that was parsed from `getErrorHandling`
 
 * `isObject`
   * type: val -> boolean
@@ -168,13 +179,6 @@ server.listen(port, function(err) {
   * description: Takes any data and tries to stringify and format it
   * `data`: Any data that we parse and stringify
 
-* `logError`
-  * type: `({ funcDesc, err, args })` -> `undefined`
-  * description: Takes an object with settings and logs both in dev and prod
-  * `funcDesc`: String that describes the function
-  * `err`: Error instance
-  * `args`: Array from the function arguments
-
 * `createData`
   * type: `(descr, data, onCatch)` || `(data, onCatch)` -> `error handled data`
   * description: Error handles every type of data that you give it
@@ -183,10 +187,12 @@ server.listen(port, function(err) {
   objects and their methods, etc. Returns the error handled version. If object or function -
   for every method specified we can use `${methodName}Catch` to implement `onCatch`.
   * `onCatch`: Function which acts as default onCatch for the returned data. Accepts arguments
-  `({ descr, err, args })`, where `descr` is same as above, `err` is the error caught Error
-  and args are the arguments which were supplied to the tried function.
+  `({ descr, err, args })`, where `descr` is same as above, `err`
+  is the error caught Error, `args` are the arguments which were supplied to the tried function.
 
 * `initUncaughtErrorHandling`
-  * type: `server` -> `undefined`
+  * type: `({ server, useUncaughtMessages })` -> ?
   * description: Start the handling of uncaught errors
   * `server`: Object that is used only when the environment is Node.js
+  * `useUncaughtMessages`: Function that gets the args `({ userMsg, prodMsg })`.
+  Useful for notifying the user with friendly error messages and logging in production.
