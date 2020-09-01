@@ -11,15 +11,15 @@ const pureErrorHandling = function(params) {
             process.env.NODE_ENV === 'production' :
             true
 
-    const errorLogger = typeof params.errorLogger === 'function' ?
-        params.errorLogger :
-        isObject(console) && typeof console.error === 'function' ?
-            console.error :
-            () => {}
-
     const notifyUser = typeof params.notifyUser === 'function' ?
         params.notifyUser :
         () => {}
+
+    const logInDevelopment = typeof params.logInDevelopment === 'function' ?
+        params.logInDevelopment :
+        isObject(console) && typeof console.error === 'function' ?
+            console.error :
+            () => {}
 
     const logInProduction = typeof params.logInProduction === 'function' ?
         params.logInProduction :
@@ -75,7 +75,7 @@ const pureErrorHandling = function(params) {
             }, '')
 
             if (!isProduction) {
-                errorLogger(
+                logInDevelopment(
                     ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`,
                     err
                 )
@@ -117,7 +117,7 @@ const pureErrorHandling = function(params) {
             }
         } catch(err) {
             if (!isProduction) {
-                errorLogger(` Error during logging\n`, err)
+                logInDevelopment(` Error during logging\n`, err)
             }
         }
     }
@@ -146,7 +146,7 @@ const pureErrorHandling = function(params) {
                 try {
                     if (shouldHandleArgs) {
                         args = args.map(el => typeof el === 'function' ?
-                            createFunc(`Executing function argument`, el, onCatch) :
+                            createFunc(`Executing argument of ${descr}`, el, onCatch) :
                             el
                         )
                     }
@@ -293,6 +293,7 @@ const pureErrorHandling = function(params) {
     )
 
     return {
+        isProduction,
         isObject,
         isBrowser,
         isNodeJS,

@@ -1,8 +1,6 @@
 # pure-error-handling
 Error handling functions, object methods and whatever you can think of...
 
-!!! Do note that this is the documentation for V4.0.0 !!!
-
 ## Usage
 To start using this package you need to first install locally:
 `npm i pure-error-handling` or `yarn add pure-error-handling`
@@ -127,13 +125,8 @@ server.listen(port, function(err) {
 * `isProduction`
   * type: `boolean`
   * default: `process.env.NODE_ENV === 'production'`
-  * description: Used for deciding which functionality to use (ex: use logInProduction or not)
-
-* `errorLogger`
-  * type: `devMsg` -> ?
-  * default: `console.error`
-  * description: Called with the development message NOT in production
-  * `devMsg`: ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
+  * description: Used for deciding which functionality to use
+  (ex: use logInProduction or logInDevelopment)
 
 * `notifyUser`
   * type: `userMsg` -> ?
@@ -141,13 +134,23 @@ server.listen(port, function(err) {
   * description: Called with the user message only in the browser
   * `userMsg`: `Internal error with: ${funcDesc}`
 
+* `logInDevelopment`
+  * type: `devMsg` -> ?
+  * default: `console.error`
+  * description: Called with the development message NOT in production
+  * `devMsg`: ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
+
 * `logInProduction`
-  * type: `stringifiedParams` -> ?
+  * type: `prodMsg` -> ?
   * default: `() => {}`
   * description: Called with the JSON string that contains info about the error
-  * `stringifiedParams`: `stringifyAll({ functionDescription, arguments, date, error, localUrl, machineInfo })`
+  * `prodMsg`: `stringifyAll({ description, arguments, date, error, localUrl, machineInfo })`
 
 ### API for `errorHandlers` (or whatever you call it):
+* `isProduction`
+  * type: `boolean`
+  * description: Boolean that was calculated from `pureErrorHandling`
+
 * `isObject`
   * type: val -> boolean
   * description: Checks if the provided value is a true object {}
