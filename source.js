@@ -21,8 +21,8 @@ const pureErrorHandling = function(params) {
         params.notifyUser :
         () => {}
 
-    const logInProdFunc = typeof params.logInProdFunc === 'function' ?
-        params.logInProdFunc :
+    const logInProduction = typeof params.logInProduction === 'function' ?
+        params.logInProduction :
         () => {}
 
     const isBrowser = typeof window !== 'undefined'
@@ -92,7 +92,7 @@ const pureErrorHandling = function(params) {
                 notifyUser(`Internal error with: ${descr}`)
 
                 if (isProduction) {
-                    logInProdFunc(stringifyAll({
+                    logInProduction(stringifyAll({
                         ...commonProps,
                         localUrl: window.location.href,
                         machineInfo: {
@@ -105,7 +105,7 @@ const pureErrorHandling = function(params) {
             }
 
             if (isNodeJS && isProduction) {
-                logInProdFunc(stringifyAll({
+                logInProduction(stringifyAll({
                     ...commonProps,
                     localUrl: __filename,
                     machineInfo: {

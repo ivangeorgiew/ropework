@@ -127,7 +127,7 @@ server.listen(port, function(err) {
 * `isProduction`
   * type: `boolean`
   * default: `process.env.NODE_ENV === 'production'`
-  * description: Used for deciding which functionality to use (ex: use logInProd or not)
+  * description: Used for deciding which functionality to use (ex: use logInProduction or not)
 
 * `errorLogger`
   * type: `devMsg` -> ?
@@ -141,7 +141,7 @@ server.listen(port, function(err) {
   * description: Called with the user message only in the browser
   * `userMsg`: `Internal error with: ${funcDesc}`
 
-* `logInProd`
+* `logInProduction`
   * type: `stringifiedParams` -> ?
   * default: `() => {}`
   * description: Called with the JSON string that contains info about the error
