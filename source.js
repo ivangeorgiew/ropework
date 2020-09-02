@@ -302,26 +302,26 @@ const getErrorHandling = function(params) {
         () => {
             if (isBrowser) {
                 browserEventNames.forEach(eventName => {
-                    if (typeof window.__errorListener__ === 'function') {
-                        window.removeEventListener(eventName, window.__errorListener__, true)
+                    if (typeof window._tp_errorListener_ === 'function') {
+                        window.removeEventListener(eventName, window._tp_errorListener_, true)
                     }
 
                     window.addEventListener(eventName, errorListener, true)
                 })
 
-                window.__errorListener__ = errorListener
+                window._tp_errorListener_ = errorListener
             }
 
             if (isNodeJS) {
                 nodeEventNames.forEach(eventName => {
-                    if (typeof global.__errorListener__ === 'function') {
-                        process.removeListener(eventName, global.__errorListener__)
+                    if (typeof global._tp_errorListener_ === 'function') {
+                        process.removeListener(eventName, global._tp_errorListener_)
                     }
 
                     process.on(eventName, errorListener)
                 })
 
-                global.__errorListener__ = errorListener
+                global._tp_errorListener_ = errorListener
             }
         }
     )
@@ -329,30 +329,23 @@ const getErrorHandling = function(params) {
     const getHandledServer = createFunc(
         'initializing error handling for server',
         server => {
-            server = isObject(server) ? server : {}
+            server = isObject(server) ? server : { on: () => {}, close: () => {} }
 
             const sockets = new Set()
-
-            if (typeof server.on === 'function') {
-                server.removeAllListeners('connection')
-                server.on('connection', socket => {
-                    sockets.add(socket);
-                    socket.on('close', () => { sockets.delete(socket) })
-                })
-            }
-
             const serverErrorListener = createFunc(
                 'handling server closing',
-                eventOrError => {
-                    if (typeof server.close === 'function') {
-                        server.close()
-                    }
-
+                () => {
+                    server.close()
                     sockets.forEach(socket => { socket.destroy() })
                 }
             )
 
             if (isNodeJS) {
+                server.on('connection', socket => {
+                    sockets.add(socket);
+                    socket.on('close', () => { sockets.delete(socket) })
+                })
+
                 nodeEventNames.forEach(eventName => {
                     process.prependListener(eventName, serverErrorListener)
                 })
