@@ -128,55 +128,56 @@ server.listen(port, function(err) {
 * `isDevelopment`
   * type: `boolean`
   * default: `process.env.NODE_ENV !== 'production'`
-  * description: Boolean to decide if we should log devMsg
+  * definition: Boolean to decide if we should log devMsg
 
 * `devErrorLogger`
   * type: `devMsg` -> ?
   * default: `console.error`
-  * description: Function for logging developer errors
+  * definition: Function for logging developer errors
   * `devMsg`: ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
 
 * `onError`
-  * type: `({ description, productionMsg })` -> ?
+  * type: `({ isUncaught, description, productionMsg })` -> ?
   * default: `() => {}`
-  * description: Function for notifying the user with friendly error messages
+  * definition: Function for notifying the user with friendly error messages
   and logging in production.
+  * `isUncaught`: Boolean that indicates whether the error was caught or not
   * `description`: String that describes what the functionality was supposed to be doing
   * `productionMsg`: Stringified JSON that consists of useful info for production logging
 
 ### API for returned values from the imported function:
 * `isDevelopment`
   * type: `boolean`
-  * description: Boolean that was parsed from `getErrorHandling`
+  * definition: Boolean that was parsed from `getErrorHandling`
 
 * `devErrorLogger`
   * type: `devMsg` -> ?
-  * description: Function that was parsed from `getErrorHandling`
+  * definition: Function that was parsed from `getErrorHandling`
 
 * `onError`
-  * type: `({ description, productionMsg })` -> ?
-  * description: Function that was parsed from `getErrorHandling`
+  * type: `({ isUncaught, description, productionMsg })` -> ?
+  * definition: Function that was parsed from `getErrorHandling`
 
 * `isObject`
   * type: val -> boolean
-  * description: Checks if the provided value is a true object {}
+  * definition: Checks if the provided value is a true object {}
 
 * `isBrowser`
   * type: `boolean`
-  * description: Tells if in browser environment or not
+  * definition: Tells if in browser environment or not
 
 * `isNodeJS`
   * type: `boolean`
-  * description: Tells if in Node.js environment or not
+  * definition: Tells if in Node.js environment or not
 
 * `stringifyAll`
   * type: `data` -> `stringified and parsed data`
-  * description: Takes any data and tries to stringify and format it
+  * definition: Takes any data and tries to stringify and format it
   * `data`: Any data that we parse and stringify
 
 * `createData`
   * type: `(descr, data, onCatch)` || `(data, onCatch)` -> `error handled data`
-  * description: Error handles every type of data that you give it
+  * definition: Error handles every type of data that you give it
   * `descr`: String that describes the data which you gave. Used for logging.
   * `data`: Any data which we error handle deeply. Arrays, functions and their arguments,
   objects and their methods, etc. Returns the error handled version. If object or function -
@@ -187,5 +188,5 @@ server.listen(port, function(err) {
 
 * `getHandledServer`
   * type: `server` -> `handledServer`
-  * description: Return a server that is error handled and closed gracefully on uncaught errors
+  * definition: Return a server that is error handled and closed gracefully on uncaught errors
   * `server`: Object that is the back-end server (ex: http.createServer(expressApp))

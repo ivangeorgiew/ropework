@@ -12,7 +12,7 @@ const getErrorHandling = function(params) {
 
     const defaultLogger = isObject(console) && typeof console.error === 'function' ?
         console.error :
-        () => {}
+        function(){}
 
     const defaultDescr = 'a part of the application'
 
@@ -53,7 +53,7 @@ const getErrorHandling = function(params) {
                 }
             }
         } :
-        () => {}
+        function(){}
     //end configuring arguments
 
     const stringifyAll = function(data) {
@@ -79,7 +79,7 @@ const getErrorHandling = function(params) {
         }
     }
 
-    const getErrorInfo = function(params) {
+    const logError = function(params) {
         params = isObject(params) ? params : {}
 
         const isUncaught = typeof params.descr === 'boolean' ?
@@ -87,7 +87,7 @@ const getErrorHandling = function(params) {
             false
         const descr = typeof params.descr === 'string' ?
             params.descr :
-            isUncaught ? 'unexpected error, plese reload...' : defaultDescr
+            isUncaught ? 'unhandled error, plese reload the app!' : defaultDescr
 
         try {
             const err = params.err instanceof Error ?
@@ -143,29 +143,28 @@ const getErrorHandling = function(params) {
                 })
             }
 
-            return { description: descr, productionMsg }
+            onError({ isUncaught, description: descr, productionMsg })
         } catch(err) {
             if (isDevelopment) {
                 devErrorLogger(` Issue with: error logger\n`, err)
             }
 
-            return {
+            onError({
+                isUncaught,
                 description: descr,
                 productionMsg: stringifyAll({ description: descr, error: err })
-            }
+            })
         }
     }
 
     const createFunc = function(descr, onTry, onCatch, shouldHandleArgs = false) {
         try {
             if (typeof onTry !== 'function') {
-                getErrorInfo({ err: new Error(`Instead of function was given ${onTry}`) })
-
-                return function(){}
+                throw new Error('Data given was not a function')
             }
 
             const innerCatch = function(err, args) {
-                onError(getErrorInfo({ descr, err, args }))
+                logError({ descr, err, args })
 
                 if (typeof onCatch === 'function') {
                     return createFunc(`catching errors for ${descr}`, onCatch)
@@ -182,7 +181,7 @@ const getErrorHandling = function(params) {
                         )
                     }
                 } catch(err) {
-                    getErrorInfo({ descr: 'error handling function arguments', err })
+                    logError({ descr: 'error handling function arguments', err, args })
                 }
 
                 try {
@@ -199,7 +198,7 @@ const getErrorHandling = function(params) {
                 }
             }
         } catch(err) {
-            getErrorInfo({ descr: 'error handling function', err })
+            logError({ descr: 'error handling functions', err })
 
             return typeof onTry === 'function' ? onTry : function(){}
         }
@@ -268,10 +267,10 @@ const getErrorHandling = function(params) {
                     eventOrError.stopImmediatePropagation()
                     eventOrError.preventDefault()
 
-                    onError(getErrorInfo({
+                    logError({
                         isUncaught: true,
                         err: eventOrError.reason ?? eventOrError.error
-                    }))
+                    })
                 }
 
                 // prevent user from interacting with the page
@@ -284,10 +283,7 @@ const getErrorHandling = function(params) {
                 if (eventOrError instanceof Error) {
                     exitCode = 1
 
-                    onError(getErrorInfo({
-                        isUncaught: true,
-                        err: eventOrError
-                    }))
+                    logError({ isUncaught: true, err: eventOrError })
                 }
 
                 setTimeout(() => { process.exit(exitCode) }, 1000).unref()
