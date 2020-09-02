@@ -87,7 +87,7 @@ const getErrorHandling = function(params) {
             false
         const descr = typeof params.descr === 'string' ?
             params.descr :
-            isUncaught ? 'unhandled error, plese reload the app!' : defaultDescr
+            isUncaught ? 'unhandled error' : defaultDescr
 
         try {
             const err = params.err instanceof Error ?
