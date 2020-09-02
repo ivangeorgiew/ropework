@@ -20,7 +20,7 @@ const { createData } = getErrorHandling({
     onError: ({ description }) => {
         // TODO change with better user notification
         alert(`Issue with: ${description}`)
-        // TODO add production logger that uses prodMsg
+        // TODO add production logger that uses productionMsg
     }
 })
 
@@ -137,12 +137,12 @@ server.listen(port, function(err) {
   * `devMsg`: ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
 
 * `onError`
-  * type: `({ description, prodMsg })` -> ?
+  * type: `({ description, productionMsg })` -> ?
   * default: `() => {}`
   * description: Function for notifying the user with friendly error messages
   and logging in production.
   * `description`: String that describes what the functionality was supposed to be doing
-  * `prodMsg`: Stringified JSON that consists of useful info for production logging
+  * `productionMsg`: Stringified JSON that consists of useful info for production logging
 
 ### API for returned values from the imported function:
 * `isDevelopment`
@@ -154,7 +154,7 @@ server.listen(port, function(err) {
   * description: Function that was parsed from `getErrorHandling`
 
 * `onError`
-  * type: `({ description, prodMsg })` -> ?
+  * type: `({ description, productionMsg })` -> ?
   * description: Function that was parsed from `getErrorHandling`
 
 * `isObject`

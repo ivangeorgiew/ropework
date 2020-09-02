@@ -117,10 +117,10 @@ const getErrorHandling = function(params) {
                 error: err
             }
 
-            let prodMsg = stringifyAll(commonProps)
+            let productionMsg = stringifyAll(commonProps)
 
             if (isBrowser) {
-                prodMsg = stringifyAll({
+                productionMsg = stringifyAll({
                     ...commonProps,
                     localUrl: window.location.href,
                     machineInfo: {
@@ -132,7 +132,7 @@ const getErrorHandling = function(params) {
             }
 
             if (isNodeJS) {
-                prodMsg = stringifyAll({
+                productionMsg = stringifyAll({
                     ...commonProps,
                     localUrl: __filename,
                     machineInfo: {
@@ -143,7 +143,7 @@ const getErrorHandling = function(params) {
                 })
             }
 
-            return { description: descr, prodMsg }
+            return { description: descr, productionMsg }
         } catch(err) {
             if (isDevelopment) {
                 devErrorLogger(` Issue with: error logger\n`, err)
@@ -151,7 +151,7 @@ const getErrorHandling = function(params) {
 
             return {
                 description: descr,
-                prodMsg: stringifyAll({ description: descr, error: err })
+                productionMsg: stringifyAll({ description: descr, error: err })
             }
         }
     }
