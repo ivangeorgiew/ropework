@@ -1,14 +1,27 @@
 'use strict'
 
 const getErrorHandling = function(params) {
+    //start constants definitions
     const isObject = val => typeof val !== 'function' && val === Object(val)
 
-    const defaultDescr = 'unnamed entity'
+    const isBrowser = typeof window !== 'undefined'
+        && ({}).toString.call(window) === '[object Window]'
+
+    const isNodeJS = typeof global !== 'undefined' 
+        && ({}).toString.call(global) === '[object global]'
 
     const defaultLogger = isObject(console) && typeof console.error === 'function' ?
         console.error :
         () => {}
 
+    const defaultDescr = 'a part of the application'
+
+    const browserEventNames = ['error', 'unhandledrejection']
+
+    const nodeEventNames = ['uncaughtException', 'unhandledRejection', 'SIGTERM', 'SIGINT']
+    //end constants definitions
+
+    //start configuring arguments
     params = isObject(params) ? params : {}
 
     const isDevelopment = typeof params.isDevelopment === 'boolean' ?
@@ -41,12 +54,7 @@ const getErrorHandling = function(params) {
             }
         } :
         () => {}
-
-    const isBrowser = typeof window !== 'undefined'
-        && ({}).toString.call(window) === '[object Window]'
-
-    const isNodeJS = typeof global !== 'undefined' 
-        && ({}).toString.call(global) === '[object global]'
+    //end configuring arguments
 
     const stringifyAll = function(data) {
         try {
@@ -71,13 +79,17 @@ const getErrorHandling = function(params) {
         }
     }
 
-    const logError = function(params) {
-        try {
-            params = isObject(params) ? params : {}
+    const getErrorInfo = function(params) {
+        params = isObject(params) ? params : {}
 
-            const descr = typeof params.descr === 'string' ?
-                params.descr :
-                defaultDescr
+        const isUncaught = typeof params.descr === 'boolean' ?
+            params.descr :
+            false
+        const descr = typeof params.descr === 'string' ?
+            params.descr :
+            isUncaught ? 'unexpected error, plese reload...' : defaultDescr
+
+        try {
             const err = params.err instanceof Error ?
                 params.err :
                 new Error('Unknown error')
@@ -131,14 +143,14 @@ const getErrorHandling = function(params) {
                 })
             }
 
-            return { userMsg: `Issue with: ${descr}`, prodMsg }
+            return { description: descr, prodMsg }
         } catch(err) {
             if (isDevelopment) {
                 devErrorLogger(` Issue with: error logger\n`, err)
             }
 
             return {
-                userMsg: `Issue with: ${defaultDescr}`,
+                description: descr,
                 prodMsg: stringifyAll({ description: descr, error: err })
             }
         }
@@ -147,13 +159,13 @@ const getErrorHandling = function(params) {
     const createFunc = function(descr, onTry, onCatch, shouldHandleArgs = false) {
         try {
             if (typeof onTry !== 'function') {
-                logError({ err: new Error(`Instead of function was given ${onTry}`) })
+                getErrorInfo({ err: new Error(`Instead of function was given ${onTry}`) })
 
                 return function(){}
             }
 
             const innerCatch = function(err, args) {
-                onError(logError({ descr, err, args }))
+                onError(getErrorInfo({ descr, err, args }))
 
                 if (typeof onCatch === 'function') {
                     return createFunc(`catching errors for ${descr}`, onCatch)
@@ -170,7 +182,7 @@ const getErrorHandling = function(params) {
                         )
                     }
                 } catch(err) {
-                    logError({ descr: 'error handling function arguments', err })
+                    getErrorInfo({ descr: 'error handling function arguments', err })
                 }
 
                 try {
@@ -187,7 +199,7 @@ const getErrorHandling = function(params) {
                 }
             }
         } catch(err) {
-            logError({ descr: 'error handling function', err })
+            getErrorInfo({ descr: 'error handling function', err })
 
             return typeof onTry === 'function' ? onTry : function(){}
         }
@@ -248,53 +260,66 @@ const getErrorHandling = function(params) {
         ({ args: [descr, data] }) => typeof descr === 'string' ? data : descr
     )
 
-    const initUncaughtErrorHandling = createFunc(
-        'initializing uncaught error handling',
-        () => {
-            const innerListener = createFunc(
-                'handling uncaught errors',
-                eventOrError => {
-                    const descr = 'uncaught error'
-
-                    if (isBrowser) {
-                        if (eventOrError instanceof Event) {
-                            eventOrError.stopImmediatePropagation()
-                            eventOrError.preventDefault()
-
-                            onError(logError({
-                                descr,
-                                err: eventOrError.reason ?? eventOrError.error
-                            }))
-                        }
-
-                        // prevent user from interacting with the page
-                        window.document.body.style['pointer-events'] = 'none'
-                    }
-
-                    if (isNodeJS) {
-                        let exitCode = 0
-
-                        if (eventOrError instanceof Error) {
-                            exitCode = 1
-
-                            onError(logError({ descr, err: eventOrError }))
-                        }
-
-                        setTimeout(() => { process.exit(exitCode) }, 1000).unref()
-                    }
-                }
-            )
-
+    const errorListener = createFunc(
+        'listening for unexpected errors',
+        eventOrError => {
             if (isBrowser) {
-                window.addEventListener('error', innerListener, true)
-                window.addEventListener('unhandledrejection', innerListener, true)
+                if (eventOrError instanceof Event) {
+                    eventOrError.stopImmediatePropagation()
+                    eventOrError.preventDefault()
+
+                    onError(getErrorInfo({
+                        isUncaught: true,
+                        err: eventOrError.reason ?? eventOrError.error
+                    }))
+                }
+
+                // prevent user from interacting with the page
+                window.document.body.style['pointer-events'] = 'none'
             }
 
             if (isNodeJS) {
-                process.on('uncaughtException', innerListener)
-                process.on('unhandledRejection', innerListener)
-                process.on('SIGTERM', innerListener)
-                process.on('SIGINT', innerListener)
+                let exitCode = 0
+
+                if (eventOrError instanceof Error) {
+                    exitCode = 1
+
+                    onError(getErrorInfo({
+                        isUncaught: true,
+                        err: eventOrError
+                    }))
+                }
+
+                setTimeout(() => { process.exit(exitCode) }, 1000).unref()
+            }
+        }
+    )
+
+    const initUncaughtErrorHandling = createFunc(
+        'initializing listening for unexpected errors',
+        () => {
+            if (isBrowser) {
+                browserEventNames.forEach(eventName => {
+                    if (typeof window.__errorListener__ === 'function') {
+                        window.removeEventListener(eventName, window.__errorListener__, true)
+                    }
+
+                    window.addEventListener(eventName, errorListener, true)
+                })
+
+                window.__errorListener__ = errorListener
+            }
+
+            if (isNodeJS) {
+                nodeEventNames.forEach(eventName => {
+                    if (typeof global.__errorListener__ === 'function') {
+                        process.removeListener(eventName, global.__errorListener__)
+                    }
+
+                    process.on(eventName, errorListener)
+                })
+
+                global.__errorListener__ = errorListener
             }
         }
     )
@@ -306,7 +331,15 @@ const getErrorHandling = function(params) {
 
             const sockets = new Set()
 
-            const innerServerListener = createFunc(
+            if (typeof server.on === 'function') {
+                server.removeAllListeners('connection')
+                server.on('connection', socket => {
+                    sockets.add(socket);
+                    socket.on('close', () => { sockets.delete(socket) })
+                })
+            }
+
+            const serverErrorListener = createFunc(
                 'handling server closing',
                 eventOrError => {
                     if (typeof server.close === 'function') {
@@ -317,18 +350,10 @@ const getErrorHandling = function(params) {
                 }
             )
 
-            if (typeof server.on === 'function') {
-                server.on('connection', socket => {
-                    sockets.add(socket);
-                    socket.on('close', () => { sockets.delete(socket) })
-                })
-            }
-
             if (isNodeJS) {
-                process.prependListener('uncaughtException', innerServerListener)
-                process.prependListener('unhandledRejection', innerServerListener)
-                process.prependListener('SIGTERM', innerServerListener)
-                process.prependListener('SIGINT', innerServerListener)
+                nodeEventNames.forEach(eventName => {
+                    process.prependListener(eventName, serverErrorListener)
+                })
             }
 
             return server

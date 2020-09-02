@@ -17,15 +17,10 @@ To start using this package you need to first install locally:
 import getErrorHandling from 'tied-pants'
 
 const { createData } = getErrorHandling({
-    onError: ({ userMsg, prodMsg }) => {
-        // TODO change with actual notifier
-        alert(userMsg)
-
-        /* TODO change with actual production logger
-        if (!isDevelopment) {
-            prodLogger(prodMsg)
-        }
-        */
+    onError: ({ description }) => {
+        // TODO change with better user notification
+        alert(`Issue with: ${description}`)
+        // TODO add production logger that uses prodMsg
     }
 })
 
@@ -142,11 +137,11 @@ server.listen(port, function(err) {
   * `devMsg`: ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
 
 * `onError`
-  * type: `({ userMsg, prodMsg })` -> ?
+  * type: `({ description, prodMsg })` -> ?
   * default: `() => {}`
   * description: Function for notifying the user with friendly error messages
   and logging in production.
-  * `userMsg`: ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
+  * `description`: String that describes what the functionality was supposed to be doing
   * `prodMsg`: Stringified JSON that consists of useful info for production logging
 
 ### API for returned values from the imported function:
@@ -159,7 +154,7 @@ server.listen(port, function(err) {
   * description: Function that was parsed from `getErrorHandling`
 
 * `onError`
-  * type: `({ userMsg, prodMsg })` -> ?
+  * type: `({ description, prodMsg })` -> ?
   * description: Function that was parsed from `getErrorHandling`
 
 * `isObject`
