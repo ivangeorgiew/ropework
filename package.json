@@ -20,20 +20,11 @@
   },
   "homepage": "https://github.com/ivangeorgiew/tied-pants#readme",
   "scripts": {
-    "prod": "babel source.js | uglifyjs -c -m -o lib/prod.js",
-    "dev": "babel source.js -o lib/dev.js",
-    "version": "npm i && npm run dev && npm run prod && git add -A",
+    "build": "terser -c -m -o source.min.js source.js",
+    "version": "npm i && npm run build && git add -A",
     "postversion": "git push && npm publish"
   },
   "devDependencies": {
-    "@babel/cli": "^7.10.5",
-    "@babel/core": "^7.11.4",
-    "@babel/preset-env": "^7.11.0",
-    "uglify-js": "^3.10.3"
-  },
-  "babel": {
-    "presets": [
-      "@babel/preset-env"
-    ]
+    "terser": "^5.2.1"
   }
 }

@@ -236,11 +236,15 @@ const getErrorHandling = function(params) {
                         return
                     }
 
+                    const onMethodCatch = typeof data[key + 'Catch'] === 'function' ?
+                        data[key + 'Catch'] :
+                        onCatch
+
                     const value = typeof data[key] === 'function' ?
                         createFunc(
                             `method ${key}`,
                             data[key],
-                            data[key + 'Catch'] ?? onCatch,
+                            onMethodCatch,
                             shouldHandleArgs
                         ).bind(data) :
                         data[key]
@@ -267,10 +271,12 @@ const getErrorHandling = function(params) {
                     eventOrError.stopImmediatePropagation()
                     eventOrError.preventDefault()
 
-                    logError({
-                        isUncaught: true,
-                        err: eventOrError.reason ?? eventOrError.error
-                    })
+                    const { reason, error } = eventOrError
+                    const err = reason instanceof Error ?
+                        reason :
+                        error instanceof Error ? error : undefined
+
+                    logError({ isUncaught: true, err })
                 }
 
                 // prevent user from interacting with the page

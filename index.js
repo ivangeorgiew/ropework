@@ -4,7 +4,7 @@ var isDevelopment = process === Object(process) && process.env === Object(proces
     false;
 
 if (isDevelopment) {
-  module.exports = require('./lib/dev.js');
+  module.exports = require('.source.js');
 } else {
-  module.exports = require('./lib/prod.js');
+  module.exports = require('.source.min.js');
 }
