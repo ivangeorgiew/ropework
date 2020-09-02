@@ -3,6 +3,8 @@
 const getErrorHandling = function(params) {
     const isObject = val => typeof val !== 'function' && val === Object(val)
 
+    const defaultDescr = 'unnamed entity'
+
     const defaultLogger = isObject(console) && typeof console.error === 'function' ?
         console.error :
         () => {}
@@ -21,7 +23,7 @@ const getErrorHandling = function(params) {
                 params.devErrorLogger.apply(this, args)
             } catch(err) {
                 if (isDevelopment) {
-                    defaultLogger(` Issue with: Parameter devErrorLogger\n`, err)
+                    defaultLogger(` Issue with: parameter devErrorLogger\n`, err)
                     defaultLogger.apply(this, args)
                 }
             }
@@ -34,7 +36,7 @@ const getErrorHandling = function(params) {
                 params.onError.apply(this, args)
             } catch(err) {
                 if (isDevelopment) {
-                    devErrorLogger(` Issue with: Parameter onError\n`, err)
+                    devErrorLogger(` Issue with: parameter onError\n`, err)
                 }
             }
         } :
@@ -43,7 +45,7 @@ const getErrorHandling = function(params) {
     const isBrowser = typeof window !== 'undefined'
         && ({}).toString.call(window) === '[object Window]'
 
-    const isNodeJS = typeof global !== "undefined" 
+    const isNodeJS = typeof global !== 'undefined' 
         && ({}).toString.call(global) === '[object global]'
 
     const stringifyAll = function(data) {
@@ -75,7 +77,7 @@ const getErrorHandling = function(params) {
 
             const descr = typeof params.descr === 'string' ?
                 params.descr :
-                'Unknown error'
+                defaultDescr
             const err = params.err instanceof Error ?
                 params.err :
                 new Error('Unknown error')
@@ -131,14 +133,12 @@ const getErrorHandling = function(params) {
 
             return { userMsg: `Issue with: ${descr}`, prodMsg }
         } catch(err) {
-            const descr = 'Logging the errors'
-
             if (isDevelopment) {
-                devErrorLogger(` Issue with: ${descr}\n`, err)
+                devErrorLogger(` Issue with: error logger\n`, err)
             }
 
             return {
-                userMsg: `Issue with: ${descr}`,
+                userMsg: `Issue with: ${defaultDescr}`,
                 prodMsg: stringifyAll({ description: descr, error: err })
             }
         }
@@ -147,10 +147,7 @@ const getErrorHandling = function(params) {
     const createFunc = function(descr, onTry, onCatch, shouldHandleArgs = false) {
         try {
             if (typeof onTry !== 'function') {
-                logError({
-                    descr: 'Undefined function',
-                    err: new Error(`Instead of function was given ${onTry}`)
-                })
+                logError({ err: new Error(`Instead of function was given ${onTry}`) })
 
                 return function(){}
             }
@@ -159,7 +156,7 @@ const getErrorHandling = function(params) {
                 onError(logError({ descr, err, args }))
 
                 if (typeof onCatch === 'function') {
-                    return createFunc(`Catching errors at ${descr}`, onCatch)
+                    return createFunc(`catching errors for ${descr}`, onCatch)
                         .call(this, { descr, err, args })
                 }
             }
@@ -168,12 +165,12 @@ const getErrorHandling = function(params) {
                 try {
                     if (shouldHandleArgs) {
                         args = args.map(el => typeof el === 'function' ?
-                            createFunc(`Executing argument of ${descr}`, el, onCatch) :
+                            createFunc(`argument of ${descr}`, el, onCatch) :
                             el
                         )
                     }
                 } catch(err) {
-                    logError({ descr: 'Error handling function arguments', err })
+                    logError({ descr: 'error handling function arguments', err })
                 }
 
                 try {
@@ -190,26 +187,26 @@ const getErrorHandling = function(params) {
                 }
             }
         } catch(err) {
-            logError({ descr: 'Error handling function', err })
+            logError({ descr: 'error handling function', err })
 
             return typeof onTry === 'function' ? onTry : function(){}
         }
     }
 
     const createData = createFunc(
-        'Creating wrapper for any data type',
+        'creating error handled data',
         (...args) => {
             let [descr, data, onCatch] = args
 
             if (typeof descr !== 'string') {
-                descr = 'Unknown action or data'
+                descr = defaultDescr
                 data = args[0]
                 onCatch = args[1]
             }
 
             if(Array.isArray(data)) {
                 return data.map((el, idx) => createData(
-                    `Executing element num ${idx} of ${descr}`,
+                    `element ${idx} of ${descr}`,
                     el,
                     onCatch
                 ))
@@ -230,7 +227,7 @@ const getErrorHandling = function(params) {
 
                     const value = typeof data[key] === 'function' ?
                         createFunc(
-                            `Executing method ${key}`,
+                            `method ${key}`,
                             data[key],
                             data[key + 'Catch'] ?? onCatch,
                             shouldHandleArgs
@@ -252,12 +249,12 @@ const getErrorHandling = function(params) {
     )
 
     const initUncaughtErrorHandling = createFunc(
-        'Initializing uncaught error handling',
+        'initializing uncaught error handling',
         () => {
             const innerListener = createFunc(
-                'Handling uncaught errors',
+                'handling uncaught errors',
                 eventOrError => {
-                    const descr = 'Uncaught error. Please reload the app!'
+                    const descr = 'uncaught error'
 
                     if (isBrowser) {
                         if (eventOrError instanceof Event) {
@@ -303,14 +300,14 @@ const getErrorHandling = function(params) {
     )
 
     const getHandledServer = createFunc(
-        'Initialize error handling for server and return it',
+        'initializing error handling for server',
         server => {
             server = isObject(server) ? server : {}
 
             const sockets = new Set()
 
             const innerServerListener = createFunc(
-                'Handling uncaught errors',
+                'handling server closing',
                 eventOrError => {
                     if (typeof server.close === 'function') {
                         server.close()
