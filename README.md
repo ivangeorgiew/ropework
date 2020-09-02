@@ -16,7 +16,7 @@ To start using this package you need to first install locally:
 ```
 import getErrorHandling from 'tied-pants'
 
-const { onError, createData, initUncaughtErrorHandling } = getErrorHandling({
+const { createData } = getErrorHandling({
     onError: ({ userMsg, prodMsg }) => {
         // TODO change with actual notifier
         alert(userMsg)
@@ -28,8 +28,6 @@ const { onError, createData, initUncaughtErrorHandling } = getErrorHandling({
         */
     }
 })
-
-initUncaughtErrorHandling()
 
 const printNum = createData(
     'Printing a number',
@@ -95,28 +93,21 @@ setTimeout(() => { uncaughtSyncFunc() }, 500)
 ```
 const http = require('http')
 const express = require('express')
-const cors = require('cors')
 const getErrorHandling = require('tied-pants')
 
-const app = express()
-const { createData, initUncaughtErrorHandling } = getErrorHandling()
+const { createData, getHandledServer } = getErrorHandling()
 const app = createData(
     'Express application',
-    app,
+    express(),
     ({ err, args: [req, res] }) => {
         if (!res.headersSent) {
             res.status(500).json({ message: err.message })
         }
     }
 )
-const server = http.createServer(app)
-const port = process.env.PORT || 8080
-
-initUncaughtErrorHandling({ server })
 
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
-app.use(cors())
 
 app.get('/', (req, res, next) => {
     res.send('Hello World!')
@@ -128,6 +119,9 @@ app.get('/err', async (req, res, next) => {
 
     throw new Error('Async whoops')
 })
+
+const server = getHandledServer(http.createServer(app))
+const port = process.env.PORT || 8080
 
 server.listen(port, function(err) {
     if (err) throw err
@@ -196,10 +190,7 @@ server.listen(port, function(err) {
   `({ descr, err, args })`, where `descr` is same as above, `err`
   is the error caught Error, `args` are the arguments which were supplied to the tried function.
 
-* `initUncaughtErrorHandling`
-  * type: `({ server, onUncaughtError })` -> ?
-  * description: Start the handling of uncaught errors
-  * `server`: Object that is used only when the environment is Node.js
-  * `onUncaughtError`: Function that gets the args `({ userMsg, prodMsg })`.
-  Defaults to `onError` which was set from the imported function.
-  Useful for notifying the user with friendly error messages and logging in production.
+* `getHandledServer`
+  * type: `server` -> `handledServer`
+  * description: Return a server that is error handled and closed gracefully on uncaught errors
+  * `server`: Object that is the back-end server (ex: http.createServer(expressApp))

@@ -224,22 +224,23 @@ const getErrorHandling = function(params) {
                 const descriptors = Object.getOwnPropertyDescriptors(data)
 
                 Object.keys(descriptors).forEach(key => {
-                    if (descriptors[key].configurable) {
-                        const value = typeof data[key] === 'function' ?
-                            createFunc(
-                                `Executing method ${key}`,
-                                data[key],
-                                data[key + 'Catch'] ?? onCatch,
-                                shouldHandleArgs
-                            ).bind(data) :
-                            data[key]
-
-                        Object.defineProperty(
-                            handledData,
-                            key,
-                            Object.assign(descriptors[key], { value })
-                        )
+                    if (!descriptors[key].configurable) {
+                        return
                     }
+
+                    const value = typeof data[key] === 'function' ?
+                        createFunc(
+                            `Executing method ${key}`,
+                            data[key],
+                            data[key + 'Catch'] ?? onCatch,
+                            shouldHandleArgs
+                        ).bind(data) :
+                        data[key]
+
+                    Object.defineProperty(handledData, key, Object.assign(
+                        descriptors[key],
+                        descriptors[key].hasOwnProperty('value') ? { value } : null
+                    ))
                 })
 
                 return handledData
@@ -252,28 +253,18 @@ const getErrorHandling = function(params) {
 
     const initUncaughtErrorHandling = createFunc(
         'Initializing uncaught error handling',
-        params => {
-            params = isObject(params) ? params : {}
-
-            const server = isObject(params.server) ?
-                params.server :
-                { on: () => {}, close: () => {} }
-
-            const onUncaughtError = typeof params.onUncaughtError === 'function' ?
-                createFunc('Logging on uncaught errors', params.onUncaughtError) :
-                onError
-
-            const sockets = new Set()
-            const handleUncaughtError = createFunc(
+        () => {
+            const innerListener = createFunc(
                 'Handling uncaught errors',
                 eventOrError => {
-                    const descr = 'Running the app!!!'
+                    const descr = 'Uncaught error. Please reload the app!'
 
                     if (isBrowser) {
                         if (eventOrError instanceof Event) {
+                            eventOrError.stopImmediatePropagation()
                             eventOrError.preventDefault()
 
-                            onUncaughtError(logError({
+                            onError(logError({
                                 descr,
                                 err: eventOrError.reason ?? eventOrError.error
                             }))
@@ -284,15 +275,12 @@ const getErrorHandling = function(params) {
                     }
 
                     if (isNodeJS) {
-                        server.close()
-                        sockets.forEach(socket => { socket.destroy() })
-
                         let exitCode = 0
 
                         if (eventOrError instanceof Error) {
                             exitCode = 1
 
-                            onUncaughtError(logError({ descr, err: eventOrError }))
+                            onError(logError({ descr, err: eventOrError }))
                         }
 
                         setTimeout(() => { process.exit(exitCode) }, 1000).unref()
@@ -301,24 +289,57 @@ const getErrorHandling = function(params) {
             )
 
             if (isBrowser) {
-                window.addEventListener('error', handleUncaughtError, true)
-                window.addEventListener('unhandledrejection', handleUncaughtError, true)
+                window.addEventListener('error', innerListener, true)
+                window.addEventListener('unhandledrejection', innerListener, true)
             }
 
             if (isNodeJS) {
-                server.on('connection', socket => {
-                    sockets.add(socket);
-
-                    socket.on('close', () => { sockets.delete(socket) })
-                })
-
-                process.on('uncaughtException', handleUncaughtError)
-                process.on('unhandledRejection', handleUncaughtError)
-                process.on('SIGTERM', handleUncaughtError)
-                process.on('SIGINT', handleUncaughtError)
+                process.on('uncaughtException', innerListener)
+                process.on('unhandledRejection', innerListener)
+                process.on('SIGTERM', innerListener)
+                process.on('SIGINT', innerListener)
             }
         }
     )
+
+    const getHandledServer = createFunc(
+        'Initialize error handling for server and return it',
+        server => {
+            server = isObject(server) ? server : {}
+
+            const sockets = new Set()
+
+            const innerServerListener = createFunc(
+                'Handling uncaught errors',
+                eventOrError => {
+                    if (typeof server.close === 'function') {
+                        server.close()
+                    }
+
+                    sockets.forEach(socket => { socket.destroy() })
+                }
+            )
+
+            if (typeof server.on === 'function') {
+                server.on('connection', socket => {
+                    sockets.add(socket);
+                    socket.on('close', () => { sockets.delete(socket) })
+                })
+            }
+
+            if (isNodeJS) {
+                process.prependListener('uncaughtException', innerServerListener)
+                process.prependListener('unhandledRejection', innerServerListener)
+                process.prependListener('SIGTERM', innerServerListener)
+                process.prependListener('SIGINT', innerServerListener)
+            }
+
+            return server
+        },
+        ({ args: [server] }) => server
+    )
+
+    initUncaughtErrorHandling()
 
     return {
         isDevelopment,
@@ -329,7 +350,7 @@ const getErrorHandling = function(params) {
         isNodeJS,
         stringifyAll,
         createData,
-        initUncaughtErrorHandling
+        getHandledServer
     }
 }
 
