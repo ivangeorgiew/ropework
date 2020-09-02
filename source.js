@@ -242,7 +242,7 @@ const getErrorHandling = function(params) {
 
                     const value = typeof data[key] === 'function' ?
                         createFunc(
-                            `method ${key}`,
+                            `method ${key} of ${descr}`,
                             data[key],
                             onMethodCatch,
                             shouldHandleArgs
