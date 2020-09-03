@@ -97,10 +97,10 @@ const getErrorHandling = function(params) {
 
             const args = Array.isArray(params.args) ?
                 params.args.map(el => JSON.parse(stringifyAll(el))) :
-                ['[unknown]']
+                ['[no arguments]']
 
             const stringOfArgs = args.reduce((acc, arg, idx) => {
-                const stringifiedArg = stringifyAll(arg)
+                const stringifiedArg = typeof arg === 'string' ? arg : stringifyAll(arg)
 
                 return idx === 0 ? `${acc} ${stringifiedArg}` : `${acc} , ${stringifiedArg}`
             }, '')
