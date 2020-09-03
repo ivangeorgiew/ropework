@@ -254,7 +254,7 @@ const getErrorHandling = function(params) {
 
                     const proto = Object.getPrototypeOf(source)
 
-                    if (isObject(proto)) {
+                    if (isObject(proto) && proto !== Object.prototype) {
                         assignHandledProps(Object.getPrototypeOf(target), proto)
                     }
                 }
