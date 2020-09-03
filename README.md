@@ -16,14 +16,14 @@ To start using this package you need to first install locally:
 ```
 import getErrorHandling from 'tied-pants'
 
-const { createData } = getErrorHandling({
-    notify: ({ isDevelopment, isUncaught, userMsg, productionMsg }) => {
+const { createData, FriendlyError } = getErrorHandling({
+    notify: ({ isUncaught, isFriendly, userMsg, productionMsg }) => {
         if (isUncaught) {
             // TODO change with ERROR notification
             alert(`ERROR - ${userMsg}`)
         }
-        // TODO if app is for developers - remove isDevelopment check
-        else if (isDevelopment) {
+        // TODO if app is for developers, remove isFriendly check
+        else if (isFriendly) {
             // TODO change with WARNING notification
             alert(`WARNING - ${userMsg}`)
         }
@@ -50,7 +50,7 @@ const measureFib = createData(
     num => {
         const fib = n => {
             if (n < 0 || Math.trunc(n) !== n)
-                throw new Error('num had to be positive integer')
+                throw new FriendlyError('num had to be positive integer')
 
             return n <= 1 ? n : fib(n-1) + fib(n-2)
         }
@@ -74,7 +74,7 @@ const delayReturn = createData(
         if (typeof ms === 'number')
             return 'Proper result'
         else
-            throw new Error('Async error from promise')
+            throw new FriendlyError('Could not delay properly')
     },
     () => 'Default result'
 )
@@ -146,11 +146,12 @@ server.listen(port, function(err) {
   * `devMsg`: ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
 
 * `notify`
-  * type: `({ isUncaught, userMsg, productionMsg })` -> ?
+  * type: `({ isUncaught, isFriendly, userMsg, productionMsg })` -> ?
   * default: `() => {}`
   * definition: Function for notifying the user with friendly error messages
   and logging in production.
-  * `isUncaught`: Boolean that indicates whether the error was caught or not
+  * `isUncaught`: Boolean that indicates whether the error was caught in catch or not
+  * `isFriendly`: Boolean that indicates whether `userMsg` is for regular users or developers
   * `userMsg`: String that describes what the functionality was supposed to be doing
   * `productionMsg`: Stringified JSON that consists of useful info for production logging
 
@@ -164,7 +165,7 @@ server.listen(port, function(err) {
   * definition: Function that was parsed from `getErrorHandling`
 
 * `notify`
-  * type: `({ isUncaught, userMsg, productionMsg })` -> ?
+  * type: `({ isUncaught, isFriendly, userMsg, productionMsg })` -> ?
   * definition: Function that was parsed from `getErrorHandling`
 
 * `isObject`
@@ -178,6 +179,12 @@ server.listen(port, function(err) {
 * `isNodeJS`
   * type: `boolean`
   * definition: Tells if in Node.js environment or not
+
+* `FriendlyError`
+  * type: `constructor`
+  * definition: Constructor that extends `Error`. Use it in functions created
+  with `createData` to signify that the error was thrown intentionally and that
+  the message is user friendly
 
 * `stringifyAll`
   * type: `data` -> `stringified and parsed data`

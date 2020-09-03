@@ -10,6 +10,13 @@ const getErrorHandling = function(params) {
     const isNodeJS = typeof global !== 'undefined' 
         && ({}).toString.call(global) === '[object global]'
 
+    const FriendlyError = class extends Error {
+        constructor(...args) {
+            super(...args)
+            this.name = 'FriendlyError'
+        }
+    }
+
     const defaultLogger = isObject(console) && typeof console.error === 'function' ?
         console.error :
         function(){}
@@ -93,7 +100,7 @@ const getErrorHandling = function(params) {
 
             const error = params.error instanceof Error ?
                 params.error :
-                new Error('Unknown error')
+                isUncaught ? new Error('Uncaught error') : new Error('Unknown error')
 
             const args = Array.isArray(params.args) ?
                 params.args.map(el => JSON.parse(stringifyAll(el))) :
@@ -119,7 +126,10 @@ const getErrorHandling = function(params) {
                 error
             }
 
-            const userMsg = `Issue with: ${descr}`
+            const isFriendly = error instanceof FriendlyError
+
+            const userMsg = isFriendly ? error.message : `Issue with: ${descr}`
+
             let productionMsg = stringifyAll(commonProps)
 
             if (isBrowser) {
@@ -146,7 +156,7 @@ const getErrorHandling = function(params) {
                 })
             }
 
-            notify({ isDevelopment, isUncaught, userMsg, productionMsg })
+            notify({ isUncaught, isFriendly, userMsg, productionMsg })
         } catch(error) {
             if (isDevelopment) {
                 devErrorLogger(` Issue with: error logger\n`, error)
@@ -364,6 +374,7 @@ const getErrorHandling = function(params) {
         isObject,
         isBrowser,
         isNodeJS,
+        FriendlyError,
         stringifyAll,
         createData,
         getHandledServer
