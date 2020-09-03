@@ -21,7 +21,7 @@
   "homepage": "https://github.com/ivangeorgiew/tied-pants#readme",
   "scripts": {
     "build": "terser -c -m -o source.min.js source.js",
-    "version": "npm i && npm run build && git add -A",
+    "preversion": "npm i && npm run build && git add -A",
     "postversion": "git push && npm publish"
   },
   "devDependencies": {

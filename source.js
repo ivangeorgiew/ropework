@@ -269,10 +269,11 @@ const getErrorHandling = function(params) {
                     eventOrError.stopImmediatePropagation()
                     eventOrError.preventDefault()
 
-                    const { reason, error } = eventOrError
-                    const error = reason instanceof Error ?
-                        reason :
-                        error instanceof Error ? error : undefined
+                    const error = eventOrError.reason instanceof Error ?
+                        eventOrError.reason :
+                        eventOrError.error instanceof Error ?
+                            eventOrError.error :
+                            undefined
 
                     logError({ isUncaught: true, error })
                 }
