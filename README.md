@@ -17,10 +17,18 @@ To start using this package you need to first install locally:
 import getErrorHandling from 'tied-pants'
 
 const { createData } = getErrorHandling({
-    onError: ({ description }) => {
+    notify: ({ isDevelopment, isUncaught, userMsg, productionMsg }) => {
         // TODO change with better user notification
-        alert(`Issue with: ${description}`)
+        if (isUncaught) {
+            alert(`ERROR - ${userMsg}`)
+        }
+        // TODO if app is for developers - remove isDevelopment check
+        else if (isDevelopment) {
+            alert(`WARNING - ${userMsg}`)
+        }
+
         // TODO add production logger that uses productionMsg
+        // callProdLoggerService({ JSON: productionMsg })
     }
 })
 
@@ -136,13 +144,13 @@ server.listen(port, function(err) {
   * definition: Function for logging developer errors
   * `devMsg`: ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
 
-* `onError`
-  * type: `({ isUncaught, description, productionMsg })` -> ?
+* `notify`
+  * type: `({ isUncaught, userMsg, productionMsg })` -> ?
   * default: `() => {}`
   * definition: Function for notifying the user with friendly error messages
   and logging in production.
   * `isUncaught`: Boolean that indicates whether the error was caught or not
-  * `description`: String that describes what the functionality was supposed to be doing
+  * `userMsg`: String that describes what the functionality was supposed to be doing
   * `productionMsg`: Stringified JSON that consists of useful info for production logging
 
 ### API for returned values from the imported function:
@@ -154,8 +162,8 @@ server.listen(port, function(err) {
   * type: `devMsg` -> ?
   * definition: Function that was parsed from `getErrorHandling`
 
-* `onError`
-  * type: `({ isUncaught, description, productionMsg })` -> ?
+* `notify`
+  * type: `({ isUncaught, userMsg, productionMsg })` -> ?
   * definition: Function that was parsed from `getErrorHandling`
 
 * `isObject`

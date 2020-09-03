@@ -34,22 +34,22 @@ const getErrorHandling = function(params) {
         function(...args) {
             try {
                 params.devErrorLogger.apply(this, args)
-            } catch(err) {
+            } catch(error) {
                 if (isDevelopment) {
-                    defaultLogger(` Issue with: parameter devErrorLogger\n`, err)
+                    defaultLogger(` Issue with: parameter devErrorLogger\n`, error)
                     defaultLogger.apply(this, args)
                 }
             }
         } :
         defaultLogger
 
-    const onError = typeof params.onError === 'function' ?
+    const notify = typeof params.notify === 'function' ?
         function(...args) {
             try {
-                params.onError.apply(this, args)
-            } catch(err) {
+                params.notify.apply(this, args)
+            } catch(error) {
                 if (isDevelopment) {
-                    devErrorLogger(` Issue with: parameter onError\n`, err)
+                    devErrorLogger(` Issue with: parameter notify\n`, error)
                 }
             }
         } :
@@ -74,25 +74,27 @@ const getErrorHandling = function(params) {
             }
 
             return JSON.stringify(data, parser)
-        } catch(err) {
+        } catch(error) {
             return JSON.stringify('[object Cyclic]')
         }
     }
 
     const logError = function(params) {
-        params = isObject(params) ? params : {}
-
-        const isUncaught = typeof params.descr === 'boolean' ?
-            params.descr :
-            false
-        const descr = typeof params.descr === 'string' ?
-            params.descr :
-            isUncaught ? 'unhandled error' : defaultDescr
-
         try {
-            const err = params.err instanceof Error ?
-                params.err :
+            params = isObject(params) ? params : {}
+
+            const isUncaught = typeof params.isUncaught === 'boolean' ?
+                params.isUncaught :
+                false
+
+            const descr = typeof params.descr === 'string' ?
+                params.descr :
+                isUncaught ? 'unhandled error' : defaultDescr
+
+            const error = params.error instanceof Error ?
+                params.error :
                 new Error('Unknown error')
+
             const args = Array.isArray(params.args) ?
                 params.args.map(el => JSON.parse(stringifyAll(el))) :
                 ['[unknown]']
@@ -106,7 +108,7 @@ const getErrorHandling = function(params) {
             if (isDevelopment) {
                 devErrorLogger(
                     ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`,
-                    err
+                    error
                 )
             }
 
@@ -114,9 +116,10 @@ const getErrorHandling = function(params) {
                 description: descr,
                 arguments: args,
                 date: (new Date()).toUTCString(),
-                error: err
+                error
             }
 
+            const userMsg = `Issue with: ${descr}`
             let productionMsg = stringifyAll(commonProps)
 
             if (isBrowser) {
@@ -143,17 +146,11 @@ const getErrorHandling = function(params) {
                 })
             }
 
-            onError({ isUncaught, description: descr, productionMsg })
-        } catch(err) {
+            notify({ isDevelopment, isUncaught, userMsg, productionMsg })
+        } catch(error) {
             if (isDevelopment) {
-                devErrorLogger(` Issue with: error logger\n`, err)
+                devErrorLogger(` Issue with: error logger\n`, error)
             }
-
-            onError({
-                isUncaught,
-                description: descr,
-                productionMsg: stringifyAll({ description: descr, error: err })
-            })
         }
     }
 
@@ -163,13 +160,14 @@ const getErrorHandling = function(params) {
                 throw new Error('Data given was not a function')
             }
 
-            const innerCatch = function(err, args) {
-                logError({ descr, err, args })
+            const innerCatch = function(error, args) {
+                logError({ descr, error, args })
 
                 if (typeof onCatch === 'function') {
                     return createFunc(`catching errors for ${descr}`, onCatch)
-                        .call(this, { descr, err, args })
+                        .call(this, { descr, error, args })
                 }
+                // else returns undefined
             }
 
             return function(...args) {
@@ -180,8 +178,8 @@ const getErrorHandling = function(params) {
                             el
                         )
                     }
-                } catch(err) {
-                    logError({ descr: 'error handling function arguments', err, args })
+                } catch(error) {
+                    logError({ descr: 'error handling function arguments', error, args })
                 }
 
                 try {
@@ -189,16 +187,16 @@ const getErrorHandling = function(params) {
 
                     //if the function returns a promise
                     if (isObject(result) && typeof result.catch === 'function') {
-                        return result.catch(err => innerCatch.apply(this, [err, args]))
+                        return result.catch(error => innerCatch.apply(this, [error, args]))
                     }
 
                     return result
-                } catch(err) {
-                    return innerCatch.apply(this, [err, args])
+                } catch(error) {
+                    return innerCatch.apply(this, [error, args])
                 }
             }
-        } catch(err) {
-            logError({ descr: 'error handling functions', err })
+        } catch(error) {
+            logError({ descr: 'error handling functions', error })
 
             return typeof onTry === 'function' ? onTry : function(){}
         }
@@ -272,11 +270,11 @@ const getErrorHandling = function(params) {
                     eventOrError.preventDefault()
 
                     const { reason, error } = eventOrError
-                    const err = reason instanceof Error ?
+                    const error = reason instanceof Error ?
                         reason :
                         error instanceof Error ? error : undefined
 
-                    logError({ isUncaught: true, err })
+                    logError({ isUncaught: true, error })
                 }
 
                 // prevent user from interacting with the page
@@ -289,7 +287,7 @@ const getErrorHandling = function(params) {
                 if (eventOrError instanceof Error) {
                     exitCode = 1
 
-                    logError({ isUncaught: true, err: eventOrError })
+                    logError({ isUncaught: true, error: eventOrError })
                 }
 
                 setTimeout(() => { process.exit(exitCode) }, 1000).unref()
@@ -361,7 +359,7 @@ const getErrorHandling = function(params) {
     return {
         isDevelopment,
         devErrorLogger,
-        onError,
+        notify,
         isObject,
         isBrowser,
         isNodeJS,
