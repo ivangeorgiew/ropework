@@ -231,25 +231,25 @@ const getErrorHandling = function(params) {
                     const descriptors = Object.getOwnPropertyDescriptors(source)
 
                     Object.keys(descriptors).forEach(key => {
-                        if (!descriptors[key].configurable) {
-                            return
-                        }
+                        // some props have getters that throw errors
+                        // we don't need them anyways
+                        try {
+                            const value = typeof source[key] === 'function' ?
+                                createFunc(
+                                    `method ${key} of ${descr}`,
+                                    source[key],
+                                    typeof source[key + 'Catch'] === 'function' ?
+                                        source[key + 'Catch'] :
+                                        onCatch,
+                                    shouldHandleArgs
+                                ).bind(source) :
+                                source[key]
 
-                        const value = typeof source[key] === 'function' ?
-                            createFunc(
-                                `method ${key} of ${descr}`,
-                                source[key],
-                                typeof source[key + 'Catch'] === 'function' ?
-                                    source[key + 'Catch'] :
-                                    onCatch,
-                                shouldHandleArgs
-                            ).bind(source) :
-                            source[key]
-
-                        Object.defineProperty(target, key, Object.assign(
-                            descriptors[key],
-                            descriptors[key].hasOwnProperty('value') ? { value } : null
-                        ))
+                            Object.defineProperty(target, key, Object.assign(
+                                descriptors[key],
+                                descriptors[key].hasOwnProperty('value') ? { value } : null
+                            ))
+                        } catch(e) {}
                     })
 
                     const proto = Object.getPrototypeOf(source)
