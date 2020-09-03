@@ -100,7 +100,7 @@ const getErrorHandling = function(params) {
                 ['[no arguments]']
 
             const stringOfArgs = args.reduce((acc, arg, idx) => {
-                const stringifiedArg = typeof arg === 'string' ? arg : stringifyAll(arg)
+                const stringifiedArg = stringifyAll(arg)
 
                 return idx === 0 ? `${acc} ${stringifiedArg}` : `${acc} , ${stringifiedArg}`
             }, '')
