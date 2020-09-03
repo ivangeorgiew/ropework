@@ -217,11 +217,48 @@ const getErrorHandling = function(params) {
         (...args) => {
             let [descr, data, onCatch] = args
 
-            if (typeof descr !== 'string') {
+            if (typeof descr !== 'string' && typeof onCatch !== 'function') {
                 descr = defaultDescr
                 data = args[0]
                 onCatch = args[1]
             }
+
+            const shouldHandleArgs = true
+
+            const assignHandledProps = createFunc(
+                `assigning error handled properties to ${descr}`,
+                (target, source) => {
+                    const descriptors = Object.getOwnPropertyDescriptors(source)
+
+                    Object.keys(descriptors).forEach(key => {
+                        if (!descriptors[key].configurable) {
+                            return
+                        }
+
+                        const value = typeof source[key] === 'function' ?
+                            createFunc(
+                                `method ${key} of ${descr}`,
+                                source[key],
+                                typeof source[key + 'Catch'] === 'function' ?
+                                    source[key + 'Catch'] :
+                                    onCatch,
+                                shouldHandleArgs
+                            ).bind(source) :
+                            source[key]
+
+                        Object.defineProperty(target, key, Object.assign(
+                            descriptors[key],
+                            descriptors[key].hasOwnProperty('value') ? { value } : null
+                        ))
+                    })
+
+                    const proto = Object.getPrototypeOf(source)
+
+                    if (isObject(proto)) {
+                        assignHandledProps(Object.getPrototypeOf(target), proto)
+                    }
+                }
+            )
 
             if(Array.isArray(data)) {
                 return data.map((el, idx) => createData(
@@ -232,36 +269,11 @@ const getErrorHandling = function(params) {
             }
 
             if (typeof data === 'function' || isObject(data)) {
-                const shouldHandleArgs = true
                 const handledData = typeof data === 'function' ?
                     createFunc(descr, data, onCatch, shouldHandleArgs) :
                     {}
 
-                const descriptors = Object.getOwnPropertyDescriptors(data)
-
-                Object.keys(descriptors).forEach(key => {
-                    if (!descriptors[key].configurable) {
-                        return
-                    }
-
-                    const onMethodCatch = typeof data[key + 'Catch'] === 'function' ?
-                        data[key + 'Catch'] :
-                        onCatch
-
-                    const value = typeof data[key] === 'function' ?
-                        createFunc(
-                            `method ${key} of ${descr}`,
-                            data[key],
-                            onMethodCatch,
-                            shouldHandleArgs
-                        ).bind(data) :
-                        data[key]
-
-                    Object.defineProperty(handledData, key, Object.assign(
-                        descriptors[key],
-                        descriptors[key].hasOwnProperty('value') ? { value } : null
-                    ))
-                })
+                assignHandledProps(handledData, data)
 
                 return handledData
             }
