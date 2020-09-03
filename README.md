@@ -18,12 +18,13 @@ import getErrorHandling from 'tied-pants'
 
 const { createData } = getErrorHandling({
     notify: ({ isDevelopment, isUncaught, userMsg, productionMsg }) => {
-        // TODO change with better user notification
         if (isUncaught) {
+            // TODO change with ERROR notification
             alert(`ERROR - ${userMsg}`)
         }
         // TODO if app is for developers - remove isDevelopment check
         else if (isDevelopment) {
+            // TODO change with WARNING notification
             alert(`WARNING - ${userMsg}`)
         }
 

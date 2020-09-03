@@ -2,7 +2,7 @@
 
 const getErrorHandling = function(params) {
     //start constants definitions
-    const isObject = val => typeof val !== 'function' && val === Object(val)
+    const isObject = val => typeof val === 'object' && !Array.isArray(val) && val !== null
 
     const isBrowser = typeof window !== 'undefined'
         && ({}).toString.call(window) === '[object Window]'
