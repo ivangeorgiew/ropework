@@ -146,14 +146,15 @@ server.listen(port, function(err) {
   * `devMsg`: ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
 
 * `notify`
-  * type: `({ isUncaught, isFriendly, userMsg, productionMsg })` -> ?
+  * type: `({ isUncaught, isFriendly, userMsg, productionMsg, error })` -> ?
   * default: `() => {}`
   * definition: Function for notifying the user with friendly error messages
   and logging in production.
   * `isUncaught`: Boolean that indicates whether the error was caught in catch or not
   * `isFriendly`: Boolean that indicates whether `userMsg` is for regular users or developers
   * `userMsg`: String that describes what the functionality was supposed to be doing
-  * `productionMsg`: Stringified JSON that consists of useful info for production logging
+  * `productionMsg`: JSON that consists of useful info for production logging
+  * `error`: Error object that was thrown
 
 ### API for returned values from the imported function:
 * `isDevelopment`

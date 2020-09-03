@@ -156,7 +156,7 @@ const getErrorHandling = function(params) {
                 })
             }
 
-            notify({ isUncaught, isFriendly, userMsg, productionMsg })
+            notify({ isUncaught, isFriendly, userMsg, productionMsg, error })
         } catch(error) {
             if (isDevelopment) {
                 devErrorLogger(` Issue with: error logger\n`, error)
