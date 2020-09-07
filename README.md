@@ -17,7 +17,7 @@ To start using this package you need to first install locally:
 import getErrorHandling from 'tied-pants'
 
 const { createData, FriendlyError } = getErrorHandling({
-    notify: ({ isUncaught, isFriendly, userMsg, productionMsg }) => {
+    notify: ({ isDevelopment, isUncaught, isFriendly, userMsg, productionMsg }) => {
         if (isUncaught) {
             // TODO change with ERROR notification
             alert(`ERROR - ${userMsg}`)
@@ -29,7 +29,9 @@ const { createData, FriendlyError } = getErrorHandling({
         }
 
         // TODO add production logger that uses productionMsg
-        // callProdLoggerService({ JSON: productionMsg })
+        if (!isDevelopment) {
+            // callProdLoggerService({ JSON: productionMsg })
+        }
     }
 })
 
@@ -137,7 +139,7 @@ server.listen(port, function(err) {
 * `isDevelopment`
   * type: `boolean`
   * default: `process.env.NODE_ENV !== 'production'`
-  * definition: Boolean to decide if we should log devMsg
+  * definition: Boolean that indicates if the environment is not in prod
 
 * `devErrorLogger`
   * type: `devMsg` -> ?
@@ -146,10 +148,11 @@ server.listen(port, function(err) {
   * `devMsg`: ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
 
 * `notify`
-  * type: `({ isUncaught, isFriendly, userMsg, productionMsg, error })` -> ?
+  * type: `({ isDevelopment, isUncaught, isFriendly, userMsg, productionMsg, error })` -> ?
   * default: `() => {}`
   * definition: Function for notifying the user with friendly error messages
   and logging in production.
+  * `isDevelopment`: Boolean that indicates if the environment is not in prod
   * `isUncaught`: Boolean that indicates whether the error was caught in catch or not
   * `isFriendly`: Boolean that indicates whether `userMsg` is for regular users or developers
   * `userMsg`: String that describes what the functionality was supposed to be doing
