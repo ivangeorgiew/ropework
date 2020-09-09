@@ -1,1 +1,0 @@
-"use strict";const isObject=e=>"object"==typeof e&&!Array.isArray(e)&&null!==e,isDevelopment=!(!isObject(process)||!isObject(process.env))&&"production"!==process.env.NODE_ENV;module.exports=isDevelopment?require("./source.js"):require("./source.min.js");
