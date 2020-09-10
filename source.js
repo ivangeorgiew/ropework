@@ -147,7 +147,7 @@ const getErrorHandling = function(params) {
             if (isNodeJS) {
                 productionMsg = stringifyAll({
                     ...commonProps,
-                    localUrl: __filename,
+                    localUrl: process.cwd(),
                     machineInfo: {
                         cpuArch: process.arch,
                         osType: process.platform,
