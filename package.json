@@ -21,9 +21,10 @@
     },
     "homepage": "https://github.com/ivangeorgiew/tied-pants#readme",
     "scripts": {
+        "preinstall": "npx only-allow pnpm",
         "build": "rollup -c",
-        "preversion": "npm i && npm run build && git add -A",
-        "postversion": "git push && npm publish"
+        "preversion": "pnpm i && pnpm run build && git add -A",
+        "postversion": "git push && pnpm publish"
     },
     "babel": {
         "presets": [
