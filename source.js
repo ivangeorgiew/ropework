@@ -37,13 +37,13 @@ const getErrorHandling = function(params) {
             process.env.NODE_ENV !== 'production' :
             false
 
-    const devErrorLogger = typeof params.devErrorLogger === 'function' ?
+    const devLogger = typeof params.devLogger === 'function' ?
         function(...args) {
             try {
-                params.devErrorLogger.apply(this, args)
+                params.devLogger.apply(this, args)
             } catch(error) {
                 if (isDevelopment) {
-                    defaultLogger(` Issue with: parameter devErrorLogger\n`, error)
+                    defaultLogger(` Issue with: parameter devLogger\n`, error)
                     defaultLogger.apply(this, args)
                 }
             }
@@ -56,7 +56,7 @@ const getErrorHandling = function(params) {
                 params.notify.apply(this, args)
             } catch(error) {
                 if (isDevelopment) {
-                    devErrorLogger(` Issue with: parameter notify\n`, error)
+                    devLogger(` Issue with: parameter notify\n`, error)
                 }
             }
         } :
@@ -74,7 +74,9 @@ const getErrorHandling = function(params) {
                 }
 
                 if (typeof val === 'function') {
-                    return '[function]'
+                    return val.name !== '' ?
+                        `[Function ${val.name}]` :
+                        '[Function unnamed]'
                 }
 
                 return val
@@ -82,7 +84,7 @@ const getErrorHandling = function(params) {
 
             return JSON.stringify(data, parser)
         } catch(error) {
-            return JSON.stringify('[object Cyclic]')
+            return JSON.stringify('[Object cyclic]')
         }
     }
 
@@ -113,7 +115,7 @@ const getErrorHandling = function(params) {
             }, '')
 
             if (isDevelopment) {
-                devErrorLogger(
+                devLogger(
                     ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`,
                     error
                 )
@@ -159,7 +161,7 @@ const getErrorHandling = function(params) {
             notify({ isDevelopment, isUncaught, isFriendly, userMsg, productionMsg, error })
         } catch(error) {
             if (isDevelopment) {
-                devErrorLogger(` Issue with: error logger\n`, error)
+                devLogger(` Issue with: error logger\n`, error)
             }
         }
     }
@@ -381,7 +383,7 @@ const getErrorHandling = function(params) {
 
     return {
         isDevelopment,
-        devErrorLogger,
+        devLogger,
         notify,
         isObject,
         isBrowser,

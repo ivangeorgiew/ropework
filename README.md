@@ -141,7 +141,7 @@ server.listen(port, function(err) {
   * default: `process.env.NODE_ENV !== 'production'`
   * definition: Boolean that indicates if the environment is not in prod
 
-* `devErrorLogger`
+* `devLogger`
   * type: `devMsg` -> ?
   * default: `console.error`
   * definition: Function for logging developer errors
@@ -164,7 +164,7 @@ server.listen(port, function(err) {
   * type: `boolean`
   * definition: Boolean that was parsed from `getErrorHandling`
 
-* `devErrorLogger`
+* `devLogger`
   * type: `devMsg` -> ?
   * definition: Function that was parsed from `getErrorHandling`
 
