@@ -172,6 +172,10 @@ const getErrorHandling = function(params) {
                 throw new Error('Data given was not a function')
             }
 
+            if (onTry.isErrorHandled) {
+                return onTry
+            }
+
             const innerCatch = function(error, args) {
                 logError({ descr, error, args })
 
@@ -182,7 +186,7 @@ const getErrorHandling = function(params) {
                 // else returns undefined
             }
 
-            return function(...args) {
+            const innerFunc = function(...args) {
                 try {
                     if (shouldHandleArgs) {
                         args = args.map(el => typeof el === 'function' ?
@@ -207,6 +211,10 @@ const getErrorHandling = function(params) {
                     return innerCatch.apply(this, [error, args])
                 }
             }
+
+            innerFunc.isErrorHandled = true
+
+            return innerFunc
         } catch(error) {
             logError({ descr: 'error handling functions', error })
 
