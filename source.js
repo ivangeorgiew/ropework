@@ -1,6 +1,6 @@
 'use strict'
 
-const getErrorHandling = function(params) {
+const getErrorHandling = function(props) {
     //start constants definitions
     const isObject = val => typeof val === 'object' && !Array.isArray(val) && val !== null
 
@@ -29,18 +29,18 @@ const getErrorHandling = function(params) {
     //end constants definitions
 
     //start configuring arguments
-    params = isObject(params) ? params : {}
+    props = isObject(props) ? props : {}
 
-    const isDevelopment = typeof params.isDevelopment === 'boolean' ?
-        params.isDevelopment :
+    const isDevelopment = typeof props.isDevelopment === 'boolean' ?
+        props.isDevelopment :
         isObject(process) && isObject(process.env) ?
             process.env.NODE_ENV !== 'production' :
             false
 
-    const devLogger = typeof params.devLogger === 'function' ?
+    const devLogger = typeof props.devLogger === 'function' ?
         function(...args) {
             try {
-                params.devLogger.apply(this, args)
+                props.devLogger.apply(this, args)
             } catch(error) {
                 if (isDevelopment) {
                     defaultLogger(` Issue with: parameter devLogger\n`, error)
@@ -50,10 +50,10 @@ const getErrorHandling = function(params) {
         } :
         defaultLogger
 
-    const notify = typeof params.notify === 'function' ?
+    const notify = typeof props.notify === 'function' ?
         function(...args) {
             try {
-                params.notify.apply(this, args)
+                props.notify.apply(this, args)
             } catch(error) {
                 if (isDevelopment) {
                     devLogger(` Issue with: parameter notify\n`, error)
@@ -63,7 +63,7 @@ const getErrorHandling = function(params) {
         function(){}
     //end configuring arguments
 
-    const stringifyAll = function(data) {
+    const stringifyAll = function(data, shouldIncludeFuncBody = false) {
         try {
             const parser = function(_key, val) {
                 if (val instanceof Error) {
@@ -74,9 +74,15 @@ const getErrorHandling = function(params) {
                 }
 
                 if (typeof val === 'function') {
+                    if (shouldIncludeFuncBody) {
+                        return val.name !== '' ?
+                            `[Function ${val.name} ${val.toString()}]` :
+                            `[Function unnamed ${val.toString()}]`
+                    }
+
                     return val.name !== '' ?
                         `[Function ${val.name}]` :
-                        '[Function unnamed]'
+                        `[Function unnamed]`
                 }
 
                 return val
@@ -88,30 +94,30 @@ const getErrorHandling = function(params) {
         }
     }
 
-    const logError = function(params) {
+    const logError = function(props) {
         try {
-            params = isObject(params) ? params : {}
+            props = isObject(props) ? props : {}
 
-            const isUncaught = typeof params.isUncaught === 'boolean' ?
-                params.isUncaught :
+            const isUncaught = typeof props.isUncaught === 'boolean' ?
+                props.isUncaught :
                 false
 
-            const descr = typeof params.descr === 'string' ?
-                params.descr :
+            const descr = typeof props.descr === 'string' ?
+                props.descr :
                 isUncaught ? 'unhandled error' : defaultDescr
 
-            const error = params.error instanceof Error ?
-                params.error :
+            const error = props.error instanceof Error ?
+                props.error :
                 isUncaught ? new Error('Uncaught error') : new Error('Unknown error')
 
-            const args = Array.isArray(params.args) ?
-                params.args.map(el => JSON.parse(stringifyAll(el))) :
+            const args = Array.isArray(props.args) ?
+                props.args.map(el => JSON.parse(stringifyAll(el))) :
                 ['[unknown arguments]']
 
             const stringOfArgs = args.reduce((acc, arg, idx) => {
                 const stringifiedArg = stringifyAll(arg)
 
-                return idx === 0 ? `${acc} ${stringifiedArg}` : `${acc} , ${stringifiedArg}`
+                return idx === 0 ? stringifiedArg : `${acc} , ${stringifiedArg}`
             }, '')
 
             if (isDevelopment) {
@@ -172,7 +178,7 @@ const getErrorHandling = function(params) {
                 throw new Error('Data given was not a function')
             }
 
-            if (onTry.isErrorHandled) {
+            if (onTry._isErrorHandled_) {
                 return onTry
             }
 
@@ -183,7 +189,8 @@ const getErrorHandling = function(params) {
                     return createFunc(`catching errors for ${descr}`, onCatch)
                         .call(this, { descr, error, args })
                 }
-                // else returns undefined
+
+                return undefined
             }
 
             const innerFunc = function(...args) {
@@ -201,7 +208,7 @@ const getErrorHandling = function(params) {
                 try {
                     const result = onTry.apply(this, args)
 
-                    //if the function returns a promise
+                    // if the function returns a promise
                     if (isObject(result) && typeof result.catch === 'function') {
                         return result.catch(error => innerCatch.apply(this, [error, args]))
                     }
@@ -212,7 +219,7 @@ const getErrorHandling = function(params) {
                 }
             }
 
-            innerFunc.isErrorHandled = true
+            innerFunc._isErrorHandled_ = true
 
             return innerFunc
         } catch(error) {
@@ -224,20 +231,20 @@ const getErrorHandling = function(params) {
 
     const createData = createFunc(
         'creating error handled data',
-        (...args) => {
-            let [descr, data, onCatch] = args
+        function(...params) {
+            let [descr, data, onCatch] = params
 
             if (typeof descr !== 'string' && typeof onCatch !== 'function') {
                 descr = defaultDescr
-                data = args[0]
-                onCatch = args[1]
+                data = params[0]
+                onCatch = params[1]
             }
 
             const shouldHandleArgs = true
 
             const assignHandledProps = createFunc(
                 `assigning error handled properties to ${descr}`,
-                (target, source) => {
+                function(target, source) {
                     const descriptors = Object.getOwnPropertyDescriptors(source)
 
                     Object.keys(descriptors).forEach(key => {
@@ -271,11 +278,7 @@ const getErrorHandling = function(params) {
             )
 
             if(Array.isArray(data)) {
-                return data.map((el, idx) => createData(
-                    `element ${idx} of ${descr}`,
-                    el,
-                    onCatch
-                ))
+                return data.map((el, idx) => createData(`element ${idx} of ${descr}`, el, onCatch))
             }
 
             if (typeof data === 'function' || isObject(data)) {
@@ -290,12 +293,82 @@ const getErrorHandling = function(params) {
 
             return data
         },
-        ({ args: [descr, data] }) => typeof descr === 'string' ? data : descr
+        function({ args: [descr, data] }) {
+            return typeof descr === 'string' ? data : descr
+        }
+    )
+
+    const createPureFunc = createFunc(
+        'creating a pure function with cached results',
+        function(...params) {
+            let [descr, onTry, onCatch] = params
+
+            if (typeof descr !== 'string' && typeof onCatch !== 'function') {
+                descr = defaultDescr
+                onTry = params[0]
+                onCatch = params[1]
+            }
+
+            if (typeof onTry !== 'function') {
+                throw new Error('Data given was not a function')
+            }
+
+            if (onTry._isCached_) {
+                return onTry
+            }
+
+            const shouldHandleArgs = true
+            const innerFunc = createFunc(
+                descr,
+                function(...args) {
+                    const cachedKeys = innerFunc._cache_.keys
+                    const cachedResults = innerFunc._cache_.results
+                    const key = stringifyAll(args, true)
+
+                    // in case some error occured
+                    if (cachedKeys.length !== cachedResults.length) {
+                        cachedKeys = []
+                        cachedResults = []
+                    }
+
+                    let idx
+
+                    // faster to traverse backwards
+                    for (let i = cachedKeys.length - 1; i >= 0; i--) {
+                        if (cachedKeys[i] === key) {
+                            idx = i
+                            break
+                        }
+                    }
+
+                    if (idx === undefined) {
+                        const result = onTry.apply(this, args)
+
+                        cachedKeys.push(key)
+                        cachedResults.push(result)
+
+                        return result
+                    }
+
+                    return cachedResults[idx]
+                },
+                onCatch,
+                shouldHandleArgs
+            )
+
+            innerFunc._isCached_ = true
+            innerFunc._cache_ = { keys: [], results: [] }
+
+            return innerFunc
+        },
+        function({ args: [descr, onTry] }) {
+            return typeof descr === 'string' ? onTry : descr
+        }
     )
 
     const errorListener = createFunc(
         'listening for unexpected errors',
-        eventOrError => {
+        function(eventOrError) {
             if (isBrowser) {
                 if (eventOrError instanceof Event) {
                     eventOrError.stopImmediatePropagation()
@@ -330,7 +403,7 @@ const getErrorHandling = function(params) {
 
     const initUncaughtErrorHandling = createFunc(
         'initializing listening for unexpected errors',
-        () => {
+        function() {
             if (isBrowser) {
                 browserEventNames.forEach(eventName => {
                     if (typeof window._tp_errorListener_ === 'function') {
@@ -359,13 +432,13 @@ const getErrorHandling = function(params) {
 
     const getHandledServer = createFunc(
         'initializing error handling for server',
-        server => {
+        function(server) {
             server = isObject(server) ? server : { on: () => {}, close: () => {} }
 
             const sockets = new Set()
             const serverErrorListener = createFunc(
                 'handling server closing',
-                () => {
+                function() {
                     server.close()
                     sockets.forEach(socket => { socket.destroy() })
                 }
@@ -384,7 +457,7 @@ const getErrorHandling = function(params) {
 
             return server
         },
-        ({ args: [server] }) => server
+        function({ args: [server] }) { return server }
     )
 
     initUncaughtErrorHandling()
@@ -398,6 +471,7 @@ const getErrorHandling = function(params) {
         isNodeJS,
         FriendlyError,
         stringifyAll,
+        createPureFunc,
         createData,
         getHandledServer
     }

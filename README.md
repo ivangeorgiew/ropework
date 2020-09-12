@@ -16,7 +16,7 @@ To start using this package you need to first install locally:
 ```
 import getErrorHandling from 'tied-pants'
 
-const { createData, FriendlyError } = getErrorHandling({
+const { createData, createPureFunc, FriendlyError } = getErrorHandling({
     notify: ({ isDevelopment, isUncaught, isFriendly, userMsg, productionMsg }) => {
         if (isUncaught) {
             // TODO change with ERROR notification
@@ -35,7 +35,7 @@ const { createData, FriendlyError } = getErrorHandling({
     }
 })
 
-const printNum = createData(
+const printNum = createPureFunc(
     'Printing a number',
     num => {
         blabla
@@ -47,16 +47,20 @@ const printNum = createData(
     }
 )
 
+const fib = createPureFunc(
+    'calculating fibonacci number',
+    n => {
+        if (n < 0 || Math.trunc(n) !== n)
+            throw new FriendlyError('The passed input wasnt possitive number')
+
+        return n <= 1 ? n : fib(n-1) + fib(n-2)
+    },
+    () => 0
+)
+
 const measureFib = createData(
     'Measuring time for fibonacci number',
     num => {
-        const fib = n => {
-            if (n < 0 || Math.trunc(n) !== n)
-                throw new FriendlyError('num had to be positive integer')
-
-            return n <= 1 ? n : fib(n-1) + fib(n-2)
-        }
-
         const startTime = Date.now()
 
         try {
@@ -68,7 +72,7 @@ const measureFib = createData(
     () => 'Incorrect fibonacchi calculation'
 )
 
-const delayReturn = createData(
+const delayReturn = createPureFunc(
     'Delaying async function',
     async (ms) => {
         await new Promise(resolve => setTimeout(resolve, ms))
@@ -85,8 +89,12 @@ console.log('printNum(9)', printNum(9))
 delayReturn(10).then(val => console.log('delayReturn(10) ' + val))
 console.log('measureFib(35)', measureFib(35))
 console.log(
-    'measureFib({ a: [ 2, 5, { b: { c: 123 } } ] }, -32.55)',
-    measureFib({ a: [ 2, 5, { b: { c: 123 } } ] }, -32.55)
+    'measureFib(1600, (() => {}).bind(), { a: 5, b: 32 }, [1, 3, 6])',
+    measureFib(1600, (() => {}).bind(), { a: 5, b: 32 }, [1, 3, 6])
+)
+console.log(
+    'measureFib(1600, (() => {}).bind(), { a: 5, b: 32 }, [1, 3, 6])',
+    measureFib(1600, (() => {}).bind(), { a: 5, b: 32 }, [1, 3, 6])
 )
 console.log('measureFib(-12)', measureFib(-12))
 console.log('\nThe program continues...')
@@ -151,7 +159,7 @@ server.listen(port, function(err) {
   * type: `({ isDevelopment, isUncaught, isFriendly, userMsg, productionMsg, error })` -> ?
   * default: `() => {}`
   * definition: Function for notifying the user with friendly error messages
-  and logging in production.
+      and logging in production.
   * `isDevelopment`: Boolean that indicates if the environment is not in prod
   * `isUncaught`: Boolean that indicates whether the error was caught in catch or not
   * `isFriendly`: Boolean that indicates whether `userMsg` is for regular users or developers
@@ -187,24 +195,35 @@ server.listen(port, function(err) {
 * `FriendlyError`
   * type: `constructor`
   * definition: Constructor that extends `Error`. Use it in functions created
-  with `createData` to signify that the error was thrown intentionally and that
-  the message is user friendly
+      with `createData` to signify that the error was thrown intentionally and that
+      the message is user friendly
 
 * `stringifyAll`
-  * type: `data` -> `stringified and parsed data`
+  * type: `(data, shouldIncludeFuncBody)` -> `stringified and parsed data`
   * definition: Takes any data and tries to stringify and format it
   * `data`: Any data that we parse and stringify
+  * `shouldIncludeFuncBody`: Boolean that determines whether the function body
+     is inluded in the stringified output
 
 * `createData`
   * type: `(descr, data, onCatch)` || `(data, onCatch)` -> `error handled data`
   * definition: Error handles every type of data that you give it
   * `descr`: String that describes the data which you gave. Used for logging.
   * `data`: Any data which we error handle deeply. Arrays, functions and their arguments,
-  objects and their methods, etc. Returns the error handled version. If object or function -
-  for every method specified we can use `${methodName}Catch` to implement `onCatch`.
+      objects and their methods, etc. Returns the error handled version. If object or function -
+      for every method specified we can use `${methodName}Catch` to implement `onCatch`.
   * `onCatch`: Function which acts as default onCatch for the returned data. Accepts arguments
-  `({ descr, err, args })`, where `descr` is same as above, `err`
-  is the error caught Error, `args` are the arguments which were supplied to the tried function.
+      `({ descr, err, args })`, where `descr` is same as above, `err`
+      is the error caught Error, `args` are the arguments which were supplied to the tried function.
+
+* `createPureFunc`
+  * type: `(descr, onTry, onCatch)` || `(onTry, onCatch)` -> `cached error handled function`
+  * definition: Error handles and caches the function that you give it
+  * `descr`: String that describes the data which you gave. Used for logging.
+  * `onTry`: Pure function, whose results we cache and still error handle (arguments too).
+  * `onCatch`: Function which acts as default onCatch for the returned data. Accepts arguments
+      `({ descr, err, args })`, where `descr` is same as above, `err`
+      is the error caught Error, `args` are the arguments which were supplied to the tried function.
 
 * `getHandledServer`
   * type: `server` -> `handledServer`
