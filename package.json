@@ -1,6 +1,6 @@
 {
     "name": "tied-pants",
-    "version": "4.9.3",
+    "version": "5.0.0",
     "description": "Utilities for error handling",
     "main": "cjs/index.js",
     "private": false,
