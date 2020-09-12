@@ -229,6 +229,71 @@ const getErrorHandling = function(props) {
         }
     }
 
+    const cacheFunc = createFunc(
+        'creating a pure function with cached results',
+        function(...params) {
+            let [descr, onTry, onCatch] = params
+
+            if (typeof descr !== 'string' && typeof onCatch !== 'function') {
+                descr = defaultDescr
+                onTry = params[0]
+                onCatch = params[1]
+            }
+
+            if (typeof onTry !== 'function') {
+                throw new Error('Data given was not a function')
+            }
+
+            if (onTry._isCached_) {
+                return onTry
+            }
+
+            const onCache = function(...args) {
+                const cachedKeys = innerFunc._cache_.keys
+                const cachedResults = innerFunc._cache_.results
+                const key = stringifyAll(args, true)
+
+                // in case some error occured
+                if (cachedKeys.length !== cachedResults.length) {
+                    cachedKeys = []
+                    cachedResults = []
+                }
+
+                let idx
+
+                // faster to traverse backwards
+                for (let i = cachedKeys.length - 1; i >= 0; i--) {
+                    if (cachedKeys[i] === key) {
+                        idx = i
+                        break
+                    }
+                }
+
+                if (idx === undefined) {
+                    const result = onTry.apply(this, args)
+
+                    cachedKeys.push(key)
+                    cachedResults.push(result)
+
+                    return result
+                }
+
+                return cachedResults[idx]
+            }
+
+            const shouldHandleArgs = true
+            const innerFunc = createFunc(descr, onCache, onCatch, shouldHandleArgs)
+
+            innerFunc._isCached_ = true
+            innerFunc._cache_ = { keys: [], results: [] }
+
+            return innerFunc
+        },
+        function({ args: [descr, onTry] }) {
+            return typeof descr === 'string' ? onTry : descr
+        }
+    )
+
     const createData = createFunc(
         'creating error handled data',
         function(...params) {
@@ -295,74 +360,6 @@ const getErrorHandling = function(props) {
         },
         function({ args: [descr, data] }) {
             return typeof descr === 'string' ? data : descr
-        }
-    )
-
-    const createPureFunc = createFunc(
-        'creating a pure function with cached results',
-        function(...params) {
-            let [descr, onTry, onCatch] = params
-
-            if (typeof descr !== 'string' && typeof onCatch !== 'function') {
-                descr = defaultDescr
-                onTry = params[0]
-                onCatch = params[1]
-            }
-
-            if (typeof onTry !== 'function') {
-                throw new Error('Data given was not a function')
-            }
-
-            if (onTry._isCached_) {
-                return onTry
-            }
-
-            const shouldHandleArgs = true
-            const innerFunc = createFunc(
-                descr,
-                function(...args) {
-                    const cachedKeys = innerFunc._cache_.keys
-                    const cachedResults = innerFunc._cache_.results
-                    const key = stringifyAll(args, true)
-
-                    // in case some error occured
-                    if (cachedKeys.length !== cachedResults.length) {
-                        cachedKeys = []
-                        cachedResults = []
-                    }
-
-                    let idx
-
-                    // faster to traverse backwards
-                    for (let i = cachedKeys.length - 1; i >= 0; i--) {
-                        if (cachedKeys[i] === key) {
-                            idx = i
-                            break
-                        }
-                    }
-
-                    if (idx === undefined) {
-                        const result = onTry.apply(this, args)
-
-                        cachedKeys.push(key)
-                        cachedResults.push(result)
-
-                        return result
-                    }
-
-                    return cachedResults[idx]
-                },
-                onCatch,
-                shouldHandleArgs
-            )
-
-            innerFunc._isCached_ = true
-            innerFunc._cache_ = { keys: [], results: [] }
-
-            return innerFunc
-        },
-        function({ args: [descr, onTry] }) {
-            return typeof descr === 'string' ? onTry : descr
         }
     )
 
@@ -471,7 +468,7 @@ const getErrorHandling = function(props) {
         isNodeJS,
         FriendlyError,
         stringifyAll,
-        createPureFunc,
+        cacheFunc,
         createData,
         getHandledServer
     }
