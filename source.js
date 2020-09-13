@@ -172,7 +172,7 @@ const getErrorHandling = function(props) {
         }
     }
 
-    const createFunc = function(descr, onTry, onCatch, shouldHandleArgs = false) {
+    const impureFunc = function(descr, onTry, onCatch, shouldHandleArgs = true) {
         try {
             if (typeof onTry !== 'function') {
                 throw new Error('Data given was not a function')
@@ -186,7 +186,7 @@ const getErrorHandling = function(props) {
                 logError({ descr, error, args })
 
                 if (typeof onCatch === 'function') {
-                    return createFunc(`catching errors for ${descr}`, onCatch)
+                    return impureFunc(`catching errors for ${descr}`, onCatch)
                         .call(this, { descr, error, args })
                 }
 
@@ -197,7 +197,7 @@ const getErrorHandling = function(props) {
                 try {
                     if (shouldHandleArgs) {
                         args = args.map(el => typeof el === 'function' ?
-                            createFunc(`argument of ${descr}`, el, onCatch) :
+                            impureFunc(`argument of ${descr}`, el, onCatch, false) :
                             el
                         )
                     }
@@ -229,7 +229,7 @@ const getErrorHandling = function(props) {
         }
     }
 
-    const cacheFunc = createFunc(
+    const pureFunc = impureFunc(
         'creating a pure function with cached results',
         function(...params) {
             let [descr, onTry, onCatch] = params
@@ -248,53 +248,53 @@ const getErrorHandling = function(props) {
                 return onTry
             }
 
-            const onCache = function(...args) {
-                const cachedKeys = innerFunc._cache_.keys
-                const cachedResults = innerFunc._cache_.results
-                const key = stringifyAll(args, true)
+            const funcToCache = impureFunc(descr, onTry, onCatch)
+            const shouldIncludeFuncBody = true
 
-                // in case some error occured
-                if (cachedKeys.length !== cachedResults.length) {
-                    cachedKeys = []
-                    cachedResults = []
-                }
+            const innerFunc = impureFunc(
+                'caching pure function',
+                function(...args) {
+                    const cachedKeys = innerFunc._cache_.keys
+                    const cachedResults = innerFunc._cache_.results
+                    const key = stringifyAll(args, shouldIncludeFuncBody)
+                    const idx = cachedKeys.indexOf(key)
 
-                let idx
+                    if (idx < 0) {
+                        let result
 
-                // faster to traverse backwards
-                for (let i = cachedKeys.length - 1; i >= 0; i--) {
-                    if (cachedKeys[i] === key) {
-                        idx = i
-                        break
+                        try {
+                            result = funcToCache.apply(this, args)
+                        } finally {
+                            // larger than that may begin to slow down
+                            if (cachedKeys.length > 1e6) {
+                                cachedKeys.shift()
+                                cachedResults.shift()
+                            }
+
+                            cachedKeys.push(key)
+                            cachedResults.push(result)
+
+                            return result
+                        }
                     }
+
+                    return cachedResults[idx]
                 }
-
-                if (idx === undefined) {
-                    const result = onTry.apply(this, args)
-
-                    cachedKeys.push(key)
-                    cachedResults.push(result)
-
-                    return result
-                }
-
-                return cachedResults[idx]
-            }
-
-            const shouldHandleArgs = true
-            const innerFunc = createFunc(descr, onCache, onCatch, shouldHandleArgs)
+            )
 
             innerFunc._isCached_ = true
             innerFunc._cache_ = { keys: [], results: [] }
 
+            Object.seal(innerFunc)
+
             return innerFunc
         },
-        function({ args: [descr, onTry] }) {
-            return typeof descr === 'string' ? onTry : descr
+        function({ args: [_descr, onTry] }) {
+            return typeof onTry === 'function' ? onTry : function(){}
         }
     )
 
-    const createData = createFunc(
+    const impureData = impureFunc(
         'creating error handled data',
         function(...params) {
             let [descr, data, onCatch] = params
@@ -305,9 +305,7 @@ const getErrorHandling = function(props) {
                 onCatch = params[1]
             }
 
-            const shouldHandleArgs = true
-
-            const assignHandledProps = createFunc(
+            const assignHandledProps = impureFunc(
                 `assigning error handled properties to ${descr}`,
                 function(target, source) {
                     const descriptors = Object.getOwnPropertyDescriptors(source)
@@ -317,13 +315,12 @@ const getErrorHandling = function(props) {
                         // we don't need them anyways
                         try {
                             const value = typeof source[key] === 'function' ?
-                                createFunc(
+                                impureFunc(
                                     `method ${key} of ${descr}`,
                                     source[key],
                                     typeof source[key + 'Catch'] === 'function' ?
                                         source[key + 'Catch'] :
-                                        onCatch,
-                                    shouldHandleArgs
+                                        onCatch
                                 ).bind(source) :
                                 source[key]
 
@@ -343,12 +340,12 @@ const getErrorHandling = function(props) {
             )
 
             if(Array.isArray(data)) {
-                return data.map((el, idx) => createData(`element ${idx} of ${descr}`, el, onCatch))
+                return data.map((el, idx) => impureData(`element ${idx} of ${descr}`, el, onCatch))
             }
 
             if (typeof data === 'function' || isObject(data)) {
                 const handledData = typeof data === 'function' ?
-                    createFunc(descr, data, onCatch, shouldHandleArgs) :
+                    impureFunc(descr, data, onCatch) :
                     {}
 
                 assignHandledProps(handledData, data)
@@ -358,12 +355,12 @@ const getErrorHandling = function(props) {
 
             return data
         },
-        function({ args: [descr, data] }) {
-            return typeof descr === 'string' ? data : descr
+        function({ args: [descr, data, onCatch] }) {
+            return typeof descr !== 'string' && typeof onCatch !== 'function' ? descr : data
         }
     )
 
-    const errorListener = createFunc(
+    const errorListener = impureFunc(
         'listening for unexpected errors',
         function(eventOrError) {
             if (isBrowser) {
@@ -398,7 +395,7 @@ const getErrorHandling = function(props) {
         }
     )
 
-    const initUncaughtErrorHandling = createFunc(
+    const catchUnhandled = impureFunc(
         'initializing listening for unexpected errors',
         function() {
             if (isBrowser) {
@@ -427,13 +424,13 @@ const getErrorHandling = function(props) {
         }
     )
 
-    const getHandledServer = createFunc(
+    const getHandledServer = impureFunc(
         'initializing error handling for server',
         function(server) {
             server = isObject(server) ? server : { on: () => {}, close: () => {} }
 
             const sockets = new Set()
-            const serverErrorListener = createFunc(
+            const serverErrorListener = impureFunc(
                 'handling server closing',
                 function() {
                     server.close()
@@ -457,8 +454,6 @@ const getErrorHandling = function(props) {
         function({ args: [server] }) { return server }
     )
 
-    initUncaughtErrorHandling()
-
     return {
         isDevelopment,
         devLogger,
@@ -468,9 +463,10 @@ const getErrorHandling = function(props) {
         isNodeJS,
         FriendlyError,
         stringifyAll,
-        cacheFunc,
-        createData,
-        getHandledServer
+        pureFunc,
+        impureData,
+        getHandledServer,
+        catchUnhandled
     }
 }
 

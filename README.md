@@ -16,7 +16,7 @@ To start using this package you need to first install locally:
 ```
 import getErrorHandling from 'tied-pants'
 
-const { createData, cacheFunc, FriendlyError } = getErrorHandling({
+const { catchUnhandled, impureData, pureFunc, FriendlyError } = getErrorHandling({
     notify: ({ isDevelopment, isUncaught, isFriendly, userMsg, productionMsg }) => {
         if (isUncaught) {
             // TODO change with ERROR notification
@@ -35,7 +35,9 @@ const { createData, cacheFunc, FriendlyError } = getErrorHandling({
     }
 })
 
-const printNum = cacheFunc(
+catchUnhandled()
+
+const printNum = pureFunc(
     'Printing a number',
     num => {
         blabla
@@ -47,7 +49,7 @@ const printNum = cacheFunc(
     }
 )
 
-const fib = cacheFunc(
+const fib = pureFunc(
     'calculating fibonacci number',
     n => {
         if (n < 0 || Math.trunc(n) !== n)
@@ -58,7 +60,7 @@ const fib = cacheFunc(
     () => 0
 )
 
-const measureFib = createData(
+const measureFib = impureData(
     'Measuring time for fibonacci number',
     num => {
         const startTime = Date.now()
@@ -72,7 +74,7 @@ const measureFib = createData(
     () => 'Incorrect fibonacchi calculation'
 )
 
-const delayReturn = cacheFunc(
+const delayReturn = pureFunc(
     'Delaying async function',
     async (ms) => {
         await new Promise(resolve => setTimeout(resolve, ms))
@@ -109,8 +111,8 @@ const http = require('http')
 const express = require('express')
 const getErrorHandling = require('tied-pants')
 
-const { createData, getHandledServer } = getErrorHandling()
-const app = createData(
+const { catchUnhandled, impureData, getHandledServer } = getErrorHandling()
+const app = impureData(
     'Express application',
     express(),
     ({ err, args: [req, res] }) => {
@@ -119,6 +121,8 @@ const app = createData(
         }
     }
 )
+
+catchUnhandled()
 
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
@@ -195,7 +199,7 @@ server.listen(port, function(err) {
 * `FriendlyError`
   * type: `constructor`
   * definition: Constructor that extends `Error`. Use it in functions created
-      with `createData` to signify that the error was thrown intentionally and that
+      with `impureData` to signify that the error was thrown intentionally and that
       the message is user friendly
 
 * `stringifyAll`
@@ -205,7 +209,7 @@ server.listen(port, function(err) {
   * `shouldIncludeFuncBody`: Boolean that determines whether the function body
      is inluded in the stringified output
 
-* `cacheFunc`
+* `pureFunc`
   * type: `(descr, onTry, onCatch)` || `(onTry, onCatch)` -> `cached error handled function`
   * definition: Error handles and caches the function that you give it
   * `descr`: String that describes the data which you gave. Used for logging.
@@ -214,7 +218,7 @@ server.listen(port, function(err) {
       `({ descr, err, args })`, where `descr` is same as above, `err`
       is the error caught Error, `args` are the arguments which were supplied to the tried function.
 
-* `createData`
+* `impureData`
   * type: `(descr, data, onCatch)` || `(data, onCatch)` -> `error handled data`
   * definition: Error handles every type of data that you give it
   * `descr`: String that describes the data which you gave. Used for logging.
@@ -229,3 +233,7 @@ server.listen(port, function(err) {
   * type: `server` -> `handledServer`
   * definition: Return a server that is error handled and closed gracefully on uncaught errors
   * `server`: Object that is the back-end server (ex: http.createServer(expressApp))
+
+* `catchUnhandled`
+  * type: `()` -> ?
+  * definition: Initializes proper error handling for UNCAUGHT errors
