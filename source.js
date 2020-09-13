@@ -172,7 +172,7 @@ const getErrorHandling = function(props) {
         }
     }
 
-    const impureFunc = function(descr, onTry, onCatch, shouldHandleArgs = true) {
+    const impureFunc = function(descr, onTry, onCatch, shouldHandleArgs = false) {
         try {
             if (typeof onTry !== 'function') {
                 throw new Error('Data given was not a function')
@@ -197,7 +197,7 @@ const getErrorHandling = function(props) {
                 try {
                     if (shouldHandleArgs) {
                         args = args.map(el => typeof el === 'function' ?
-                            impureFunc(`argument of ${descr}`, el, onCatch, false) :
+                            impureFunc(`argument of ${descr}`, el, onCatch) :
                             el
                         )
                     }
@@ -248,8 +248,9 @@ const getErrorHandling = function(props) {
                 return onTry
             }
 
-            const funcToCache = impureFunc(descr, onTry, onCatch)
+            const shouldHandleArgs = true
             const shouldIncludeFuncBody = true
+            const funcToCache = impureFunc(descr, onTry, onCatch, shouldHandleArgs)
 
             const innerFunc = impureFunc(
                 'caching pure function',
@@ -305,6 +306,8 @@ const getErrorHandling = function(props) {
                 onCatch = params[1]
             }
 
+            const shouldHandleArgs = true
+
             const assignHandledProps = impureFunc(
                 `assigning error handled properties to ${descr}`,
                 function(target, source) {
@@ -320,7 +323,8 @@ const getErrorHandling = function(props) {
                                     source[key],
                                     typeof source[key + 'Catch'] === 'function' ?
                                         source[key + 'Catch'] :
-                                        onCatch
+                                        onCatch,
+                                    shouldHandleArgs
                                 ).bind(source) :
                                 source[key]
 
@@ -345,7 +349,7 @@ const getErrorHandling = function(props) {
 
             if (typeof data === 'function' || isObject(data)) {
                 const handledData = typeof data === 'function' ?
-                    impureFunc(descr, data, onCatch) :
+                    impureFunc(descr, data, onCatch, shouldHandleArgs) :
                     {}
 
                 assignHandledProps(handledData, data)
