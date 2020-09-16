@@ -14,9 +14,9 @@ To start using this package you need to first install locally:
 
 ## Front-end Example:
 ```
-import getErrorHandling from 'tied-pants'
+import tiedPants from 'tied-pants'
 
-const { catchUnhandled, impureData, pureFunc, FriendlyError } = getErrorHandling({
+const { catchUnhandled, impureData, pureFunc, FriendlyError } = tiedPants({
     notify: ({ isDevelopment, isUncaught, isFriendly, userMsg, productionMsg }) => {
         if (isUncaught) {
             // TODO change with ERROR notification
@@ -109,9 +109,9 @@ setTimeout(() => { uncaughtSyncFunc() }, 500)
 ```
 const http = require('http')
 const express = require('express')
-const getErrorHandling = require('tied-pants')
+const tiedPants = require('tied-pants')
 
-const { catchUnhandled, impureData, getHandledServer } = getErrorHandling()
+const { catchUnhandled, impureData, getHandledServer } = tiedPants()
 const app = impureData(
     'Express application',
     express(),
@@ -174,15 +174,15 @@ server.listen(port, function(err) {
 ### API for returned values from the imported function:
 * `isDevelopment`
   * type: `boolean`
-  * definition: Boolean that was parsed from `getErrorHandling`
+  * definition: Boolean that was parsed from `tiedPants`
 
 * `devLogger`
   * type: `devMsg` -> ?
-  * definition: Function that was parsed from `getErrorHandling`
+  * definition: Function that was parsed from `tiedPants`
 
 * `notify`
   * type: `({ isUncaught, isFriendly, userMsg, productionMsg })` -> ?
-  * definition: Function that was parsed from `getErrorHandling`
+  * definition: Function that was parsed from `tiedPants`
 
 * `isObject`
   * type: val -> boolean

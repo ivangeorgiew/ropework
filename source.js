@@ -1,6 +1,6 @@
 'use strict'
 
-const getErrorHandling = function(props) {
+const tiedPants = function(props) {
     //start constants definitions
     const isObject = val => typeof val === 'object' && !Array.isArray(val) && val !== null
 
@@ -474,4 +474,4 @@ const getErrorHandling = function(props) {
     }
 }
 
-module.exports = getErrorHandling
+module.exports = tiedPants
