@@ -202,13 +202,6 @@ server.listen(port, function(err) {
       with `impureData` to signify that the error was thrown intentionally and that
       the message is user friendly
 
-* `stringifyAll`
-  * type: `(data, shouldIncludeFuncBody)` -> `stringified and parsed data`
-  * definition: Takes any data and tries to stringify and format it
-  * `data`: Any data that we parse and stringify
-  * `shouldIncludeFuncBody`: Boolean that determines whether the function body
-     is inluded in the stringified output
-
 * `pureFunc`
   * type: `(descr, onTry, onCatch)` || `(onTry, onCatch)` -> `cached error handled function`
   * definition: Error handles and caches the function that you give it

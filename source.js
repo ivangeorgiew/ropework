@@ -19,13 +19,19 @@ const tiedPants = function(props) {
 
     const defaultLogger = isObject(console) && typeof console.error === 'function' ?
         console.error :
-        function(){}
+        () => {}
 
     const defaultDescr = 'a part of the application'
 
     const browserEventNames = ['error', 'unhandledrejection']
 
     const nodeEventNames = ['uncaughtException', 'unhandledRejection', 'SIGTERM', 'SIGINT']
+
+    const innerPropConfigs = {
+        writable: true,
+        configurable: true,
+        enumerable: false
+    }
     //end constants definitions
 
     //start configuring arguments
@@ -60,29 +66,68 @@ const tiedPants = function(props) {
                 }
             }
         } :
-        function(){}
+        () => {}
     //end configuring arguments
 
-    const stringifyAll = function(data, shouldIncludeFuncBody = false) {
+    const flattenObject = function(target, source) {
         try {
+            const descriptors = Object.getOwnPropertyDescriptors(source)
+
+            Object.keys(descriptors).forEach(key => {
+                // some props have getters that throw errors
+                try {
+                    const shouldAdd = descriptors[key].hasOwnProperty('value') &&
+                        !target.hasOwnProperty(key)
+
+                    Object.defineProperty(target, key, Object.assign(
+                        { enumerable: true },
+                        shouldAdd ? { value: source[key] } : null
+                    ))
+                } catch(e) {}
+            })
+
+            const proto = Object.getPrototypeOf(source)
+
+            if (isObject(proto) && proto !== Object.prototype) {
+                flattenObject(target, proto)
+            }
+        } catch(error) {
+            if (isDevelopment) {
+                devLogger(` Issue with: flattening object\n`, error)
+            }
+        }
+    }
+
+    const stringifyAll = function(data) {
+        try {
+            const seen = new WeakSet()
             const parser = function(_key, val) {
-                if (val instanceof Error) {
-                    return Object.getOwnPropertyNames(val).reduce((acc, key) => {
-                        acc[key] = val[key]
-                        return acc
-                    }, { stack: val.stack })
+                if ([Infinity, NaN, null, undefined].includes(val)) {
+                    return String(val)
+                }
+
+                if (typeof val === 'object' || typeof val === 'function') {
+                    if (seen.has(val)) {
+                        return undefined
+                    }
+
+                    seen.add(val)
                 }
 
                 if (typeof val === 'function') {
-                    if (shouldIncludeFuncBody) {
-                        return val.name !== '' ?
-                            `[Function ${val.name} ${val.toString()}]` :
-                            `[Function unnamed ${val.toString()}]`
-                    }
-
                     return val.name !== '' ?
-                        `[Function ${val.name}]` :
-                        `[Function unnamed]`
+                        `[Function: ${val.name}]` :
+                        `[Function: ${val.toString()}]`
+                }
+
+                if (typeof val === 'object' && !Array.isArray(val)) {
+                    flattenObject(val, val)
+
+                    return Object.getOwnPropertyNames(val).sort()
+                        .reduce((acc, key) => {
+                            acc[key] = val[key]
+                            return acc
+                        }, {})
                 }
 
                 return val
@@ -90,86 +135,87 @@ const tiedPants = function(props) {
 
             return JSON.stringify(data, parser)
         } catch(error) {
-            return JSON.stringify('[Object cyclic]')
+            if (isDevelopment) {
+                devLogger(` Issue with: stringifying data\n`, error)
+            }
+
+            return JSON.stringify('[unparsable data]')
         }
     }
 
     const logError = function(props) {
-        try {
-            props = isObject(props) ? props : {}
+        setTimeout(() => {
+            try {
+                props = isObject(props) ? props : {}
 
-            const isUncaught = typeof props.isUncaught === 'boolean' ?
-                props.isUncaught :
-                false
+                const isUncaught = typeof props.isUncaught === 'boolean' ?
+                    props.isUncaught :
+                    false
 
-            const descr = typeof props.descr === 'string' ?
-                props.descr :
-                isUncaught ? 'unhandled error' : defaultDescr
+                const descr = typeof props.descr === 'string' ?
+                    props.descr :
+                    isUncaught ? 'unhandled error' : defaultDescr
 
-            const error = props.error instanceof Error ?
-                props.error :
-                isUncaught ? new Error('Uncaught error') : new Error('Unknown error')
+                const error = props.error instanceof Error ?
+                    props.error :
+                    isUncaught ? new Error('Uncaught error') : new Error('Unknown error')
 
-            const args = Array.isArray(props.args) ?
-                props.args.map(el => JSON.parse(stringifyAll(el))) :
-                ['[unknown arguments]']
+                const args = Array.isArray(props.args) ?
+                    props.args.map(el => JSON.parse(stringifyAll(el))) :
+                    ['[unknown arguments]']
 
-            const stringOfArgs = args.reduce((acc, arg, idx) => {
-                const stringifiedArg = stringifyAll(arg)
+                if (isDevelopment) {
+                    devLogger(
+                        '\n',
+                        'Issue with:', descr, '\n',
+                        'Function arguments:', args, `\n`,
+                        error, '\n'
+                    )
+                }
 
-                return idx === 0 ? stringifiedArg : `${acc} , ${stringifiedArg}`
-            }, '')
+                const isFriendly = error instanceof FriendlyError
+                const userMsg = isFriendly ? error.message : `Issue with: ${descr}`
 
-            if (isDevelopment) {
-                devLogger(
-                    ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`,
+                let productionMsg = {
+                    description: descr,
+                    arguments: args,
+                    date: (new Date()).toUTCString(),
                     error
-                )
-            }
+                }
 
-            const commonProps = {
-                description: descr,
-                arguments: args,
-                date: (new Date()).toUTCString(),
-                error
-            }
-
-            const isFriendly = error instanceof FriendlyError
-
-            const userMsg = isFriendly ? error.message : `Issue with: ${descr}`
-
-            let productionMsg = stringifyAll(commonProps)
-
-            if (isBrowser) {
-                productionMsg = stringifyAll({
-                    ...commonProps,
-                    localUrl: window.location.href,
-                    machineInfo: {
-                        browserInfo: window.navigator.userAgent,
-                        language: window.navigator.language,
-                        osType: window.navigator.platform
+                if (isBrowser) {
+                    productionMsg = {
+                        ...productionMsg,
+                        localUrl: window.location.href,
+                        machineInfo: {
+                            browserInfo: window.navigator.userAgent,
+                            language: window.navigator.language,
+                            osType: window.navigator.platform
+                        }
                     }
-                })
-            }
+                }
 
-            if (isNodeJS) {
-                productionMsg = stringifyAll({
-                    ...commonProps,
-                    localUrl: process.cwd(),
-                    machineInfo: {
-                        cpuArch: process.arch,
-                        osType: process.platform,
-                        depVersions: process.versions
+                if (isNodeJS) {
+                    productionMsg = {
+                        ...productionMsg,
+                        localUrl: process.cwd(),
+                        machineInfo: {
+                            cpuArch: process.arch,
+                            osType: process.platform,
+                            depVersions: process.versions
+                        }
                     }
-                })
-            }
+                }
 
-            notify({ isDevelopment, isUncaught, isFriendly, userMsg, productionMsg, error })
-        } catch(error) {
-            if (isDevelopment) {
-                devLogger(` Issue with: error logger\n`, error)
+                productionMsg = stringifyAll(productionMsg)
+
+                notify({ isDevelopment, isUncaught, isFriendly, userMsg, productionMsg, error })
+            } catch(error) {
+                if (isDevelopment) {
+                    devLogger(` Issue with: error logger\n`, error)
+                }
             }
-        }
+        }, 0)
     }
 
     const impureFunc = function(descr, onTry, onCatch, shouldHandleArgs = false) {
@@ -196,8 +242,8 @@ const tiedPants = function(props) {
             const innerFunc = function(...args) {
                 try {
                     if (shouldHandleArgs) {
-                        args = args.map(el => typeof el === 'function' ?
-                            impureFunc(`argument of ${descr}`, el, onCatch) :
+                        args = args.map((el, idx) => typeof el === 'function' ?
+                            impureFunc(`argument ${idx} of ${descr}`, el, onCatch) :
                             el
                         )
                     }
@@ -210,7 +256,9 @@ const tiedPants = function(props) {
 
                     // if the function returns a promise
                     if (isObject(result) && typeof result.catch === 'function') {
-                        return result.catch(error => innerCatch.apply(this, [error, args]))
+                        return result.catch(function(error) {
+                            return innerCatch.apply(this, [error, args])
+                        })
                     }
 
                     return result
@@ -219,13 +267,19 @@ const tiedPants = function(props) {
                 }
             }
 
-            innerFunc._isErrorHandled_ = true
+            Object.defineProperties(innerFunc, {
+                _isErrorHandled_: { ...innerPropConfigs, value: true },
+                name: {
+                    ...innerPropConfigs,
+                    value: descr !== defaultDescr ? descr : onTry.name
+                }
+            })
 
             return innerFunc
         } catch(error) {
             logError({ descr: 'error handling functions', error })
 
-            return typeof onTry === 'function' ? onTry : function(){}
+            return typeof onTry === 'function' ? onTry : () => {}
         }
     }
 
@@ -249,49 +303,58 @@ const tiedPants = function(props) {
             }
 
             const shouldHandleArgs = true
-            const shouldIncludeFuncBody = true
-            const funcToCache = impureFunc(descr, onTry, onCatch, shouldHandleArgs)
 
             const innerFunc = impureFunc(
-                'caching pure function',
+                descr,
                 function(...args) {
-                    const cachedKeys = innerFunc._cache_.keys
-                    const cachedResults = innerFunc._cache_.results
-                    const key = stringifyAll(args, shouldIncludeFuncBody)
-                    const idx = cachedKeys.indexOf(key)
+                    const hasError = innerFunc._hasError_
+                    const cache = innerFunc._cache_
+                    const cacheLimit = innerFunc._cacheLimit_
+                    //TODO: implement faster key generation (ex: WeakMap)
+                    // const key = args[0]
+                    const key = stringifyAll(args)
 
-                    if (idx < 0) {
-                        let result
-
-                        try {
-                            result = funcToCache.apply(this, args)
-                        } finally {
-                            // larger than that may begin to slow down
-                            if (cachedKeys.length > 1e6) {
-                                cachedKeys.shift()
-                                cachedResults.shift()
-                            }
-
-                            cachedKeys.push(key)
-                            cachedResults.push(result)
-
-                            return result
-                        }
+                    if (!hasError && cache.has(key)) {
+                        return cache.get(key)
                     }
 
-                    return cachedResults[idx]
-                }
+                    const result = onTry.apply(this, args)
+
+                    if (cache.size >= cacheLimit) {
+                        cache.clear()
+                    }
+
+                    cache.set(key, result)
+
+                    return result
+                },
+                function({ descr, error, args }) {
+                    // clear the cache on overflows
+                    setTimeout(() => {
+                        innerFunc._cache_.clear()
+                        innerFunc._hasError_ = false
+                    }, 0)
+
+                    innerFunc._hasError_ = true
+
+                    return onCatch.call(this, { descr, error, args })
+                },
+                shouldHandleArgs
             )
 
-            innerFunc._isCached_ = true
-            innerFunc._cache_ = { keys: [], results: [] }
-
-            Object.seal(innerFunc)
+            Object.defineProperties(innerFunc, {
+                _isCached_: { ...innerPropConfigs, value: true },
+                _hasError_: { ...innerPropConfigs, value: false },
+                _cache_: { ...innerPropConfigs, value: new Map() },
+                _cacheLimit_: { ...innerPropConfigs, value: Infinity }
+            })
 
             return innerFunc
         },
-        function({ args: [_descr, onTry] }) {
-            return typeof onTry === 'function' ? onTry : function(){}
+        function({ args: [descr, onTry] }) {
+            return typeof descr === 'function' ?
+                descr :
+                typeof onTry === 'function' ? onTry : () => {}
         }
     )
 
@@ -315,7 +378,6 @@ const tiedPants = function(props) {
 
                     Object.keys(descriptors).forEach(key => {
                         // some props have getters that throw errors
-                        // we don't need them anyways
                         try {
                             const value = typeof source[key] === 'function' ?
                                 impureFunc(
@@ -466,7 +528,6 @@ const tiedPants = function(props) {
         isBrowser,
         isNodeJS,
         FriendlyError,
-        stringifyAll,
         pureFunc,
         impureData,
         getHandledServer,
