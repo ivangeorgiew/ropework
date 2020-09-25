@@ -16,7 +16,7 @@ To start using this package you need to first install locally:
 ```
 import tiedPants from 'tied-pants'
 
-const { catchUnhandled, impureData, pureFunc, FriendlyError } = tiedPants({
+const { catchUnhandled, impureData, pureData, FriendlyError } = tiedPants({
     notify: ({ isDevelopment, isUncaught, isFriendly, userMsg, productionMsg }) => {
         if (isUncaught) {
             // TODO change with ERROR notification
@@ -37,7 +37,7 @@ const { catchUnhandled, impureData, pureFunc, FriendlyError } = tiedPants({
 
 catchUnhandled()
 
-const printNum = pureFunc(
+const printNum = pureData(
     'Printing a number',
     num => {
         blabla
@@ -49,7 +49,7 @@ const printNum = pureFunc(
     }
 )
 
-const fib = pureFunc(
+const fib = pureData(
     'calculating fibonacci number',
     n => {
         if (n < 0 || Math.trunc(n) !== n)
@@ -74,7 +74,7 @@ const measureFib = impureData(
     () => 'Incorrect fibonacchi calculation'
 )
 
-const delayReturn = pureFunc(
+const delayReturn = pureData(
     'Delaying async function',
     async (ms) => {
         await new Promise(resolve => setTimeout(resolve, ms))
@@ -202,15 +202,6 @@ server.listen(port, function(err) {
       with `impureData` to signify that the error was thrown intentionally and that
       the message is user friendly
 
-* `pureFunc`
-  * type: `(descr, onTry, onCatch)` || `(onTry, onCatch)` -> `cached error handled function`
-  * definition: Error handles and caches the function that you give it
-  * `descr`: String that describes the data which you gave. Used for logging.
-  * `onTry`: Pure function, whose results we cache and still error handle (arguments too).
-  * `onCatch`: Function which acts as default onCatch for the returned data. Accepts arguments
-      `({ descr, err, args })`, where `descr` is same as above, `err`
-      is the error caught Error, `args` are the arguments which were supplied to the tried function.
-
 * `impureData`
   * type: `(descr, data, onCatch)` || `(data, onCatch)` -> `error handled data`
   * definition: Error handles every type of data that you give it
@@ -221,6 +212,10 @@ server.listen(port, function(err) {
   * `onCatch`: Function which acts as default onCatch for the returned data. Accepts arguments
       `({ descr, err, args })`, where `descr` is same as above, `err`
       is the error caught Error, `args` are the arguments which were supplied to the tried function.
+
+* `pureData`
+  * type: `(descr, onTry, onCatch)` || `(onTry, onCatch)` -> `cached error handled function`
+  * definition: Same as `impureData` but every function, no matter how deep is cached
 
 * `getHandledServer`
   * type: `server` -> `handledServer`
