@@ -207,6 +207,7 @@ const tiedPants = function(props) {
 
             let cache = Object.create(null)
             let cacheKeys = []
+            let cacheId = 0
             let hasError = false
 
             const innerCatch = function(error, args) {
@@ -219,6 +220,7 @@ const tiedPants = function(props) {
                     setTimeout(() => {
                         cache = Object.create(null)
                         cacheKeys = []
+                        cacheId = 0
                         hasError = false
                     }, 0)
                 }
@@ -249,7 +251,20 @@ const tiedPants = function(props) {
                     let key
 
                     if (isPure) {
-                        key = stringifyAll(args)
+                        key = args.map(el => {
+                            const t = typeof el
+                            const idKey = '__cacheId__'
+
+                            if ((t === 'object' || t === 'function') && el !== null) {
+                                if (typeof el[idKey] !== 'number') {
+                                    Object.defineProperty(el, idKey, { value: ++cacheId })
+                                }
+
+                                return `[${t}: ${el[idKey]}]`
+                            } else {
+                                return String(el)
+                            }
+                        }).join('-')
 
                         if (!hasError && (key in cache)) {
                             return cache[key]
