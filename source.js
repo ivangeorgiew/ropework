@@ -67,28 +67,26 @@ const tiedPants = function(props) {
         try {
             const seen = new WeakSet()
             const parser = function(_key, val) {
+                const t = typeof val
+
                 if ([Infinity, NaN, null, undefined].includes(val)) {
                     return String(val)
                 }
 
-                if (['object', 'function'].includes(typeof val)) {
+                if (t === 'bigint') {
+                    return Number(val)
+                }
+
+                if (t === 'object' || t === 'function') {
                     if (seen.has(val)) {
                         return undefined
                     }
 
                     seen.add(val)
-                }
 
-                if (typeof val === 'function') {
-                    return `[Function: ${val.name}]`
-                }
-
-                if (typeof val === 'object' && !Array.isArray(val)) {
-                    // get non-enumerable properties sorted
-                    return Object.getOwnPropertyNames(val).sort().reduce((acc, key) => {
-                        acc[key] = val[key]
-                        return acc
-                    }, {})
+                    if (t === 'function') {
+                        return `[Function: ${val.name}]`
+                    }
                 }
 
                 return val
@@ -100,7 +98,7 @@ const tiedPants = function(props) {
                 devLogger(` Issue with: stringifying data\n`, error)
             }
 
-            return JSON.stringify('[unparsable data]')
+            return JSON.stringify(`[Unparsed ${typeof data}]`)
         }
     }
 
@@ -216,13 +214,13 @@ const tiedPants = function(props) {
 
                 if (isPure) {
                     // clear the cache on overflows
+                    hasError = true
+
                     setTimeout(() => {
                         cache = Object.create(null)
                         cacheKeys = []
                         hasError = false
                     }, 0)
-
-                    hasError = true
                 }
 
                 return createFunc({ descr: `catching errors for ${descr}`, onTry: onCatch })
@@ -285,11 +283,7 @@ const tiedPants = function(props) {
 
             Object.defineProperties(innerFunc, {
                 length: { value: onTry.length },
-                name: {
-                    value: descr !== defaultDescr ?
-                        descr :
-                        onTry._isHandled_ ? onTry.name : onTry.toString()
-                },
+                name: { value: descr !== defaultDescr ? descr : onTry.name },
                 _isHandled_: { value: true },
                 _cache_: { value: cache },
                 cacheLimit: { configurable: true, writable: true, value: 100000 }
