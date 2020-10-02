@@ -67,24 +67,22 @@ const tiedPants = function(props) {
         try {
             const seen = new WeakSet()
             const parser = function(_key, val) {
-                const t = typeof val
-
                 if ([Infinity, NaN, null, undefined].includes(val)) {
                     return String(val)
                 }
 
-                if (t === 'bigint') {
+                if (typeof val === 'bigint') {
                     return Number(val)
                 }
 
-                if (t === 'object' || t === 'function') {
+                if (typeof val === 'object' || typeof val === 'function') {
                     if (seen.has(val)) {
                         return undefined
                     }
 
                     seen.add(val)
 
-                    if (t === 'function') {
+                    if (typeof val === 'function') {
                         return `[Function: ${val.name}]`
                     }
                 }
@@ -121,7 +119,7 @@ const tiedPants = function(props) {
 
                 const args = Array.isArray(props.args) ?
                     props.args.map(el => JSON.parse(stringifyAll(el))) :
-                    ['[unknown arguments]']
+                    []
 
                 if (isDevelopment) {
                     devLogger(
@@ -185,10 +183,6 @@ const tiedPants = function(props) {
                 props.isPure :
                 false
 
-            const shouldHandleArgs = typeof props.shouldHandleArgs === 'boolean' ?
-                props.shouldHandleArgs :
-                false
-
             const descr = typeof props.descr === 'string' ?
                 props.descr :
                 defaultDescr
@@ -205,20 +199,20 @@ const tiedPants = function(props) {
                 return onTry
             }
 
-            let cache = Object.create(null)
+            let hasError = false
+            let cache = {}
             let cacheKeys = []
             let cacheId = 0
-            let hasError = false
 
             const innerCatch = function(error, args) {
                 logError({ descr, error, args })
 
+                // clear the cache on overflows
                 if (isPure) {
-                    // clear the cache on overflows
                     hasError = true
 
                     setTimeout(() => {
-                        cache = Object.create(null)
+                        cache = {}
                         cacheKeys = []
                         cacheId = 0
                         hasError = false
@@ -230,83 +224,87 @@ const tiedPants = function(props) {
             }
 
             const innerFunc = function(...args) {
-                try {
-                    if (shouldHandleArgs) {
-                        args = args.map((el, idx) => typeof el === 'function' ?
-                            createFunc({
-                                isPure,
-                                shouldHandleArgs,
-                                desrc: `argument ${idx} of ${descr}`,
-                                onTry: el,
-                                onCatch
-                            }) :
-                            el
-                        )
+                let cacheKey
+                let result
+
+                if (isPure) {
+                    try {
+                        const CACHE_ID_KEY = '_cacheId_'
+
+                        cacheKey = args.reduce((acc, el, idx) => {
+                            let str
+
+                            if (
+                                (typeof el === 'object' || typeof el === 'function') &&
+                                el !== null
+                            ) {
+                                if (typeof el[CACHE_ID_KEY] !== 'number') {
+                                    Object.defineProperty(el, CACHE_ID_KEY, { value: ++cacheId })
+                                }
+
+                                str = `[${typeof el}: ${el[CACHE_ID_KEY]}]`
+                            } else {
+                                str = String(el)
+                            }
+
+                            return idx === 0 ? acc + str : acc + ' - ' + str
+                        }, '')
+
+                        if (!hasError && (cacheKey in cache)) {
+                            return cache[cacheKey]
+                        }
+                    } catch(error) {
+                        logError({ descr: 'retrieving result from cache', error, args })
                     }
-                } catch(error) {
-                    logError({ descr: 'error handling function arguments', error, args })
                 }
 
                 try {
-                    let key
-
-                    if (isPure) {
-                        key = args.map(el => {
-                            const t = typeof el
-                            const idKey = '__cacheId__'
-
-                            if ((t === 'object' || t === 'function') && el !== null) {
-                                if (typeof el[idKey] !== 'number') {
-                                    Object.defineProperty(el, idKey, { value: ++cacheId })
-                                }
-
-                                return `[${t}: ${el[idKey]}]`
-                            } else {
-                                return String(el)
-                            }
-                        }).join('-')
-
-                        if (!hasError && (key in cache)) {
-                            return cache[key]
-                        }
-                    }
-
-                    const result = onTry.apply(this, args)
+                    result = onTry.apply(this, args)
 
                     // if the function returns a promise
                     if (isObject(result) && typeof result.catch === 'function') {
-                        return result.catch(function(error) {
+                        result = result.catch(function(error) {
                             return innerCatch.apply(this, [error, args])
                         })
                     }
+                } catch(error) {
+                    result = innerCatch.apply(this, [error, args])
+                }
 
-                    if (isPure) {
-                        if (cacheKeys.length >= innerFunc.cacheLimit) {
+                if (isPure) {
+                    try {
+                        const cacheLimit = typeof innerFunc.cacheLimit === 'number' ?
+                            innerFunc.cacheLimit :
+                            1e5
+
+                        if (cacheKeys.length >= cacheLimit) {
                             delete cache[cacheKeys[0]]
                             cacheKeys.shift()
                         }
 
-                        cache[key] = result
-                        cacheKeys.push(key)
+                        if (typeof cacheKey === 'string') {
+                            cache[cacheKey] = result
+                            cacheKeys.push(cacheKey)
+                        }
+                    } catch(e) {
+                        logError({ descr: 'assigning result to cache', error, args })
                     }
-
-                    return result
-                } catch(error) {
-                    return innerCatch.apply(this, [error, args])
                 }
+
+                return result
             }
 
             Object.defineProperties(innerFunc, {
-                length: { value: onTry.length },
-                name: { value: descr !== defaultDescr ? descr : onTry.name },
+                length: { configurable: true, value: onTry.length },
+                name: { configurable: true, value: onTry.name },
+                cacheLimit: { configurable: true, writable: true, value: 1e5 },
                 _isHandled_: { value: true },
                 _cache_: { value: cache },
-                cacheLimit: { configurable: true, writable: true, value: 100000 }
             })
 
             return innerFunc
         } catch(error) {
-            logError({ descr: 'error handling functions', error })
+            logError({ descr: 'error handling functions', error, args: Array.from(arguments) })
 
             return () => {}
         }
@@ -323,8 +321,6 @@ const tiedPants = function(props) {
                 onCatch = params[2]
             }
 
-            const shouldHandleArgs = true
-
             const assignHandledProps = createFunc({
                 descr: `assigning error handled properties to ${descr}`,
                 onTry: function(target, source) {
@@ -333,45 +329,65 @@ const tiedPants = function(props) {
                     Object.keys(descriptors).forEach(key => {
                         // some props have getters that throw errors
                         try {
-                            if (target.hasOwnProperty(key)) {
-                                return
-                            }
+                            let value
 
-                            const value = typeof source[key] === 'function' ?
-                                createFunc({
+                            if (typeof source[key] === 'object' && source[key] !== null) {
+                                value = source[key]
+                                // value = createData(
+                                //     isPure,
+                                //     `method ${key} of ${descr}`,
+                                //     source[key],
+                                //     onCatch
+                                // )
+                            } else if (typeof source[key] === 'function') {
+                                value = createData(
                                     isPure,
-                                    shouldHandleArgs,
-                                    descr: `method ${key} of ${descr}`,
-                                    onTry: source[key],
-                                    onCatch: typeof source[key + 'Catch'] === 'function' ?
+                                    `method ${key} of ${descr}`,
+                                    source[key],
+                                    typeof source[key + 'Catch'] === 'function' ?
                                         source[key + 'Catch'] :
                                         onCatch
-                                }).bind(source) :
-                                source[key]
+                                ).bind(source)
+                            } else {
+                                value = source[key]
+                            }
 
                             Object.defineProperty(target, key, Object.assign(
                                 descriptors[key],
-                                descriptors[key].hasOwnProperty('value') ? { value } : null
+                                ('value' in descriptors[key]) ? { value } : null
                             ))
                         } catch(e) {}
                     })
 
                     const proto = Object.getPrototypeOf(source)
 
-                    if (isObject(proto) && proto !== Object.prototype) {
+                    if (
+                        isObject(proto) &&
+                        proto !== Object.prototype &&
+                        proto !== Function.prototype
+                    ) {
                         assignHandledProps(Object.getPrototypeOf(target), proto)
                     }
                 }
             })
 
-            if(Array.isArray(data)) {
-                return data.map((el, idx) => createData(`element ${idx} of ${descr}`, el, onCatch))
-            }
+            if ((typeof data === 'function' || typeof data === 'object') && data !== null) {
+                let handledData
 
-            if (typeof data === 'function' || isObject(data)) {
-                const handledData = typeof data === 'function' ?
-                    createFunc({ isPure, shouldHandleArgs, descr, onTry: data, onCatch }) :
-                    {}
+                if (Array.isArray(data)) {
+                    handledData = data.forEach((el, idx) => {
+                        data[idx] = createData(
+                            isPure,
+                            `element ${idx} of ${descr}`,
+                            el,
+                            onCatch
+                        )
+                    })
+                } else if (typeof data === 'object') {
+                    handledData = {}
+                } else {
+                    handledData = createFunc({ isPure, descr, onTry: data, onCatch })
+                }
 
                 assignHandledProps(handledData, data)
 
