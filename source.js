@@ -23,6 +23,8 @@ const tiedPants = function(props) {
 
     const defaultDescr = 'a part of the application'
 
+    let cacheId = 0
+
     const browserEventNames = ['error', 'unhandledrejection']
 
     const nodeEventNames = ['uncaughtException', 'unhandledRejection', 'SIGTERM', 'SIGINT']
@@ -202,7 +204,6 @@ const tiedPants = function(props) {
             let hasError = false
             let cache = {}
             let cacheKeys = []
-            let cacheId = 0
 
             const innerCatch = function(error, args) {
                 logError({ descr, error, args })
@@ -212,10 +213,9 @@ const tiedPants = function(props) {
                     hasError = true
 
                     setTimeout(() => {
+                        hasError = false
                         cache = {}
                         cacheKeys = []
-                        cacheId = 0
-                        hasError = false
                     }, 0)
                 }
 
@@ -275,7 +275,7 @@ const tiedPants = function(props) {
                     try {
                         const cacheLimit = typeof innerFunc.cacheLimit === 'number' ?
                             innerFunc.cacheLimit :
-                            1e5
+                            1e6
 
                         if (cacheKeys.length >= cacheLimit) {
                             delete cache[cacheKeys[0]]
@@ -297,10 +297,16 @@ const tiedPants = function(props) {
             Object.defineProperties(innerFunc, {
                 length: { configurable: true, value: onTry.length },
                 name: { configurable: true, value: onTry.name },
-                cacheLimit: { configurable: true, writable: true, value: 1e5 },
-                _isHandled_: { value: true },
-                _cache_: { value: cache },
+                _isHandled_: { value: true }
             })
+
+            if (isPure) {
+                Object.defineProperties(innerFunc, {
+                    cacheLimit: { configurable: true, writable: true, value: 1e6 },
+                    _cache_: { value: cache },
+                    _cacheKeys_: { value: cacheKeys }
+                })
+            }
 
             return innerFunc
         } catch(error) {
