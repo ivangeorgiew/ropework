@@ -229,8 +229,6 @@ const tiedPants = function(props) {
 
                 if (isPure) {
                     try {
-                        const CACHE_ID_KEY = '_cacheId_'
-
                         cacheKey = args.reduce((acc, el, idx) => {
                             let str
 
@@ -238,11 +236,11 @@ const tiedPants = function(props) {
                                 (typeof el === 'object' || typeof el === 'function') &&
                                 el !== null
                             ) {
-                                if (typeof el[CACHE_ID_KEY] !== 'number') {
-                                    Object.defineProperty(el, CACHE_ID_KEY, { value: ++cacheId })
+                                if (typeof el._cacheId_ !== 'number') {
+                                    Object.defineProperty(el, '_cacheId_', { value: ++cacheId })
                                 }
 
-                                str = `[${typeof el}: ${el[CACHE_ID_KEY]}]`
+                                str = `[${typeof el}: ${el._cacheId_}]`
                             } else {
                                 str = String(el)
                             }
@@ -297,7 +295,7 @@ const tiedPants = function(props) {
             Object.defineProperties(innerFunc, {
                 length: { configurable: true, value: onTry.length },
                 name: { configurable: true, value: onTry.name },
-                _isHandled_: { value: true }
+                _isPure_: { value: isPure }
             })
 
             if (isPure) {
@@ -338,13 +336,17 @@ const tiedPants = function(props) {
                             let value
 
                             if (typeof source[key] === 'object' && source[key] !== null) {
-                                value = source[key]
-                                // value = createData(
-                                //     isPure,
-                                //     `method ${key} of ${descr}`,
-                                //     source[key],
-                                //     onCatch
-                                // )
+                                if (['constructor', 'prototype', 'request', 'response'].includes(key)) {
+                                    // console.log({ key, value: source[key] })
+                                    value = source[key]
+                                } else {
+                                    value = createData(
+                                        isPure,
+                                        `method ${key} of ${descr}`,
+                                        source[key],
+                                        onCatch
+                                    )
+                                }
                             } else if (typeof source[key] === 'function') {
                                 value = createData(
                                     isPure,
@@ -395,7 +397,11 @@ const tiedPants = function(props) {
                     handledData = createFunc({ isPure, descr, onTry: data, onCatch })
                 }
 
-                assignHandledProps(handledData, data)
+                if (!handledData._isHandled_) {
+                    assignHandledProps(handledData, data)
+
+                    Object.defineProperty(handledData, '_isHandled_', { value: true })
+                }
 
                 return handledData
             }
@@ -410,9 +416,9 @@ const tiedPants = function(props) {
     const pureData = createData.bind(this, true)
     const impureData = createData.bind(this, false)
 
-    const errorListener = createFunc({
-        descr: 'listening for unexpected errors',
-        onTry: function(eventOrError) {
+    const errorListener = impureData(
+        'listening for unexpected errors',
+        function(eventOrError) {
             if (isBrowser) {
                 if (eventOrError instanceof Event) {
                     eventOrError.stopImmediatePropagation()
@@ -443,11 +449,11 @@ const tiedPants = function(props) {
                 setTimeout(() => { process.exit(exitCode) }, 1000).unref()
             }
         }
-    })
+    )
 
-    const catchUnhandled = createFunc({
-        descr: 'initializing listening for unexpected errors',
-        onTry: function() {
+    const catchUnhandled = impureData(
+        'initializing listening for unexpected errors',
+        function() {
             if (isBrowser) {
                 browserEventNames.forEach(eventName => {
                     if (typeof window._tp_errorListener_ === 'function') {
@@ -472,21 +478,21 @@ const tiedPants = function(props) {
                 global._tp_errorListener_ = errorListener
             }
         }
-    })
+    )
 
-    const getHandledServer = createFunc({
-        descr: 'initializing error handling for server',
-        onTry: function(server) {
+    const getHandledServer = impureData(
+        'initializing error handling for server',
+        function(server) {
             server = isObject(server) ? server : { on: () => {}, close: () => {} }
 
             const sockets = new Set()
-            const serverErrorListener = createFunc({
-                descr: 'handling server closing',
-                onTry: function() {
+            const serverErrorListener = impureData(
+                'handling server closing',
+                function() {
                     server.close()
                     sockets.forEach(socket => { socket.destroy() })
                 }
-            })
+            )
 
             if (isNodeJS) {
                 server.on('connection', socket => {
@@ -501,8 +507,8 @@ const tiedPants = function(props) {
 
             return server
         },
-        onCatch: function({ args: [server] }) { return server }
-    })
+        function({ args: [server] }) { return server }
+    )
 
     return {
         isDevelopment,
