@@ -292,12 +292,6 @@ const tiedPants = function(props) {
                 return result
             }
 
-            Object.defineProperties(innerFunc, {
-                length: { configurable: true, value: onTry.length },
-                name: { configurable: true, value: onTry.name },
-                tp_isPure: { value: isPure }
-            })
-
             if (isPure) {
                 Object.defineProperties(innerFunc, {
                     tp_cacheLimit: { configurable: true, writable: true, value: 1e6 },
@@ -331,10 +325,12 @@ const tiedPants = function(props) {
                     refs.set(source, target)
 
                     const descriptors = Object.getOwnPropertyDescriptors(source)
+                    const descriptorKeys = Object.keys(descriptors)
 
-                    Object.keys(descriptors).forEach(key => {
+                    for (let i = 0; i < descriptorKeys.length; i++) {
                         // some props have getters that throw errors
                         try {
+                            const key = descriptorKeys[i]
                             let value
 
                             if (
@@ -367,39 +363,45 @@ const tiedPants = function(props) {
                                 ('value' in descriptors[key]) ? { value } : null
                             ))
                         } catch(e) {}
-                    })
+                    }
                 }
             })
 
             if ((typeof data === 'function' || typeof data === 'object') && data !== null) {
                 let handledData
 
-                if (typeof data === 'function') {
-                    handledData = createFunc({ isPure, descr, onTry: data, onCatch })
-                } else {
+                if (data.tp_isHandled) {
                     handledData = data
+                } else if (Array.isArray(data)) {
+                    handledData = []
 
-                    if (Array.isArray(data) && !handledData.tp_isHandled) {
-                        refs.set(data, handledData)
+                    refs.set(data, handledData)
 
-                        handledData.forEach((el, idx) => {
-                            if (
-                                el !== null &&
-                                (typeof el === 'object' || typeof el === 'function')
-                            ) {
-                                if (refs.has(el)) {
-                                    handledData[idx] = refs.get(el)
-                                } else {
-                                    handledData[idx] = createData(
-                                        { isPure, refs },
-                                        `element ${idx} of ${descr}`,
-                                        el,
-                                        onCatch
-                                    )
-                                }
+                    for (let i = 0; i < data.length; i++) {
+                        const el = handledData[i]
+
+                        if (
+                            el !== null &&
+                            (typeof el === 'object' || typeof el === 'function')
+                        ) {
+                            if (refs.has(el)) {
+                                handledData[i] = refs.get(el)
+                            } else {
+                                handledData[i] = createData(
+                                    { isPure, refs },
+                                    `element ${i} of ${descr}`,
+                                    el,
+                                    onCatch
+                                )
                             }
-                        })
+                        } else {
+                            handledData[i] = data[i]
+                        }
                     }
+                } else if (typeof data === 'object') {
+                    handledData = {}
+                } else {
+                    handledData = createFunc({ isPure, descr, onTry: data, onCatch })
                 }
 
                 if (!handledData.tp_isHandled) {
@@ -459,25 +461,29 @@ const tiedPants = function(props) {
         'initializing listening for unexpected errors',
         function() {
             if (isBrowser) {
-                browserEventNames.forEach(eventName => {
+                for (let i = 0; i < browserEventNames.length; i++) {
+                    const eventName = browserEventNames[i]
+
                     if (typeof window.tp_errorListener === 'function') {
                         window.removeEventListener(eventName, window.tp_errorListener, true)
                     }
 
                     window.addEventListener(eventName, errorListener, true)
-                })
+                }
 
                 window.tp_errorListener = errorListener
             }
 
             if (isNodeJS) {
-                nodeEventNames.forEach(eventName => {
+                for (let i = 0; i < nodeEventNames.length; i++) {
+                    const eventName = nodeEventNames[i]
+
                     if (typeof global.tp_errorListener === 'function') {
                         process.removeListener(eventName, global.tp_errorListener)
                     }
 
                     process.on(eventName, errorListener)
-                })
+                }
 
                 global.tp_errorListener = errorListener
             }
@@ -504,9 +510,11 @@ const tiedPants = function(props) {
                     socket.on('close', () => { sockets.delete(socket) })
                 })
 
-                nodeEventNames.forEach(eventName => {
+                for (let i = 0; i < nodeEventNames.length; i++) {
+                    const eventName = nodeEventNames[i]
+
                     process.prependListener(eventName, serverErrorListener)
-                })
+                }
             }
 
             return server
