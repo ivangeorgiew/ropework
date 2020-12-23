@@ -32,6 +32,10 @@ const tiedPants = function(props) {
         Array.prototype,
         Function.prototype
     ]
+
+    const overflowRegex = /(stack|recursion)/
+
+    const lastError = { descr: '', message: '' }
     //end constants definitions
 
     //start configuring arguments
@@ -87,10 +91,18 @@ const tiedPants = function(props) {
                     isUncaught ? new Error('Uncaught error') : new Error('Unknown error')
 
                 const args = Array.isArray(props.args) ?
-                    props.args.map(el => typeof el) :
+                    props.args.map(el => Array.isArray(el) ? 'array' : typeof el) :
                     []
 
-                if (isDevelopment) {
+                const isOverflowAgain =
+                    error.message === lastError.message &&
+                    error.message.match(overflowRegex) !== null
+
+                const isSameError =
+                    descr === lastError.descr &&
+                    error.message === lastError.message
+
+                if (isDevelopment && !isSameError && !isOverflowAgain) {
                     devLogger(
                         '\n',
                         'Issue with:', descr, '\n',
@@ -99,10 +111,11 @@ const tiedPants = function(props) {
                     )
                 }
 
+                Object.assign(lastError, { descr, message: error.message })
+
                 const isFriendly = error instanceof FriendlyError
                 const userMsg = isFriendly ? error.message : `Issue with: ${descr}`
-
-                let productionInfo = {
+                const productionInfo = {
                     description: descr,
                     arguments: args,
                     date: (new Date()).toUTCString(),
@@ -163,8 +176,23 @@ const tiedPants = function(props) {
                 props.onCatch :
                 () => {}
 
+            const isPure = descr.match(/\bcached\b/i) !== null
+
+            let cacheKeys = []
+            let cacheValues = []
+
             const innerCatch = function(error, args) {
                 logError({ descr, error, args })
+
+                // clear the cache on overflows
+                if (
+                    isPure &&
+                    error instanceof Error &&
+                    error.message.match(overflowRegex) !== null
+                ) {
+                    cacheKeys = []
+                    cacheValues = []
+                }
 
                 const handledOnCatch = createFunc({
                     descr: `catching errors for ${descr}`,
@@ -176,6 +204,37 @@ const tiedPants = function(props) {
 
             const innerFunc = function(...args) {
                 let result
+
+                if (isPure) {
+                    try {
+                        for (let i = 0; i < cacheKeys.length; i++) {
+                            const cacheKey = cacheKeys[i]
+
+                            if (
+                                cacheKey[0] !== this ||
+                                cacheKey.length !== args.length + 1
+                            ) {
+                                continue
+                            }
+
+                            let areEqual = true
+
+                            // cacheKey[0] is not an argument
+                            for (let m = 1; m < cacheKey.length; m++) {
+                                if (!Object.is(cacheKey[m], args[m - 1])) {
+                                    areEqual = false
+                                    break
+                                }
+                            }
+
+                            if (areEqual) {
+                                return cacheValues[i]
+                            }
+                        }
+                    } catch(error) {
+                        logError({ descr: 'retrieving result from cache', error, args })
+                    }
+                }
 
                 try {
                     // if the function was called as constructor
@@ -199,7 +258,33 @@ const tiedPants = function(props) {
                     result = innerCatch.apply(this, [error, args])
                 }
 
+                if (isPure) {
+                    try {
+                        const cacheLimit = typeof innerFunc.tp_cacheLimit === 'number' ?
+                            innerFunc.tp_cacheLimit :
+                            1e5
+
+                        if (cacheKeys.length >= cacheLimit) {
+                            cacheKeys.shift()
+                            cacheValues.shift()
+                        }
+
+                        cacheKeys.push([this].concat(args))
+                        cacheValues.push(result)
+                    } catch(e) {
+                        logError({ descr: 'assigning result to cache', error, args })
+                    }
+                }
+
                 return result
+            }
+
+            if (isPure) {
+                Object.defineProperties(innerFunc, {
+                    tp_cacheLimit: { configurable: true, writable: true, value: 1e5 },
+                    tp_cacheKeys: { value: cacheKeys },
+                    tp_cacheValues: { value: cacheValues }
+                })
             }
 
             return innerFunc
@@ -211,8 +296,24 @@ const tiedPants = function(props) {
     }
 
     const createData = createFunc({
-        descr: 'creating error handled data',
-        onTry: function({ descr, data, onCatch, refs }) {
+        descr: 'cached recursively creating error handled data',
+        onTry: function(props) {
+            props = isObject(props) ? props : {}
+
+            const descr = typeof props.descr === 'string' ?
+                props.descr :
+                defaultDescr
+
+            const data = props.data
+
+            const onCatch = typeof props.onCatch === 'function' ?
+                props.onCatch :
+                () => {}
+
+            const refs = props.refs instanceof WeakMap ?
+                props.refs :
+                new WeakMap()
+
             if (
                 !['object', 'function'].includes(typeof data) ||
                 data === null ||
@@ -226,7 +327,7 @@ const tiedPants = function(props) {
             }
 
             const assignHandledProps = createFunc({
-                descr: `assigning error handled properties to ${descr}`,
+                descr: 'cached assigning error handled properties',
                 onTry: function(source, target) {
                     const descriptors = Object.getOwnPropertyDescriptors(source)
                     const descriptorKeys = Object.getOwnPropertyNames(descriptors)
@@ -306,27 +407,28 @@ const tiedPants = function(props) {
 
             return handledData
         },
-        onCatch: function({ args: [descr, data, onCatch] }) {
+        onCatch: function ({ args: [props] }) {
+            return isObject(props) ? props.data : undefined
+        }
+    })
+
+    const tieUp = createFunc({
+        descr: 'cached tying up data with error handling',
+        onTry: function (descr, data, onCatch) {
+            if (typeof descr !== 'string' && typeof onCatch !== 'function') {
+                descr = defaultDescr
+                data = arguments[0]
+                onCatch = arguments[1]
+            }
+
+            return createData({ descr, data, onCatch })
+        },
+        onCatch: function ({ args: [descr, data] }) {
             return typeof descr !== 'string' && typeof onCatch !== 'function' ?
                 descr :
                 data
         }
     })
-
-    const tieUp = function(descr, data, onCatch) {
-        if (typeof descr !== 'string' && typeof onCatch !== 'function') {
-            descr = defaultDescr
-            data = params[1]
-            onCatch = params[2]
-        }
-
-        return createData({
-            descr,
-            data,
-            onCatch,
-            refs: new WeakMap()
-        })
-    }
 
     const getHandledServer = tieUp(
         'initializing error handling for server',

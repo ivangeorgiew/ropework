@@ -48,18 +48,12 @@ const printNum = tieUp(
 )
 
 const fib = tieUp(
-    'calculating fibonacci number',
-    (n, cache = {}) => {
+    'cached calculating fibonacci number',
+    (n) => {
         if (n < 0 || Math.trunc(n) !== n)
             throw new FriendlyError('The passed input wasnt possitive number')
 
-        if (n in cache) {
-            return cache[n]
-        }
-
-        cache[n] = n <= 1 ? n : fib(n-1, cache) + fib(n-2, cache)
-
-        return cache[n]
+        return n <= 1 ? n : fib(n-1) + fib(n-2)
     },
     () => 0
 )
@@ -198,7 +192,7 @@ server.listen(port, () => {
 * `tieUp`
   * type: `(descr, data, onCatch)` || `(data, onCatch)` -> `error handled data`
   * definition: Error handles every type of data that you give it
-  * `descr`: String that describes the data which you gave. Used for logging.
+  * `descr`: String that describes the data. If it has the word `cached`, then caching is enabled.
   * `data`: Any data which we error handle deeply. Arrays, functions and their arguments,
       objects and their methods, etc. Returns the error handled version.
   * `onCatch`: Function which acts as default onCatch for the returned data. Accepts arguments

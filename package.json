@@ -6,9 +6,15 @@
     "private": false,
     "sideEffects": false,
     "keywords": [
+        "exception",
         "error",
         "handling",
-        "logging"
+        "error-handling",
+        "logging",
+        "caching",
+        "cache",
+        "memoization",
+        "memoize"
     ],
     "repository": {
         "type": "git",
