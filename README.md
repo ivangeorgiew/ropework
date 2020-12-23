@@ -10,14 +10,14 @@ Be a good developer, tie your pants...
 
 ## Usage
 To start using this package you need to first install locally:
-`npm i tied-pants` or `yarn add tied-pants`
+`npm i tied-pants` or `pnpm i tied-pants` or `yarn add tied-pants`
 
 ## Front-end Example:
 ```
 import tiedPants from 'tied-pants'
 
-const { catchUnhandled, impureData, pureData, FriendlyError } = tiedPants({
-    notify: ({ isDevelopment, isUncaught, isFriendly, userMsg, productionMsg }) => {
+const { tieUp, FriendlyError } = tiedPants({
+    notify: ({ isDevelopment, isUncaught, isFriendly, userMsg, productionInfo }) => {
         if (isUncaught) {
             // TODO change with ERROR notification
             alert(`ERROR - ${userMsg}`)
@@ -28,16 +28,14 @@ const { catchUnhandled, impureData, pureData, FriendlyError } = tiedPants({
             alert(`WARNING - ${userMsg}`)
         }
 
-        // TODO add production logger that uses productionMsg
+        // TODO add production logger that uses productionInfo
         if (!isDevelopment) {
-            // callProdLoggerService({ JSON: productionMsg })
+            // callProdLoggerService(productionInfo)
         }
     }
 })
 
-catchUnhandled()
-
-const printNum = pureData(
+const printNum = tieUp(
     'Printing a number',
     num => {
         blabla
@@ -49,18 +47,24 @@ const printNum = pureData(
     }
 )
 
-const fib = pureData(
+const fib = tieUp(
     'calculating fibonacci number',
-    n => {
+    (n, cache = {}) => {
         if (n < 0 || Math.trunc(n) !== n)
             throw new FriendlyError('The passed input wasnt possitive number')
 
-        return n <= 1 ? n : fib(n-1) + fib(n-2)
+        if (n in cache) {
+            return cache[n]
+        }
+
+        cache[n] = n <= 1 ? n : fib(n-1, cache) + fib(n-2, cache)
+
+        return cache[n]
     },
     () => 0
 )
 
-const measureFib = impureData(
+const measureFib = tieUp(
     'Measuring time for fibonacci number',
     num => {
         const startTime = Date.now()
@@ -74,7 +78,7 @@ const measureFib = impureData(
     () => 'Incorrect fibonacchi calculation'
 )
 
-const delayReturn = pureData(
+const delayReturn = tieUp(
     'Delaying async function',
     async (ms) => {
         await new Promise(resolve => setTimeout(resolve, ms))
@@ -111,39 +115,28 @@ const http = require('http')
 const express = require('express')
 const tiedPants = require('tied-pants')
 
-const { catchUnhandled, impureData, getHandledServer } = tiedPants()
-const app = impureData(
-    'Express application',
-    express(),
-    ({ err, args: [req, res] }) => {
-        if (!res.headersSent) {
-            res.status(500).json({ message: err.message })
-        }
-    }
-)
-
-catchUnhandled()
+const { getHandledServer, getRoutingCreator } = tiedPants()
+const app = express()
+const createRoute = getRoutingCreator(app)
 
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
-app.get('/', (req, res, next) => {
+createRoute('get', '/', (req, res, next) => {
     res.send('Hello World!')
-
     throw new Error('whoops')
 })
-app.get('/err', async (req, res, next) => {
-    await new Promise(resolve => setTimeout(resolve, 1000))
 
+createRoute('get', '/err', async (req, res, next) => {
+    await new Promise(resolve => setTimeout(resolve, 1000))
     throw new Error('Async whoops')
 })
 
 const server = getHandledServer(http.createServer(app))
-const port = process.env.PORT || 8080
+const port = process.env.PORT || 3000
 
-server.listen(port, function(err) {
-    if (err) throw err
-    console.log(`Server running at port ${port}`)
+server.listen(port, () => {
+    console.log(`Server running on port ${port}`)
 })
 ```
 
@@ -160,7 +153,7 @@ server.listen(port, function(err) {
   * `devMsg`: ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
 
 * `notify`
-  * type: `({ isDevelopment, isUncaught, isFriendly, userMsg, productionMsg, error })` -> ?
+  * type: `({ isDevelopment, isUncaught, isFriendly, userMsg, productionInfo, error })` -> ?
   * default: `() => {}`
   * definition: Function for notifying the user with friendly error messages
       and logging in production.
@@ -168,21 +161,21 @@ server.listen(port, function(err) {
   * `isUncaught`: Boolean that indicates whether the error was caught in catch or not
   * `isFriendly`: Boolean that indicates whether `userMsg` is for regular users or developers
   * `userMsg`: String that describes what the functionality was supposed to be doing
-  * `productionMsg`: JSON that consists of useful info for production logging
+  * `productionInfo`: Object that consists of useful info for production logging
   * `error`: Error object that was thrown
 
 ### API for returned values from the imported function:
 * `isDevelopment`
   * type: `boolean`
-  * definition: Boolean that was parsed from `tiedPants`
+  * definition: Boolean parameter that was parsed from `tiedPants`
 
 * `devLogger`
   * type: `devMsg` -> ?
-  * definition: Function that was parsed from `tiedPants`
+  * definition: Function parameter that was parsed from `tiedPants`
 
 * `notify`
-  * type: `({ isUncaught, isFriendly, userMsg, productionMsg })` -> ?
-  * definition: Function that was parsed from `tiedPants`
+  * type: `({ isUncaught, isFriendly, userMsg, productionInfo })` -> ?
+  * definition: Function parameter that was parsed from `tiedPants`
 
 * `isObject`
   * type: val -> boolean
@@ -199,29 +192,30 @@ server.listen(port, function(err) {
 * `FriendlyError`
   * type: `constructor`
   * definition: Constructor that extends `Error`. Use it in functions created
-      with `impureData` to signify that the error was thrown intentionally and that
+      with `tieUp` to signify that the error was thrown intentionally and that
       the message is user friendly
 
-* `impureData`
+* `tieUp`
   * type: `(descr, data, onCatch)` || `(data, onCatch)` -> `error handled data`
   * definition: Error handles every type of data that you give it
   * `descr`: String that describes the data which you gave. Used for logging.
   * `data`: Any data which we error handle deeply. Arrays, functions and their arguments,
-      objects and their methods, etc. Returns the error handled version. If object or function -
-      for every method specified we can use `${methodName}Catch` to implement `onCatch`.
+      objects and their methods, etc. Returns the error handled version.
   * `onCatch`: Function which acts as default onCatch for the returned data. Accepts arguments
       `({ descr, err, args })`, where `descr` is same as above, `err`
       is the error caught Error, `args` are the arguments which were supplied to the tried function.
-
-* `pureData`
-  * type: `(descr, onTry, onCatch)` || `(onTry, onCatch)` -> `cached error handled function`
-  * definition: Same as `impureData` but every function, no matter how deep is cached
 
 * `getHandledServer`
   * type: `server` -> `handledServer`
   * definition: Return a server that is error handled and closed gracefully on uncaught errors
   * `server`: Object that is the back-end server (ex: http.createServer(expressApp))
 
-* `catchUnhandled`
-  * type: `()` -> ?
-  * definition: Initializes proper error handling for UNCAUGHT errors
+* `getRoutingCreator`
+  * type: `(app, onCatch)` -> `createRoute`
+  * definition: Creates a function that can be used with different server frameworks.
+      Returns a function that takes `(method, path, onTry)` and creates a route.
+      An example: `getRoutingCreator(app)('get', '/api', (req, res) => {})` is equal
+      to `app.get('/api', (req, res) => {})`, but applies the same `onCatch` to all routes
+  * `app`: Function/object that is generated from the server framework (ex: Express)
+  * `onCatch`: Function to be executed on error for any route. Default `onCatch` is
+      provided if you haven't specified it yourself.

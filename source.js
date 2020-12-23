@@ -23,11 +23,15 @@ const tiedPants = function(props) {
 
     const defaultDescr = 'a part of the application'
 
-    let cacheId = 0
-
     const browserEventNames = ['error', 'unhandledrejection']
 
     const nodeEventNames = ['uncaughtException', 'unhandledRejection', 'SIGTERM', 'SIGINT']
+
+    const builtinPrototypes = [
+        Object.prototype,
+        Array.prototype,
+        Function.prototype
+    ]
     //end constants definitions
 
     //start configuring arguments
@@ -65,43 +69,6 @@ const tiedPants = function(props) {
         () => {}
     //end configuring arguments
 
-    const stringifyAll = function(data) {
-        try {
-            const seen = new WeakSet()
-            const parser = function(_key, val) {
-                if ([Infinity, NaN, null, undefined].includes(val)) {
-                    return String(val)
-                }
-
-                if (typeof val === 'bigint') {
-                    return Number(val)
-                }
-
-                if (typeof val === 'object' || typeof val === 'function') {
-                    if (seen.has(val)) {
-                        return undefined
-                    }
-
-                    seen.add(val)
-
-                    if (typeof val === 'function') {
-                        return `[Function: ${val.name}]`
-                    }
-                }
-
-                return val
-            }
-
-            return JSON.stringify(data, parser)
-        } catch(error) {
-            if (isDevelopment) {
-                devLogger(` Issue with: stringifying data\n`, error)
-            }
-
-            return JSON.stringify(`[Unparsed ${typeof data}]`)
-        }
-    }
-
     const logError = function(props) {
         setTimeout(() => {
             try {
@@ -120,7 +87,7 @@ const tiedPants = function(props) {
                     isUncaught ? new Error('Uncaught error') : new Error('Unknown error')
 
                 const args = Array.isArray(props.args) ?
-                    props.args.map(el => JSON.parse(stringifyAll(el))) :
+                    props.args.map(el => typeof el) :
                     []
 
                 if (isDevelopment) {
@@ -135,7 +102,7 @@ const tiedPants = function(props) {
                 const isFriendly = error instanceof FriendlyError
                 const userMsg = isFriendly ? error.message : `Issue with: ${descr}`
 
-                let productionMsg = {
+                let productionInfo = {
                     description: descr,
                     arguments: args,
                     date: (new Date()).toUTCString(),
@@ -143,32 +110,35 @@ const tiedPants = function(props) {
                 }
 
                 if (isBrowser) {
-                    productionMsg = {
-                        ...productionMsg,
+                    Object.assign(productionInfo, {
                         localUrl: window.location.href,
                         machineInfo: {
                             browserInfo: window.navigator.userAgent,
                             language: window.navigator.language,
                             osType: window.navigator.platform
                         }
-                    }
+                    })
                 }
 
                 if (isNodeJS) {
-                    productionMsg = {
-                        ...productionMsg,
+                    Object.assign(productionInfo, {
                         localUrl: process.cwd(),
                         machineInfo: {
                             cpuArch: process.arch,
                             osType: process.platform,
                             depVersions: process.versions
                         }
-                    }
+                    })
                 }
 
-                productionMsg = stringifyAll(productionMsg)
-
-                notify({ isDevelopment, isUncaught, isFriendly, userMsg, productionMsg, error })
+                notify({
+                    isDevelopment,
+                    isUncaught,
+                    isFriendly,
+                    userMsg,
+                    productionInfo,
+                    error
+                })
             } catch(error) {
                 if (isDevelopment) {
                     devLogger(` Issue with: error logger\n`, error)
@@ -180,10 +150,6 @@ const tiedPants = function(props) {
     const createFunc = function(props) {
         try {
             props = isObject(props) ? props : {}
-
-            const isPure = typeof props.isPure === 'boolean' ?
-                props.isPure :
-                false
 
             const descr = typeof props.descr === 'string' ?
                 props.descr :
@@ -197,70 +163,34 @@ const tiedPants = function(props) {
                 props.onCatch :
                 () => {}
 
-            if (onTry.tp_isHandled) {
-                return onTry
-            }
-
-            let hasError = false
-            let cache = {}
-            let cacheKeys = []
-
             const innerCatch = function(error, args) {
                 logError({ descr, error, args })
 
-                // clear the cache on overflows
-                if (isPure) {
-                    hasError = true
+                const handledOnCatch = createFunc({
+                    descr: `catching errors for ${descr}`,
+                    onTry: onCatch
+                })
 
-                    setTimeout(() => {
-                        hasError = false
-                        cache = {}
-                        cacheKeys = []
-                    }, 0)
-                }
-
-                return createFunc({ descr: `catching errors for ${descr}`, onTry: onCatch })
-                    .call(this, { descr, error, args })
+                return handledOnCatch({ descr, error, args })
             }
 
             const innerFunc = function(...args) {
-                let cacheKey
                 let result
 
-                if (isPure) {
-                    try {
-                        cacheKey = args.reduce((acc, el, idx) => {
-                            let str
-
-                            if (
-                                (typeof el === 'object' || typeof el === 'function') &&
-                                el !== null
-                            ) {
-                                if (typeof el.tp_cacheId !== 'number') {
-                                    Object.defineProperty(el, 'tp_cacheId', { value: ++cacheId })
-                                }
-
-                                str = `[${typeof el}: ${el.tp_cacheId}]`
-                            } else {
-                                str = String(el)
-                            }
-
-                            return idx === 0 ? acc + str : acc + ' - ' + str
-                        }, '')
-
-                        if (!hasError && (cacheKey in cache)) {
-                            return cache[cacheKey]
-                        }
-                    } catch(error) {
-                        logError({ descr: 'retrieving result from cache', error, args })
-                    }
-                }
-
                 try {
-                    result = onTry.apply(this, args)
+                    // if the function was called as constructor
+                    if (new.target !== undefined) {
+                        result = new onTry(...args)
+                    } else {
+                        result = onTry.apply(this, args)
+                    }
 
                     // if the function returns a promise
-                    if (isObject(result) && typeof result.catch === 'function') {
+                    if (
+                        isObject(result) &&
+                        typeof result.then === 'function' &&
+                        typeof result.catch === 'function'
+                    ) {
                         result = result.catch(function(error) {
                             return innerCatch.apply(this, [error, args])
                         })
@@ -269,40 +199,12 @@ const tiedPants = function(props) {
                     result = innerCatch.apply(this, [error, args])
                 }
 
-                if (isPure) {
-                    try {
-                        const cacheLimit = typeof innerFunc.cacheLimit === 'number' ?
-                            innerFunc.cacheLimit :
-                            1e6
-
-                        if (cacheKeys.length >= cacheLimit) {
-                            delete cache[cacheKeys[0]]
-                            cacheKeys.shift()
-                        }
-
-                        if (typeof cacheKey === 'string') {
-                            cache[cacheKey] = result
-                            cacheKeys.push(cacheKey)
-                        }
-                    } catch(e) {
-                        logError({ descr: 'assigning result to cache', error, args })
-                    }
-                }
-
                 return result
-            }
-
-            if (isPure) {
-                Object.defineProperties(innerFunc, {
-                    tp_cacheLimit: { configurable: true, writable: true, value: 1e6 },
-                    tp_cache: { value: cache },
-                    tp_cacheKeys: { value: cacheKeys }
-                })
             }
 
             return innerFunc
         } catch(error) {
-            logError({ descr: 'error handling functions', error, args: Array.from(arguments) })
+            logError({ descr: 'error handling functions', error, args: [props] })
 
             return () => {}
         }
@@ -310,193 +212,137 @@ const tiedPants = function(props) {
 
     const createData = createFunc({
         descr: 'creating error handled data',
-        onTry: function(...params) {
-            let [{ isPure, refs }, descr, data, onCatch] = params
+        onTry: function({ descr, data, onCatch, refs }) {
+            if (
+                !['object', 'function'].includes(typeof data) ||
+                data === null ||
+                data.tp_isHandled
+            ) {
+                return data
+            }
 
-            if (typeof descr !== 'string' && typeof onCatch !== 'function') {
-                descr = defaultDescr
-                data = params[1]
-                onCatch = params[2]
+            if (refs.has(data)) {
+                return refs.get(data)
             }
 
             const assignHandledProps = createFunc({
                 descr: `assigning error handled properties to ${descr}`,
-                onTry: function(target, source) {
-                    refs.set(source, target)
-
+                onTry: function(source, target) {
                     const descriptors = Object.getOwnPropertyDescriptors(source)
-                    const descriptorKeys = Object.keys(descriptors)
+                    const descriptorKeys = Object.getOwnPropertyNames(descriptors)
+                        .concat(Object.getOwnPropertySymbols(descriptors))
 
                     for (let i = 0; i < descriptorKeys.length; i++) {
-                        // some props have getters that throw errors
                         try {
+                            // key can be a Symbol
                             const key = descriptorKeys[i]
-                            let value
+                            let value = descriptors[key].value
 
                             if (
-                                source[key] !== null &&
-                                (
-                                    typeof source[key] === 'object' ||
-                                    typeof source[key] === 'function'
-                                )
+                                value !== null &&
+                                ['object', 'function'].includes(typeof value)
                             ) {
-                                if (refs.has(source[key])) {
-                                    value = refs.get(source[key])
+                                if (refs.has(value)) {
+                                    value = refs.get(value)
                                 } else {
-                                    value = createData(
-                                        { isPure, refs },
-                                        `method ${key} of ${descr}`,
-                                        typeof source[key] === 'function' ?
-                                            source[key].bind(source) :
-                                            source[key],
-                                        typeof source[key + 'Catch'] === 'function' ?
-                                            source[key + 'Catch'].bind(source) :
-                                            onCatch
-                                    )
+                                    value = createData({
+                                        descr: `method ${String(key)} of ${descr}`,
+                                        data: value,
+                                        onCatch,
+                                        refs
+                                    })
                                 }
-                            } else {
-                                value = source[key]
                             }
 
                             Object.defineProperty(target, key, Object.assign(
                                 descriptors[key],
                                 ('value' in descriptors[key]) ? { value } : null
                             ))
-                        } catch(e) {}
+                        } catch(error) {
+                            logError({
+                                descr: `assigning handled property to ${descr}`,
+                                error,
+                                args: [source, target]
+                            })
+                        }
                     }
                 }
             })
 
-            if ((typeof data === 'function' || typeof data === 'object') && data !== null) {
-                let handledData
+            let handledData
 
-                if (data.tp_isHandled) {
-                    handledData = data
-                } else if (Array.isArray(data)) {
-                    handledData = []
-
-                    refs.set(data, handledData)
-
-                    for (let i = 0; i < data.length; i++) {
-                        const el = handledData[i]
-
-                        if (
-                            el !== null &&
-                            (typeof el === 'object' || typeof el === 'function')
-                        ) {
-                            if (refs.has(el)) {
-                                handledData[i] = refs.get(el)
-                            } else {
-                                handledData[i] = createData(
-                                    { isPure, refs },
-                                    `element ${i} of ${descr}`,
-                                    el,
-                                    onCatch
-                                )
-                            }
-                        } else {
-                            handledData[i] = data[i]
-                        }
-                    }
-                } else if (typeof data === 'object') {
-                    handledData = {}
-                } else {
-                    handledData = createFunc({ isPure, descr, onTry: data, onCatch })
-                }
-
-                if (!handledData.tp_isHandled) {
-                    assignHandledProps(handledData, data)
-                    Object.defineProperty(handledData, 'tp_isHandled', { value: true })
-                }
-
-                return handledData
+            if (typeof data === 'function') {
+                handledData = createFunc({ descr, onTry: data, onCatch })
+            } else if (Array.isArray(data)) {
+                handledData = []
+            } else {
+                handledData = {}
             }
 
-            return data
+            refs.set(data, handledData)
+
+            assignHandledProps(data, handledData)
+
+            const sourceProto = Object.getPrototypeOf(data)
+            let handledProto = sourceProto
+
+            if (
+                sourceProto !== null &&
+                !builtinPrototypes.includes(sourceProto)
+            ) {
+                handledProto = createData({
+                    descr: `prototype of ${descr}`,
+                    data: sourceProto,
+                    onCatch,
+                    refs
+                })
+            }
+
+            Object.setPrototypeOf(handledData, handledProto)
+            Object.defineProperties(handledData, {
+                tp_isHandled: { value: true },
+                tp_description: { value: descr }
+            })
+
+            return handledData
         },
         onCatch: function({ args: [descr, data, onCatch] }) {
-            return typeof descr !== 'string' && typeof onCatch !== 'function' ? descr : data
+            return typeof descr !== 'string' && typeof onCatch !== 'function' ?
+                descr :
+                data
         }
     })
 
-    const pureData = createData.bind(this, { isPure: true, refs: new WeakMap() })
-    const impureData = createData.bind(this, { isPure: false, refs: new WeakMap() })
-
-    const errorListener = impureData(
-        'listening for unexpected errors',
-        function(eventOrError) {
-            if (isBrowser) {
-                if (eventOrError instanceof Event) {
-                    eventOrError.stopImmediatePropagation()
-                    eventOrError.preventDefault()
-
-                    const error = eventOrError.reason instanceof Error ?
-                        eventOrError.reason :
-                        eventOrError.error instanceof Error ?
-                            eventOrError.error :
-                            undefined
-
-                    logError({ isUncaught: true, error })
-                }
-
-                // prevent user from interacting with the page
-                window.document.body.style['pointer-events'] = 'none'
-            }
-
-            if (isNodeJS) {
-                let exitCode = 0
-
-                if (eventOrError instanceof Error) {
-                    exitCode = 1
-
-                    logError({ isUncaught: true, error: eventOrError })
-                }
-
-                setTimeout(() => { process.exit(exitCode) }, 1000).unref()
-            }
+    const tieUp = function(descr, data, onCatch) {
+        if (typeof descr !== 'string' && typeof onCatch !== 'function') {
+            descr = defaultDescr
+            data = params[1]
+            onCatch = params[2]
         }
-    )
 
-    const catchUnhandled = impureData(
-        'initializing listening for unexpected errors',
-        function() {
-            if (isBrowser) {
-                for (let i = 0; i < browserEventNames.length; i++) {
-                    const eventName = browserEventNames[i]
+        return createData({
+            descr,
+            data,
+            onCatch,
+            refs: new WeakMap()
+        })
+    }
 
-                    if (typeof window.tp_errorListener === 'function') {
-                        window.removeEventListener(eventName, window.tp_errorListener, true)
-                    }
-
-                    window.addEventListener(eventName, errorListener, true)
-                }
-
-                window.tp_errorListener = errorListener
-            }
-
-            if (isNodeJS) {
-                for (let i = 0; i < nodeEventNames.length; i++) {
-                    const eventName = nodeEventNames[i]
-
-                    if (typeof global.tp_errorListener === 'function') {
-                        process.removeListener(eventName, global.tp_errorListener)
-                    }
-
-                    process.on(eventName, errorListener)
-                }
-
-                global.tp_errorListener = errorListener
-            }
-        }
-    )
-
-    const getHandledServer = impureData(
+    const getHandledServer = tieUp(
         'initializing error handling for server',
         function(server) {
-            server = isObject(server) ? server : { on: () => {}, close: () => {} }
+            if (!isNodeJS) {
+                throw new Error('This function is meant for NodeJS')
+            }
+
+            if (server.tp_isServerHandled) {
+                return server
+            }
+
+            server = tieUp('HTTP server', server)
 
             const sockets = new Set()
-            const serverErrorListener = impureData(
+            const serverErrorListener = tieUp(
                 'handling server closing',
                 function() {
                     server.close()
@@ -517,10 +363,116 @@ const tiedPants = function(props) {
                 }
             }
 
+            Object.defineProperty(server, 'tp_isServerHandled', { value: true })
+
             return server
         },
         function({ args: [server] }) { return server }
     )
+
+    const getRoutingCreator = tieUp(
+        'creating function for routing',
+        function (app, onCatch) {
+            if (!isNodeJS) {
+                throw new Error('This function is meant for NodeJS')
+            }
+
+            if (
+                app === null ||
+                !['object', 'function'].includes(typeof app) ||
+                !['undefined', 'function'].includes(typeof onCatch)
+            ) {
+                throw new Error(
+                    'Invalid parameters, expected: ' +
+                    'app(function/object), onCatch(undefined/function)'
+                )
+            }
+
+            if (onCatch === undefined) {
+                onCatch = function ({ error, args: [_req, res] }) {
+                    if (!res.headersSent) {
+                        res.status(500).json({
+                            errorName: 'Internal server error',
+                            errorMessage: error.message,
+                            stack: error.stack
+                        })
+                    }
+                }
+            }
+
+            return tieUp(
+                'creating route for the server',
+                function (method, path, onTry) {
+                    if (
+                        typeof method !== 'string' ||
+                        typeof path !== 'string' ||
+                        typeof onTry !== 'function'
+                    ) {
+                        throw new Error(
+                            'Invalid parameters provided, expected: ' +
+                            'method(string), path(string), callback(function)'
+                        )
+                    }
+
+                    app[method](path, tieUp(
+                        `${method.toUpperCase()} ${path}`,
+                        onTry,
+                        onCatch
+                    ))
+                }
+            )
+        },
+        function() { return () => {} }
+    )
+
+    const errorListener = tieUp(
+        'listening for unexpected errors',
+        function(eventOrError) {
+            if (isBrowser) {
+                eventOrError.stopImmediatePropagation()
+                eventOrError.preventDefault()
+
+                const error = eventOrError.reason instanceof Error ?
+                    eventOrError.reason :
+                    eventOrError.error instanceof Error ?
+                        eventOrError.error :
+                        undefined
+
+                logError({ isUncaught: true, error })
+
+                // prevent user from interacting with the page
+                window.document.body.style['pointer-events'] = 'none'
+            }
+
+            if (isNodeJS) {
+                let exitCode = 0
+
+                if (eventOrError instanceof Error) {
+                    exitCode = 1
+
+                    logError({ isUncaught: true, error: eventOrError })
+                }
+
+                setTimeout(() => { process.exit(exitCode) }, 1000).unref()
+            }
+        }
+    )
+
+    if (isBrowser && window.tp_areUnhandledCaught) {
+        for (let i = 0; i < browserEventNames.length; i++) {
+            window.addEventListener(browserEventNames[i], errorListener, true)
+        }
+
+        window.tp_areUnhandledCaught = true
+    }
+
+    if (isNodeJS && global.tp_areUnhandledCaught) {
+        for (let i = 0; i < nodeEventNames.length; i++) {
+            process.on(nodeEventNames[i], errorListener)
+        }
+
+        global.tp_areUnhandledCaught = true
+    }
 
     return {
         isDevelopment,
@@ -530,10 +482,9 @@ const tiedPants = function(props) {
         isBrowser,
         isNodeJS,
         FriendlyError,
-        pureData,
-        impureData,
-        catchUnhandled,
-        getHandledServer
+        tieUp,
+        getHandledServer,
+        getRoutingCreator
     }
 }
 
