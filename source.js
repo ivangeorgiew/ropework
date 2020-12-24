@@ -27,10 +27,19 @@ const tiedPants = function(props) {
 
     const nodeEventNames = ['uncaughtException', 'unhandledRejection', 'SIGTERM', 'SIGINT']
 
+    const GeneratorFunction = (function * (){}).constructor
+    const AsyncFunction = (async function (){}).constructor
+    const AsyncGeneratorFunction = (async function * (){}).constructor
+
     const builtinPrototypes = [
         Object.prototype,
         Array.prototype,
-        Function.prototype
+        Function.prototype,
+        AsyncFunction.prototype,
+        GeneratorFunction.prototype,
+        AsyncGeneratorFunction.prototype,
+        GeneratorFunction.prototype.prototype,
+        AsyncGeneratorFunction.prototype.prototype
     ]
 
     const overflowRegex = /(stack|recursion)/
@@ -281,13 +290,36 @@ const tiedPants = function(props) {
 
             if (isPure) {
                 Object.defineProperties(innerFunc, {
-                    tp_cacheLimit: { configurable: true, writable: true, value: 1e5 },
-                    tp_cacheKeys: { value: cacheKeys },
-                    tp_cacheValues: { value: cacheValues }
+                    tp_cacheLimit: { configurable: true, value: 1e5 },
+                    tp_cacheKeys: { configurable: true, value: cacheKeys },
+                    tp_cacheValues: { configurable: true, value: cacheValues }
                 })
             }
 
             return innerFunc
+            // switch (onTry.constructor) {
+            //     case GeneratorFunction: {
+            //         // innerFunc.prototype.constructor = GeneratorFunction
+
+            //         // return innerFunc
+            //         return function * (...args) {
+            //             return innerFunc.apply(this, args)
+            //         }
+            //     }
+            //     case AsyncFunction: {
+            //         return async function (...args) {
+            //             return innerFunc.apply(this, args)
+            //         }
+            //     }
+            //     case AsyncGeneratorFunction: {
+            //         return async function * (...args) {
+            //             return innerFunc.apply(this, args)
+            //         }
+            //     }
+            //     default:
+            //         return innerFunc
+            // }
+
         } catch(error) {
             logError({ descr: 'error handling functions', error, args: [props] })
 
@@ -296,7 +328,7 @@ const tiedPants = function(props) {
     }
 
     const createData = createFunc({
-        descr: 'cached recursively creating error handled data',
+        descr: 'recursively creating error handled data',
         onTry: function(props) {
             props = isObject(props) ? props : {}
 
@@ -316,6 +348,8 @@ const tiedPants = function(props) {
 
             if (
                 !['object', 'function'].includes(typeof data) ||
+                data instanceof RegExp ||
+                data instanceof Date ||
                 data === null ||
                 data.tp_isHandled
             ) {
@@ -327,32 +361,39 @@ const tiedPants = function(props) {
             }
 
             const assignHandledProps = createFunc({
-                descr: 'cached assigning error handled properties',
+                descr: 'assigning error handled properties',
                 onTry: function(source, target) {
                     const descriptors = Object.getOwnPropertyDescriptors(source)
                     const descriptorKeys = Object.getOwnPropertyNames(descriptors)
                         .concat(Object.getOwnPropertySymbols(descriptors))
 
                     for (let i = 0; i < descriptorKeys.length; i++) {
+                        const key = descriptorKeys[i]
+
+                        // if target has the prop and is not configurable
                         try {
-                            // key can be a Symbol
-                            const key = descriptorKeys[i]
                             let value = descriptors[key].value
 
                             if (
-                                value !== null &&
-                                ['object', 'function'].includes(typeof value)
+                                ['object', 'function'].includes(typeof value) &&
+                                value !== null
                             ) {
-                                if (refs.has(value)) {
-                                    value = refs.get(value)
-                                } else {
-                                    value = createData({
-                                        descr: `method ${String(key)} of ${descr}`,
-                                        data: value,
-                                        onCatch,
-                                        refs
-                                    })
-                                }
+                                value = createData({
+                                    // key can be a Symbol
+                                    descr: `${descr}["${String(key)}"]`,
+                                    data: value,
+                                    onCatch,
+                                    refs
+                                })
+
+                                // assign handled methods from prototype
+                                // back to the source
+                                // if (
+                                //     key === 'prototype' &&
+                                //     value.constructor === source
+                                // ) {
+                                //     assignHandledProps(value, )
+                                // }
                             }
 
                             Object.defineProperty(target, key, Object.assign(
@@ -361,7 +402,8 @@ const tiedPants = function(props) {
                             ))
                         } catch(error) {
                             logError({
-                                descr: `assigning handled property to ${descr}`,
+                                // key can be a Symbol
+                                descr: `assigning handled ${data}["${String(key)}"]`,
                                 error,
                                 args: [source, target]
                             })
@@ -384,26 +426,66 @@ const tiedPants = function(props) {
 
             assignHandledProps(data, handledData)
 
-            const sourceProto = Object.getPrototypeOf(data)
-            let handledProto = sourceProto
+            Object.defineProperties(handledData, {
+                tp_isHandled: { value: true },
+                tp_description: { value: descr }
+            })
 
-            if (
-                sourceProto !== null &&
-                !builtinPrototypes.includes(sourceProto)
-            ) {
+            const dataProto = Object.getPrototypeOf(data)
+            let handledProto
+
+            if (dataProto === null || builtinPrototypes.includes(dataProto)) {
+                handledProto = dataProto
+            } else {
                 handledProto = createData({
-                    descr: `prototype of ${descr}`,
-                    data: sourceProto,
+                    descr: `prototype of ( ${descr} )`,
+                    data: dataProto,
                     onCatch,
                     refs
                 })
             }
 
+            if (typeof data === 'function') {
+                // handle errors in classes methods
+                // console.log(typeof data.prototype, data.prototype)
+                if (typeof data.prototype === 'object') {
+                    // assignHandledProps(handledData.prototype, data.prototype)
+                    // console.log({
+                    //     handled: handledData.prototype,
+                    //     data: data.prototype
+                    // })
+                }
+
+                Object.setPrototypeOf(data, handledProto)
+            }
+
             Object.setPrototypeOf(handledData, handledProto)
-            Object.defineProperties(handledData, {
-                tp_isHandled: { value: true },
-                tp_description: { value: descr }
-            })
+
+            // console.log({
+            //     descr,
+            //     data,
+            //     dataKeys: Object.getOwnPropertyNames(data),
+            //     handledData,
+            //     handledDataKeys: Object.getOwnPropertyNames(handledData)
+            // })
+            // const [a, b, c] = [
+            //     dataProto,
+            //     Object.getPrototypeOf(handledData),
+            //     handledProto
+            // ]
+
+            // if (
+            //     !builtinPrototypes.includes(a) ||
+            //     !builtinPrototypes.includes(b) ||
+            //     !builtinPrototypes.includes(c)
+            // ) {
+            //     if (global.tp_data !== undefined) {
+            //         global.tp_data.push({ a, b })
+            //     } else {
+            //         global.tp_data = [{ a, b }]
+            //     }
+            //     // console.log({ descr, a, b, c})
+            // }
 
             return handledData
         },
@@ -420,6 +502,8 @@ const tiedPants = function(props) {
                 data = arguments[0]
                 onCatch = arguments[1]
             }
+
+            descr = `[${typeof data}: ${descr}]`
 
             return createData({ descr, data, onCatch })
         },
@@ -531,16 +615,18 @@ const tiedPants = function(props) {
         'listening for unexpected errors',
         function(eventOrError) {
             if (isBrowser) {
-                eventOrError.stopImmediatePropagation()
-                eventOrError.preventDefault()
+                if (eventOrError instanceof Event) {
+                    eventOrError.stopImmediatePropagation()
+                    eventOrError.preventDefault()
 
-                const error = eventOrError.reason instanceof Error ?
-                    eventOrError.reason :
-                    eventOrError.error instanceof Error ?
-                        eventOrError.error :
-                        undefined
+                    const error = eventOrError.reason instanceof Error ?
+                        eventOrError.reason :
+                        eventOrError.error instanceof Error ?
+                            eventOrError.error :
+                            undefined
 
-                logError({ isUncaught: true, error })
+                    logError({ isUncaught: true, error })
+                }
 
                 // prevent user from interacting with the page
                 window.document.body.style['pointer-events'] = 'none'
