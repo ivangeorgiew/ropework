@@ -35,32 +35,33 @@ const { tieUp, FriendlyError } = tiedPants({
     }
 })
 
-const printNum = tieUp(
-    'Printing a number',
-    num => {
+const printNum = tieUp({
+    descr: 'printing a number',
+    onTry: num => {
         blabla
         return num
     },
-    ({ args: [num] }) => {
+    onCatch: ({ args: [num] }) => {
         console.log(`Ran inside catch - the argument was ${num}`)
         return 0
     }
-)
+})
 
-const fib = tieUp(
-    'cached calculating fibonacci number',
-    (n) => {
+const fib = tieUp({
+    descr: 'calculating fibonacci number',
+    onTry: (n) => {
         if (n < 0 || Math.trunc(n) !== n)
             throw new FriendlyError('The passed input wasnt possitive number')
 
         return n <= 1 ? n : fib(n-1) + fib(n-2)
     },
-    () => 0
-)
+    onCatch: () => 0
+    getCacheKey: ({ args: [n] }) => [n]
+})
 
-const measureFib = tieUp(
-    'Measuring time for fibonacci number',
-    num => {
+const measureFib = tieUp({
+    descr: 'Measuring time for fibonacci number',
+    onTry: num => {
         const startTime = Date.now()
 
         try {
@@ -69,12 +70,12 @@ const measureFib = tieUp(
             console.log(`execution time ${Date.now() - startTime}ms`)
         }
     },
-    () => 'Incorrect fibonacchi calculation'
-)
+    onCatch: () => 'Incorrect fibonacchi calculation'
+})
 
-const delayReturn = tieUp(
-    'Delaying async function',
-    async (ms) => {
+const delayReturn = tieUp({
+    descr: 'Delaying async function',
+    onTry: async (ms) => {
         await new Promise(resolve => setTimeout(resolve, ms))
 
         if (typeof ms === 'number')
@@ -82,8 +83,8 @@ const delayReturn = tieUp(
         else
             throw new FriendlyError('Could not delay properly')
     },
-    () => 'Default result'
-)
+    onCatch: () => 'Default result'
+})
 
 console.log('printNum(9)', printNum(9))
 delayReturn(10).then(val => console.log('delayReturn(10) ' + val))
@@ -158,6 +159,11 @@ server.listen(port, () => {
   * `productionInfo`: Object that consists of useful info for production logging
   * `error`: Error object that was thrown
 
+* `cacheLimit`
+  * type: `number`
+  * default: `100,000`
+  * definition: Max amount of entries in the cache
+
 ### API for returned values from the imported function:
 * `isDevelopment`
   * type: `boolean`
@@ -190,14 +196,14 @@ server.listen(port, () => {
       the message is user friendly
 
 * `tieUp`
-  * type: `(descr, data, onCatch)` || `(data, onCatch)` -> `error handled data`
+  * type: `({ descr, onTry, onCatch, getCacheKey })` -> `error handled data`
   * definition: Error handles every type of data that you give it
   * `descr`: String that describes the data. If it has the word `cached`, then caching is enabled.
-  * `data`: Any data which we error handle deeply. Arrays, functions and their arguments,
+  * `onTry`: Any data which we error handle deeply. Arrays, functions and their arguments,
       objects and their methods, etc. Returns the error handled version.
   * `onCatch`: Function which acts as default onCatch for the returned data. Accepts arguments
       `({ descr, err, args })`, where `descr` is same as above, `err`
-      is the error caught Error, `args` are the arguments which were supplied to the tried function.
+      is the thrown Error, `args` are the arguments which were supplied to the tried function.
 
 * `getHandledServer`
   * type: `server` -> `handledServer`
