@@ -49,6 +49,7 @@ const printNum = tieUp({
 
 const fib = tieUp({
     descr: 'calculating fibonacci number',
+    getCacheKey: ({ args: [n] }) => [n],
     onTry: (n) => {
         if (n < 0 || Math.trunc(n) !== n)
             throw new FriendlyError('The passed input wasnt possitive number')
@@ -56,7 +57,6 @@ const fib = tieUp({
         return n <= 1 ? n : fib(n-1) + fib(n-2)
     },
     onCatch: () => 0
-    getCacheKey: ({ args: [n] }) => [n]
 })
 
 const measureFib = tieUp({
@@ -161,7 +161,7 @@ server.listen(port, () => {
 
 * `cacheLimit`
   * type: `number`
-  * default: `100,000`
+  * default: `1,000,000`
   * definition: Max amount of entries in the cache
 
 ### API for returned values from the imported function:
@@ -198,12 +198,17 @@ server.listen(port, () => {
 * `tieUp`
   * type: `({ descr, onTry, onCatch, getCacheKey })` -> `error handled data`
   * definition: Error handles every type of data that you give it
-  * `descr`: String that describes the data. If it has the word `cached`, then caching is enabled.
-  * `onTry`: Any data which we error handle deeply. Arrays, functions and their arguments,
-      objects and their methods, etc. Returns the error handled version.
-  * `onCatch`: Function which acts as default onCatch for the returned data. Accepts arguments
-      `({ descr, err, args })`, where `descr` is same as above, `err`
-      is the thrown Error, `args` are the arguments which were supplied to the tried function.
+  * `descr`: String that describes the data. If it has the word `cached`, then caching
+      is enabled.
+  * `onTry`: Any data which we error handle deeply. Arrays, functions and their
+      arguments, objects and their methods, etc. Returns the error handled version.
+  * `onCatch`: Function which acts as default onCatch for the returned data. Accepts
+      arguments `({ descr, err, args })`, where `descr` is same as above, `err`
+      is the thrown Error, `args` are the args which were supplied to caught function.
+  * `getCacheKey`: Function that if supplied, enables caching. It accepts
+      parameters `({ descr, args })`, where `descr` is same as above, `args` is same as
+      above. It has to return an array that is used every time to create caching key.
+      Example: `({ args }) => args` or `({ args: [_p, num] }) => [num]`
 
 * `getHandledServer`
   * type: `server` -> `handledServer`
