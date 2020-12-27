@@ -189,11 +189,11 @@ const tiedPants = function(props) {
                 props.onCatch :
                 () => {}
 
-            const isPure = typeof props.getCacheKey === 'function'
-
             const getCacheKey = typeof props.getCacheKey === 'function' ?
                 props.getCacheKey :
                 () => []
+
+            const isCached = typeof props.getCacheKey === 'function'
 
             let cacheKeys = []
             let cacheValues = []
@@ -203,7 +203,7 @@ const tiedPants = function(props) {
 
                 // clear the cache on overflows
                 if (
-                    isPure &&
+                    isCached &&
                     error instanceof Error &&
                     error.message.match(overflowRegex) !== null
                 ) {
@@ -218,8 +218,7 @@ const tiedPants = function(props) {
             }
 
             const innerFunc = function(...args) {
-                // creating more variables increases the stack
-                // moving them outside of the function has negative effects
+                // creating more variables hurts performance
                 const v = {
                     neededArgs: undefined,
                     curCacheKey: undefined,
@@ -229,36 +228,34 @@ const tiedPants = function(props) {
                     m: undefined
                 }
 
-                if (isPure) {
+                if (isCached) {
                     try {
                         v.neededArgs = getCacheKey({ descr, args })
 
                         if (Array.isArray(v.neededArgs)) {
                             v.curCacheKey = [this].concat(v.neededArgs)
-                        } else {
-                            throw new Error(
-                                'Result from getCacheKey needs to be an array ' +
-                                'of the parameters used for creating a cache key'
-                            )
-                        }
 
-                        //prevent error on stack overflow
-                        v.i = (cacheKeys || []).length
-
-                        while (v.i--) {
                             //prevent error on stack overflow
-                            v.m = (cacheKeys[v.i] || []).length
-                            v.areEqual = true
+                            v.i = (cacheKeys || []).length
 
-                            while (v.m--) {
-                                if (!Object.is(cacheKeys[v.i][v.m], v.curCacheKey[v.m])) {
-                                    v.areEqual = false
-                                    break
+                            while (v.i--) {
+                                //prevent error on stack overflow
+                                v.m = (cacheKeys[v.i] || []).length
+                                v.areEqual = true
+
+                                while (v.m--) {
+                                    if (!Object.is(
+                                        cacheKeys[v.i][v.m],
+                                        v.curCacheKey[v.m]
+                                    )) {
+                                        v.areEqual = false
+                                        break
+                                    }
                                 }
-                            }
 
-                            if (v.areEqual) {
-                                return cacheValues[v.i]
+                                if (v.areEqual) {
+                                    return cacheValues[v.i]
+                                }
                             }
                         }
                     } catch(error) {
@@ -296,7 +293,7 @@ const tiedPants = function(props) {
                     v.result = innerCatch(error, args)
                 }
 
-                if (isPure) {
+                if (isCached && Array.isArray(v.curCacheKey)) {
                     try {
                         if (cacheKeys.length >= cacheLimit) {
                             cacheKeys.shift()

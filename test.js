@@ -53,8 +53,29 @@ const { tieUp, FriendlyError } = tiedPants({ isDevelopment: true })
 //     }
 // })
 
-// const e = new A({ a: 123 })
+// const B = tieUp({
+//     descr: 'class B',
+//     onTry: class extends A {
+//         constructor({ a, b }) {
+//             super(arguments)
+//             this.b = b
+//         }
+
+//         otherMethod() {
+//             throw new Error('other error')
+//             return 'bla'
+//         }
+//     },
+//     onCatch: ({ descr }) => {
+//         if (descr.endsWith('["otherMethod"]')) {
+//             return 10
+//         }
+//     }
+// })
+
+// const e = new B({ a: 123 })
 // console.log(e.someMethod())
+// console.log(e.otherMethod())
 
 // for (i = 1; i <= 5; i++) {
 //     console.log(measureFib(i*1000, 5, 5, 5, 5))
