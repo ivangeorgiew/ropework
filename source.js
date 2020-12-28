@@ -181,13 +181,15 @@ const tiedPants = function(props) {
                 props.descr :
                 defaultDescr
 
-            const onTry = typeof props.onTry === 'function' ?
-                props.onTry :
+            const data = typeof props.data === 'function' ?
+                props.data :
                 () => {}
 
             const onCatch = typeof props.onCatch === 'function' ?
                 props.onCatch :
                 () => {}
+
+            const useCache = props.useCache
 
             let cacheKeys = []
             let cacheValues = []
@@ -197,6 +199,7 @@ const tiedPants = function(props) {
 
                 // clear the cache on overflows
                 if (
+                    typeof useCache === 'function' &&
                     isObject(error) &&
                     typeof error.message === 'string' &&
                     error.message.match(overflowRegex) !== null
@@ -207,14 +210,13 @@ const tiedPants = function(props) {
 
                 return createFunc({
                     descr: `catching errors for ${descr}`,
-                    onTry: onCatch
+                    data: onCatch
                 })({ descr, error, args })
             }
 
             const innerFunc = function(...args) {
                 // creating more variables hurts performance
                 const v = {
-                    getCacheKey: innerFunc.tp_caching,
                     neededArgs: undefined,
                     curCacheKey: undefined,
                     result: undefined,
@@ -223,20 +225,24 @@ const tiedPants = function(props) {
                     m: undefined
                 }
 
-                if (typeof v.getCacheKey === 'function') {
+                if (typeof useCache === 'function') {
                     try {
-                        v.neededArgs = v.getCacheKey(args)
+                        v.neededArgs = useCache(args)
 
                         if (Array.isArray(v.neededArgs)) {
                             v.curCacheKey = [this].concat(v.neededArgs)
 
                             //prevent error on stack overflow
-                            v.i = (cacheKeys || []).length
+                            v.i = Array.isArray(cacheKeys) ?
+                                cacheKeys.length :
+                                0
 
                             while (v.i--) {
-                                //prevent error on stack overflow
-                                v.m = (cacheKeys[v.i] || []).length
                                 v.areEqual = true
+                                //prevent error on stack overflow
+                                v.m = Array.isArray(cacheKeys[v.i]) ?
+                                    cacheKeys[v.i].length :
+                                    0
 
                                 while (v.m--) {
                                     if (!Object.is(
@@ -262,7 +268,7 @@ const tiedPants = function(props) {
                     // if the function was called as constructor
                     if (new.target !== undefined) {
                         v.result = new function () {
-                            const obj = new onTry(...args)
+                            const obj = new data(...args)
 
                             if (isObject(innerFunc.prototype)) {
                                 Object.setPrototypeOf(obj, innerFunc.prototype)
@@ -271,7 +277,7 @@ const tiedPants = function(props) {
                             return obj
                         }
                     } else {
-                        v.result = onTry.apply(this, args)
+                        v.result = data.apply(this, args)
                     }
 
                     // if the function returns a promise
@@ -315,11 +321,12 @@ const tiedPants = function(props) {
 
     const tieUp = createFunc({
         descr: 'tying up data with error handling',
-        onTry: function (descr, data, onCatch) {
+        useCache: ([descr, data]) => [typeof descr !== 'string' ? descr : data],
+        data: function (descr, data, options) {
             if (typeof descr !== 'string') {
                 descr = defaultDescr
                 data = arguments[0]
-                onCatch = arguments[1]
+                options = arguments[1]
             } else {
                 descr = `(${descr})`
             }
@@ -333,14 +340,11 @@ const tiedPants = function(props) {
 
             const createData = createFunc({
                 descr: 'creating error handled data',
-                onTry: function(props) {
+                useCache: ([props]) => [isObject(props) ? props.data : undefined],
+                data: function(props) {
                     props = isObject(props) ? props : {}
 
-                    const { descr, data, onCatch, refs } = props
-
-                    if (typeof descr !== 'string' || !(refs instanceof WeakMap)) {
-                        throw new Error('Incorrect props provided')
-                    }
+                    const { descr, data, onCatch, useCache, refs } = props
 
                     if (data instanceof Date) {
                         const copy = new Date()
@@ -373,7 +377,8 @@ const tiedPants = function(props) {
 
                     const assignHandledProps = createFunc({
                         descr: 'assigning error handled properties',
-                        onTry: function(source, target) {
+                        useCache: args => args,
+                        data: function(source, target) {
                             const descriptors = Object.getOwnPropertyDescriptors(source)
                             const descriptorKeys = Object
                                 .getOwnPropertyNames(descriptors)
@@ -396,6 +401,7 @@ const tiedPants = function(props) {
                                             descr: `${descr}["${String(key)}"]`,
                                             data: value,
                                             onCatch: source[`${String(key)}OnCatch`],
+                                            useCache: source[`${String(key)}UseCache`],
                                             refs
                                         })
                                     }
@@ -416,12 +422,10 @@ const tiedPants = function(props) {
                         }
                     })
 
-                    assignHandledProps.tp_caching = args => args
-
                     let handledData
 
                     if (typeof data === 'function') {
-                        handledData = createFunc({ descr, onTry: data, onCatch })
+                        handledData = createFunc({ descr, data, onCatch, useCache })
                     } else if (Array.isArray(data)) {
                         handledData = []
                     } else {
@@ -493,17 +497,18 @@ const tiedPants = function(props) {
                 }
             })
 
-            createData.tp_caching = ([props]) =>
-                [isObject(props) ? props.data : undefined]
-
-            return createData({ descr, data, onCatch, refs: new WeakMap() })
+            return createData({
+                descr,
+                data,
+                onCatch: isObject(options) ? options.onCatch : undefined,
+                useCache: isObject(options) ? options.useCache : undefined,
+                refs: new WeakMap()
+            })
         },
         onCatch: function ({ args: [descr, data] }) {
             return typeof descr !== 'string' ? descr : data
         }
     })
-
-    tieUp.tp_caching = ([descr, data]) => [typeof descr !== 'string' ? descr : data]
 
     const getHandledServer = tieUp(
         'initializing error handling for server',
@@ -540,10 +545,8 @@ const tiedPants = function(props) {
 
             return server
         },
-        function({ args: [server] }) { return server }
+        { useCache: ([server]) => [server], onCatch: ({ args: [server] }) => server }
     )
-
-    getHandledServer.tp_caching = ([server]) => [server]
 
     const getRoutingCreator = tieUp(
         'creating function for routing',
@@ -577,11 +580,11 @@ const tiedPants = function(props) {
 
             return tieUp(
                 'creating route for the server',
-                function (method, path, onTry) {
+                function (method, path, callback) {
                     if (
                         typeof method !== 'string' ||
                         typeof path !== 'string' ||
-                        typeof onTry !== 'function'
+                        typeof callback !== 'function'
                     ) {
                         throw new Error(
                             'Invalid parameters provided, expected: ' +
@@ -591,16 +594,14 @@ const tiedPants = function(props) {
 
                     app[method](path, tieUp(
                         `${method.toUpperCase()} ${path}`,
-                        onTry,
-                        onCatch
+                        callback,
+                        { onCatch }
                     ))
                 }
             )
         },
-        function() { return () => {} }
+        { onCatch: () => () => {}, useCache: args => args }
     )
-
-    getRoutingCreator.tp_caching = args => args
 
     const errorListener = tieUp(
         'listening for unexpected errors',

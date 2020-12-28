@@ -41,10 +41,10 @@ const printNum = tieUp(
         blabla
         return num
     },
-    ({ args: [num] }) => {
+    { onCatch: ({ args: [num] }) => {
         console.log(`Ran inside catch - the argument was ${num}`)
         return 0
-    }
+    } }
 )
 
 const fib = tieUp(
@@ -55,10 +55,8 @@ const fib = tieUp(
 
         return n <= 1 ? n : fib(n-1) + fib(n-2)
     },
-    () => 0
+    { useCache: ([n]) => [n], onCatch: () => 0 }
 )
-
-fib.tp_caching = ([n]) => [n]
 
 const measureFib = tieUp(
     'Measuring time for fibonacci number',
@@ -71,7 +69,7 @@ const measureFib = tieUp(
             console.log(`execution time ${Date.now() - startTime}ms`)
         }
     },
-    () => 'Incorrect fibonacchi calculation'
+    { onCatch: () => 'Incorrect fibonacchi calculation' }
 )
 
 const delayReturn = tieUp(
@@ -84,7 +82,7 @@ const delayReturn = tieUp(
         else
             throw new FriendlyError('Could not delay properly')
     },
-    () => 'Default result'
+    { onCatch: () => 'Default result' }
 )
 
 console.log('printNum(9)', printNum(9))
@@ -185,13 +183,8 @@ server.listen(port, () => {
       the message is user friendly
 
 * `tieUp`
-  * type: `(descr, data, onCatch)` -> `error handled data`
+  * type: `(descr, data, { onCatch, useCache })` -> `error handled data`
   * definition: Function that error handles any type of data that you give it.
-      If a method `tp_caching` is added to the result of the function, then it is used to
-      enable caching. The method must have the following format - `([a, b]) => [b]`. To 
-      clarify - the array of arguments is given to the function and the array it returns
-      is used for creating a cache key every time. If every value in the returned array is
-      the same, then there was a cache hit.
   * `descr`: String that describes the data. Can be ommited. It is used to name functions
       and for better description in errors.
   * `data`: Any data which we error handle deeply. Arrays, functions and their
@@ -199,7 +192,14 @@ server.listen(port, () => {
   * `onCatch`: Function that executes after the internal catch logic. Accepts
       arguments `({ descr, err, args })`, where `descr` is same as above, `err`
       is the thrown Error, `args` are the function arguments. Additionaly, methods with
-      names `someMethodOnCatch` are considered the same as this function, but for `someMethod`
+      names `someMethodOnCatch` are considered the same as this function, but
+      for `someMethod`
+  * `useCache`: Function that if given enables caching. It has the following format -
+      `([a, b]) => [b]`. To clarify - the array of arguments is given to the function
+      and the array it returns is used for creating a cache key every time. If every
+      value in the returned array is the same, then there was a cache hit. Additionaly,
+      methods with names `someMethodUseCache` are considered the same as this function,
+      but for `someMethod`
 
 * `getHandledServer`
   * type: `server` -> `handledServer`
