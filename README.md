@@ -35,33 +35,34 @@ const { tieUp, FriendlyError } = tiedPants({
     }
 })
 
-const printNum = tieUp({
-    descr: 'printing a number',
-    onTry: num => {
+const printNum = tieUp(
+    'printing a number',
+    num => {
         blabla
         return num
     },
-    onCatch: ({ args: [num] }) => {
+    ({ args: [num] }) => {
         console.log(`Ran inside catch - the argument was ${num}`)
         return 0
     }
-})
+)
 
-const fib = tieUp({
-    descr: 'calculating fibonacci number',
-    getCacheKey: ({ args: [n] }) => [n],
-    onTry: (n) => {
+const fib = tieUp(
+    'calculating fibonacci number',
+    (n) => {
         if (n < 0 || Math.trunc(n) !== n)
             throw new FriendlyError('The passed input wasnt possitive number')
 
         return n <= 1 ? n : fib(n-1) + fib(n-2)
     },
-    onCatch: () => 0
-})
+    () => 0
+)
 
-const measureFib = tieUp({
-    descr: 'Measuring time for fibonacci number',
-    onTry: num => {
+fib.tp_caching = ([n]) => [n]
+
+const measureFib = tieUp(
+    'Measuring time for fibonacci number',
+    num => {
         const startTime = Date.now()
 
         try {
@@ -70,12 +71,12 @@ const measureFib = tieUp({
             console.log(`execution time ${Date.now() - startTime}ms`)
         }
     },
-    onCatch: () => 'Incorrect fibonacchi calculation'
-})
+    () => 'Incorrect fibonacchi calculation'
+)
 
-const delayReturn = tieUp({
-    descr: 'Delaying async function',
-    onTry: async (ms) => {
+const delayReturn = tieUp(
+    'Delaying async function',
+    async (ms) => {
         await new Promise(resolve => setTimeout(resolve, ms))
 
         if (typeof ms === 'number')
@@ -83,8 +84,8 @@ const delayReturn = tieUp({
         else
             throw new FriendlyError('Could not delay properly')
     },
-    onCatch: () => 'Default result'
-})
+    () => 'Default result'
+)
 
 console.log('printNum(9)', printNum(9))
 delayReturn(10).then(val => console.log('delayReturn(10) ' + val))
@@ -177,18 +178,6 @@ server.listen(port, () => {
   * type: `({ isUncaught, isFriendly, userMsg, productionInfo })` -> ?
   * definition: Function parameter that was parsed from `tiedPants`
 
-* `isObject`
-  * type: val -> boolean
-  * definition: Checks if the provided value is a true object {}
-
-* `isBrowser`
-  * type: `boolean`
-  * definition: Tells if in browser environment or not
-
-* `isNodeJS`
-  * type: `boolean`
-  * definition: Tells if in Node.js environment or not
-
 * `FriendlyError`
   * type: `constructor`
   * definition: Constructor that extends `Error`. Use it in functions created
@@ -196,19 +185,21 @@ server.listen(port, () => {
       the message is user friendly
 
 * `tieUp`
-  * type: `({ descr, onTry, onCatch, getCacheKey })` -> `error handled data`
-  * definition: Error handles every type of data that you give it
-  * `descr`: String that describes the data. If it has the word `cached`, then caching
-      is enabled.
-  * `onTry`: Any data which we error handle deeply. Arrays, functions and their
+  * type: `(descr, data, onCatch)` -> `error handled data`
+  * definition: Function that error handles any type of data that you give it.
+      If a method `tp_caching` is added to the result of the function, then it is used to
+      enable caching. The method must have the following format - `([a, b]) => [b]`. To 
+      clarify - the array of arguments is given to the function and the array it returns
+      is used for creating a cache key every time. If every value in the returned array is
+      the same, then there was a cache hit.
+  * `descr`: String that describes the data. Can be ommited. It is used to name functions
+      and for better description in errors.
+  * `data`: Any data which we error handle deeply. Arrays, functions and their
       arguments, objects and their methods, etc. Returns the error handled version.
-  * `onCatch`: Function which acts as default onCatch for the returned data. Accepts
+  * `onCatch`: Function that executes after the internal catch logic. Accepts
       arguments `({ descr, err, args })`, where `descr` is same as above, `err`
-      is the thrown Error, `args` are the args which were supplied to caught function.
-  * `getCacheKey`: Function that if supplied, enables caching. It accepts
-      parameters `({ descr, args })`, where `descr` is same as above, `args` is same as
-      above. It has to return an array that is used every time to create caching key.
-      Example: `({ args }) => args` or `({ args: [_p, num] }) => [num]`
+      is the thrown Error, `args` are the function arguments. Additionaly, methods with
+      names `someMethodOnCatch` are considered the same as this function, but for `someMethod`
 
 * `getHandledServer`
   * type: `server` -> `handledServer`

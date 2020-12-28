@@ -21,7 +21,7 @@ const tiedPants = function(props) {
         console.error :
         () => {}
 
-    const defaultDescr = 'a part of the application'
+    const defaultDescr = '(part of the app)'
 
     const browserEventNames = ['error', 'unhandledrejection']
 
@@ -189,12 +189,6 @@ const tiedPants = function(props) {
                 props.onCatch :
                 () => {}
 
-            const getCacheKey = typeof props.getCacheKey === 'function' ?
-                props.getCacheKey :
-                () => []
-
-            const isCached = typeof props.getCacheKey === 'function'
-
             let cacheKeys = []
             let cacheValues = []
 
@@ -203,8 +197,8 @@ const tiedPants = function(props) {
 
                 // clear the cache on overflows
                 if (
-                    isCached &&
-                    error instanceof Error &&
+                    isObject(error) &&
+                    typeof error.message === 'string' &&
                     error.message.match(overflowRegex) !== null
                 ) {
                     cacheKeys = []
@@ -220,6 +214,7 @@ const tiedPants = function(props) {
             const innerFunc = function(...args) {
                 // creating more variables hurts performance
                 const v = {
+                    getCacheKey: innerFunc.tp_caching,
                     neededArgs: undefined,
                     curCacheKey: undefined,
                     result: undefined,
@@ -228,9 +223,9 @@ const tiedPants = function(props) {
                     m: undefined
                 }
 
-                if (isCached) {
+                if (typeof v.getCacheKey === 'function') {
                     try {
-                        v.neededArgs = getCacheKey({ descr, args })
+                        v.neededArgs = v.getCacheKey(args)
 
                         if (Array.isArray(v.neededArgs)) {
                             v.curCacheKey = [this].concat(v.neededArgs)
@@ -293,7 +288,7 @@ const tiedPants = function(props) {
                     v.result = innerCatch(error, args)
                 }
 
-                if (isCached && Array.isArray(v.curCacheKey)) {
+                if (Array.isArray(v.curCacheKey)) {
                     try {
                         if (cacheKeys.length >= cacheLimit) {
                             cacheKeys.shift()
@@ -320,47 +315,43 @@ const tiedPants = function(props) {
 
     const tieUp = createFunc({
         descr: 'tying up data with error handling',
-        getCacheKey: ({ args: [props] }) => [isObject(props) ? props.onTry : undefined],
-        onTry: function (props) {
-            props = isObject(props) ? props : {}
-
-            const { onTry, onCatch, getCacheKey } = props
-
-            if (
-                !['object', 'function'].includes(typeof onTry) ||
-                onTry === null
-            ) {
-                return onTry
+        onTry: function (descr, data, onCatch) {
+            if (typeof descr !== 'string') {
+                descr = defaultDescr
+                data = arguments[0]
+                onCatch = arguments[1]
+            } else {
+                descr = `(${descr})`
             }
 
-            const refs = new WeakMap()
-            const descr = typeof props.descr === 'string' ?
-                `[ ${typeof onTry}: ${props.descr} ]` :
-                `[ ${typeof onTry}: ${defaultDescr} ]`
+            if (
+                !['object', 'function'].includes(typeof data) ||
+                data === null
+            ) {
+                return data
+            }
 
             const createData = createFunc({
                 descr: 'creating error handled data',
-                getCacheKey: ({ args: [props] }) =>
-                    [isObject(props) ? props.onTry : undefined],
                 onTry: function(props) {
                     props = isObject(props) ? props : {}
 
-                    const { descr, onTry, onCatch, getCacheKey, refs } = props
+                    const { descr, data, onCatch, refs } = props
 
                     if (typeof descr !== 'string' || !(refs instanceof WeakMap)) {
                         throw new Error('Incorrect props provided')
                     }
 
-                    if (onTry instanceof Date) {
+                    if (data instanceof Date) {
                         const copy = new Date()
 
-                        copy.setTime(onTry.getTime())
+                        copy.setTime(data.getTime())
 
                         return copy
                     }
 
-                    if (onTry instanceof RegExp) {
-                        const regExpText = String(onTry)
+                    if (data instanceof RegExp) {
+                        const regExpText = String(data)
                         const lastSlashIdx = regExpText.lastIndexOf('/')
 
                         return new RegExp(
@@ -370,19 +361,18 @@ const tiedPants = function(props) {
                     }
 
                     if (
-                        !['object', 'function'].includes(typeof onTry) ||
-                        onTry === null
+                        !['object', 'function'].includes(typeof data) ||
+                        data === null
                     ) {
-                        return onTry
+                        return data
                     }
 
-                    if (refs.has(onTry)) {
-                        return refs.get(onTry)
+                    if (refs.has(data)) {
+                        return refs.get(data)
                     }
 
                     const assignHandledProps = createFunc({
                         descr: 'assigning error handled properties',
-                        getCacheKey: ({ args }) => args,
                         onTry: function(source, target) {
                             const descriptors = Object.getOwnPropertyDescriptors(source)
                             const descriptorKeys = Object
@@ -394,7 +384,6 @@ const tiedPants = function(props) {
                             while (i--) {
                                 const key = descriptorKeys[i]
 
-                                // in case target has the prop and is not configurable
                                 try {
                                     let value = descriptors[key].value
 
@@ -405,9 +394,8 @@ const tiedPants = function(props) {
                                         value = createData({
                                             // key can be a Symbol
                                             descr: `${descr}["${String(key)}"]`,
-                                            onTry: value,
-                                            onCatch,
-                                            getCacheKey,
+                                            data: value,
+                                            onCatch: source[`${String(key)}OnCatch`],
                                             refs
                                         })
                                     }
@@ -428,88 +416,112 @@ const tiedPants = function(props) {
                         }
                     })
 
+                    assignHandledProps.tp_caching = args => args
+
                     let handledData
 
-                    if (typeof onTry === 'function') {
-                        handledData = createFunc({
-                            descr,
-                            onTry,
-                            onCatch,
-                            getCacheKey
-                        })
-                    } else if (Array.isArray(onTry)) {
+                    if (typeof data === 'function') {
+                        handledData = createFunc({ descr, onTry: data, onCatch })
+                    } else if (Array.isArray(data)) {
                         handledData = []
                     } else {
                         handledData = {}
                     }
 
-                    refs.set(onTry, handledData)
+                    refs.set(data, handledData)
 
-                    assignHandledProps(onTry, handledData)
+                    assignHandledProps(data, handledData)
 
-                    const dataProto = Object.getPrototypeOf(onTry)
+                    const dataProto = Object.getPrototypeOf(data)
                     let handledProto
 
                     if (dataProto === null || builtinPrototypes.includes(dataProto)) {
                         handledProto = dataProto
                     } else {
                         handledProto = createData({
-                            descr: `prototype of (${descr})`,
-                            onTry: dataProto,
-                            onCatch,
-                            getCacheKey,
+                            descr: `${descr}["__proto__"]`,
+                            data: dataProto,
                             refs
                         })
                     }
 
                     Object.setPrototypeOf(handledData, handledProto)
 
-                    // constructor inside the prototype of a function should be
-                    // the same as the function itself
-                    if (
-                        typeof onTry === 'function' &&
-                        isObject(onTry.prototype) &&
-                        onTry.prototype.constructor === onTry
-                    ) {
-                        Object.defineProperty(handledData.prototype, 'constructor', {
-                            value: handledData,
-                            writable: true,
-                            configurable: true
-                        })
+                    if (typeof data === 'function') {
+                        // set descr as the name of the function
+                        try {
+                            Object.defineProperty(handledData, 'name', {
+                                value: descr,
+                                configurable: true
+                            })
+                        } catch(error) {
+                            logError({
+                                descr: `setting description as name for ${descr}`,
+                                error
+                            })
+                        }
+
+                        // constructor inside the prototype of a function should be
+                        // the same as the function itself
+                        if (
+                            isObject(data.prototype) &&
+                            data.prototype.constructor === data
+                        ) {
+                            try {
+                                Object.defineProperty(
+                                    handledData.prototype,
+                                    'constructor',
+                                    {
+                                        value: handledData,
+                                        writable: true,
+                                        configurable: true
+                                    }
+                                )
+                            } catch(error) {
+                                logError({
+                                    descr: `assigning constructor to ${descr}`,
+                                    error
+                                })
+                            }
+                        }
                     }
 
                     return handledData
                 },
                 onCatch: function ({ args: [props] }) {
-                    return isObject(props) ? props.onTry : undefined
+                    return isObject(props) ? props.data : undefined
                 }
             })
 
-            return createData({ descr, onTry, onCatch, getCacheKey, refs })
+            createData.tp_caching = ([props]) =>
+                [isObject(props) ? props.data : undefined]
+
+            return createData({ descr, data, onCatch, refs: new WeakMap() })
         },
-        onCatch: function ({ args: [props] }) {
-            return isObject(props) ? props.onTry : undefined
+        onCatch: function ({ args: [descr, data] }) {
+            return typeof descr !== 'string' ? descr : data
         }
     })
 
-    const getHandledServer = tieUp({
-        descr: 'initializing error handling for server',
-        getCacheKey: ({ args: [server] }) => [server],
-        onTry: function(server) {
+    tieUp.tp_caching = ([descr, data]) => [typeof descr !== 'string' ? descr : data]
+
+    const getHandledServer = tieUp(
+        'initializing error handling for server',
+        function(server) {
             if (!isNodeJS) {
                 throw new Error('This function is meant for NodeJS')
             }
 
-            server = tieUp({ descr: 'HTTP server', onTry: server })
+            server = tieUp('HTTP server', server)
 
             const sockets = new Set()
-            const serverErrorListener = tieUp({
-                descr: 'handling server closing',
-                onTry: function() {
+            const serverErrorListener = tieUp(
+                'handling server closing',
+                function() {
                     server.close()
                     sockets.forEach(socket => { socket.destroy() })
                 }
-            })
+            )
 
             if (isNodeJS) {
                 server.on('connection', socket => {
@@ -528,13 +540,14 @@ const tiedPants = function(props) {
 
             return server
         },
-        onCatch: function({ args: [server] }) { return server }
-    })
+        function({ args: [server] }) { return server }
+    )
 
-    const getRoutingCreator = tieUp({
-        descr: 'creating function for routing',
-        getCacheKey: ({ args: [app] }) => [app],
-        onTry: function (app, onCatch) {
+    getHandledServer.tp_caching = ([server]) => [server]
+
+    const getRoutingCreator = tieUp(
+        'creating function for routing',
+        function (app, onCatch) {
             if (!isNodeJS) {
                 throw new Error('This function is meant for NodeJS')
             }
@@ -562,9 +575,9 @@ const tiedPants = function(props) {
                 }
             }
 
-            return tieUp({
-                descr: 'creating route for the server',
-                onTry: function (method, path, onTry) {
+            return tieUp(
+                'creating route for the server',
+                function (method, path, onTry) {
                     if (
                         typeof method !== 'string' ||
                         typeof path !== 'string' ||
@@ -576,20 +589,22 @@ const tiedPants = function(props) {
                         )
                     }
 
-                    app[method](path, tieUp({
-                        descr: `${method.toUpperCase()} ${path}`,
-                        onTry: onTry,
+                    app[method](path, tieUp(
+                        `${method.toUpperCase()} ${path}`,
+                        onTry,
                         onCatch
-                    }))
+                    ))
                 }
-            })
+            )
         },
-        onCatch: function() { return () => {} }
-    })
+        function() { return () => {} }
+    )
 
-    const errorListener = tieUp({
-        descr: 'listening for unexpected errors',
-        onTry: function(eventOrError) {
+    getRoutingCreator.tp_caching = args => args
+
+    const errorListener = tieUp(
+        'listening for unexpected errors',
+        function(eventOrError) {
             if (isBrowser) {
                 if (eventOrError instanceof Event) {
                     eventOrError.stopImmediatePropagation()
@@ -620,7 +635,7 @@ const tiedPants = function(props) {
                 setTimeout(() => { process.exit(exitCode) }, 1000).unref()
             }
         }
-    })
+    )
 
     if (isBrowser && !window.tp_areUnhandledCaught) {
         let i = browserEventNames.length
@@ -646,9 +661,6 @@ const tiedPants = function(props) {
         isDevelopment,
         devLogger,
         notify,
-        isObject,
-        isBrowser,
-        isNodeJS,
         FriendlyError,
         tieUp,
         getHandledServer,
