@@ -2,3 +2,5 @@ tags
 source.js
 test.js
 rollup.config.js
+.eslintignore
+.eslintrc.json

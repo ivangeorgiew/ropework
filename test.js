@@ -1,81 +1,107 @@
-const tiedPants = require('./source')
-const { tieUp, FriendlyError } = tiedPants({ isDevelopment: true })
+// const tiedPants = require('./source')
+// const { tieUp, FriendlyError } = tiedPants({ isDevelopment: true })
 
-const fib = tieUp(
-    'calculating fibonacci number',
-    function(n, a, b, c, d, e) {
-        if (n < 0 || Math.trunc(n) !== n)
-            throw new FriendlyError('The passed input wasnt possitive number')
+// const commonFib = (n, cache = {}) => {
+//     if (n in cache) {
+//         return cache[n]
+//     }
 
-        return n <= 1 ? n : fib.call(this, n-1, a, b, c, d, e) + fib.call(this, n-2, a, b, c, d, e)
-    },
-    { useCache: ([n]) => [n], onCatch: () => 0 }
-)
+//     cache[n] = n <= 1 ? n : commonFib(n - 1, cache) + commonFib(n - 2, cache)
 
-const measureFib = tieUp(
-    function(n, a, b, c, d, e) {
-        const startTime = Date.now()
+//     return cache[n]
+// }
 
-        try {
-            return fib.call(this, n, a, b, c, d, e)
-        } finally {
-            console.log(`execution time ${Date.now() - startTime}ms`)
-        }
-    },
-    { onCatch: () => 'Incorrect fibonacchi calculation' }
-)
+// const startTime = Date.now()
+// console.log(commonFib(7000))
+// console.log(`executed in ${Date.now() - startTime} ms`)
 
-const a = () => { throw new Error('sup') }
-const b = new Error('blabla')
-const c = [5, 6]
-const d = { b: 6, a }
+// const fib = tieUp(
+//     'calculating fibonacci number',
+//     function (n, a, b, c, d, e) {
+//         if (n < 0 || Math.trunc(n) !== n) {
+//             throw new FriendlyError('The passed input wasnt possitive number')
+//         }
 
-d.myself = d
+//         return n <= 1
+//             ? n
+//             : fib.call(this, n - 1, a, b, c, d, e) + fib.call(this, n - 2, a, b, c, d, e)
+//     },
+//     { useCache: ([n]) => [n], onCatch: () => 0 }
+// )
 
-const A = tieUp(
-    'class A',
-    class {
-        constructor({ a }) {
-            this.a = a
-            this.b = 6
-        }
+// const measureFib = tieUp(
+//     function (n, a, b, c, d, e) {
+//         const startTime = Date.now()
 
-        someMethod() {
-            throw new Error('intentional error')
-            return 'sup'
-        }
+//         try {
+//             return fib.call(this, n, a, b, c, d, e)
+//         } finally {
+//             console.log(`execution time ${Date.now() - startTime}ms`)
+//         }
+//     },
+//     { onCatch: () => 'Incorrect fibonacchi calculation' }
+// )
 
-        someMethodOnCatch() {
-            return 5
-        }
-    }
-)
+// const a = () => { throw new Error('sup') }
+// const b = new Error('blabla')
+// const c = [5, 6]
+// const d = { b: 6, a }
 
-const B = tieUp(
-    'class B',
-    class extends A {
-        constructor({ a, b }) {
-            super(arguments)
-            this.b = b
-        }
+// d.myself = d
 
-        otherMethod() {
-            throw new Error('other error')
-            return 'bla'
-        }
+// const A = tieUp(
+//     'class A',
+//     class {
+//         constructor ({ a }) {
+//             this.a = a
+//             this.b = 6
+//         }
 
-        otherMethodOnCatch() {
-            return 10
-        }
-    }
-)
+//         someMethod () {
+//             throw new Error('intentional error')
+//             // return 'sup'
+//         }
 
+//         someMethodOnCatch () {
+//             return 5
+//         }
+//     }
+// )
 
-console.log(measureFib.call(c, 2300, a, b, c, d, B))
-console.log(measureFib.call(c, 2300, a, b, c, d, B))
+// const B = tieUp(
+//     'class B',
+//     class extends A {
+//         constructor ({ a, b }) {
+//             super(arguments)
+//             this.b = b
+//         }
+
+//         otherMethod () {
+//             throw new Error('other error')
+//             // return 'bla'
+//         }
+
+//         otherMethodOnCatch () {
+//             return 10
+//         }
+//     }
+// )
+
+// console.log(process.memoryUsage())
+// console.log(measureFib.call(c, 2000, a, b, c, d, B))
+// console.log(process.memoryUsage())
+// console.log(measureFib.call(c, 4000, a, b, c, d, B))
+// console.log(process.memoryUsage())
+// console.log(measureFib.call(c, 6000, a, b, c, d, B))
+// console.log(process.memoryUsage())
+// console.log(measureFib(2000))
+// console.log(measureFib(4000))
+// console.log(measureFib(6000))
+// console.log(measureFib(8000))
+// console.log(measureFib(10000))
 // console.log(fib.name)
 
-// for (i = 1; i <= 5; i++) {
+// for (let i = 1; i <= 5; i++) {
 //     console.log(measureFib(i*1000, 5, 5, 5, 5))
 // }
 
@@ -106,10 +132,9 @@ console.log(measureFib.call(c, 2300, a, b, c, d, B))
 //     function * (i) {
 //         yield i
 //         yield i + 10
-//     }
+//     },
+//     { useCache: args => args }
 // )
-// const rg = gen(10)
-// const rg2 = gen(10)
 
 // console.log(gen(10).next().value)
 // console.log(gen(10).next().value)
@@ -117,6 +142,7 @@ console.log(measureFib.call(c, 2300, a, b, c, d, B))
 // const asyncF = tieUp(
 //     'Asynchronous function test',
 //     async function (i) {
+//         throw new Error('intended')
 //         await new Promise((resolve) => setTimeout(resolve, 1000))
 //         return i
 //     },
