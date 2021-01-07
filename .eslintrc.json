@@ -9,6 +9,8 @@
         "standard"
     ],
     "rules": {
+        "no-undef": ["error", { "typeof": true }],
+        "max-len": ["error", { "code": 90 }],
         "indent": ["error", 4],
         "no-use-before-define": "off",
         "new-cap": "off"

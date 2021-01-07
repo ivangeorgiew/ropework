@@ -1,8 +1,9 @@
 module.exports = (props) => {
     'use strict'
 
-    // start constants definitions
-    const isObject = val => typeof val === 'object' && !Array.isArray(val) && val !== null
+    // - Constants -------------------------------------------------------------
+    const checkIfObject = val =>
+        typeof val === 'object' && !Array.isArray(val) && val !== null
 
     const isBrowser = typeof window !== 'undefined' &&
         ({}).toString.call(window) === '[object Window]'
@@ -17,15 +18,16 @@ module.exports = (props) => {
         }
     }
 
-    const defaultLogger = isObject(console) && typeof console.error === 'function'
+    const defaultLogger = checkIfObject(console) && typeof console.error === 'function'
         ? console.error
         : () => {}
 
-    const defaultDescr = '(part of the app)'
+    const defaultDescr = 'part of the app'
 
     const browserEventNames = ['error', 'unhandledrejection']
 
-    const nodeEventNames = ['uncaughtException', 'unhandledRejection', 'SIGTERM', 'SIGINT']
+    const nodeEventNames =
+        ['uncaughtException', 'unhandledRejection', 'SIGTERM', 'SIGINT']
 
     const GeneratorFunction = function * () {}.constructor
     const AsyncFunction = async function () {}.constructor
@@ -42,273 +44,256 @@ module.exports = (props) => {
         AsyncGeneratorFunction.prototype.prototype
     ]
 
-    const overflowRegex = /(stack|recursion)/
+    const alreadyHandled = new WeakSet()
 
-    const lastError = { descr: '', message: '' }
-    // end constants definitions
+    const caches = new WeakMap()
 
-    // start configuring arguments
+    // - Parameters ------------------------------------------------------------
     props = Object.assign({}, props)
 
     const isDevelopment = typeof props.isDevelopment === 'boolean'
         ? props.isDevelopment
-        : isObject(process) && isObject(process.env)
+        : checkIfObject(process) && checkIfObject(process.env)
             ? process.env.NODE_ENV !== 'production'
             : false
 
-    const devLogger = typeof props.devLogger === 'function'
-        ? function (...args) {
-            try {
-                props.devLogger.apply(this, args)
-            } catch (error) {
-                if (isDevelopment) {
-                    defaultLogger(' Issue with: parameter devLogger\n', error)
-                    defaultLogger.apply(this, args)
-                }
-            }
-        }
+    const errorLoggerUnhandled = typeof props.errorLogger === 'function'
+        ? props.errorLogger
         : defaultLogger
 
-    const notify = typeof props.notify === 'function'
-        ? function (...args) {
-            try {
-                props.notify.apply(this, args)
-            } catch (error) {
-                if (isDevelopment) {
-                    devLogger(' Issue with: parameter notify\n', error)
-                }
+    const errorLogger = function (...args) {
+        try {
+            if (isDevelopment) {
+                errorLoggerUnhandled.apply(this, args)
+            }
+        } catch (error) {
+            if (isDevelopment) {
+                defaultLogger(' Issue with: parameter errorLogger\n', error)
             }
         }
+    }
+
+    const notifyUnhandled = typeof props.notify === 'function'
+        ? props.notify
         : () => {}
 
-    const cacheLimit = typeof props.cacheLimit === 'number' && props.cacheLimit > 0
-        ? props.cacheLimit
-        : 1e6
-    // end configuring arguments
+    const notify = function (...args) {
+        try {
+            notifyUnhandled.apply(this, args)
+        } catch (error) {
+            errorLogger(' Issue with: parameter notify\n', error)
+        }
+    }
 
+    // - Functions -------------------------------------------------------------
     const logError = function (props) {
-        setTimeout(() => {
-            try {
-                props = Object.assign({}, props)
+        try {
+            props = Object.assign({}, props)
 
-                const isUncaught = typeof props.isUncaught === 'boolean'
-                    ? props.isUncaught
-                    : false
+            const isUncaught = typeof props.isUncaught === 'boolean'
+                ? props.isUncaught
+                : false
 
-                const descr = typeof props.descr === 'string'
-                    ? props.descr
-                    : isUncaught ? 'unhandled error' : defaultDescr
+            const descr = typeof props.descr === 'string'
+                ? props.descr
+                : isUncaught ? 'unhandled error' : defaultDescr
 
-                const error = props.error instanceof Error
-                    ? props.error
-                    : isUncaught ? new Error('Uncaught error') : new Error('Unknown error')
+            const error = props.error instanceof Error
+                ? props.error
+                : isUncaught ? new Error('Uncaught error') : new Error('Unknown error')
 
-                const args = Array.isArray(props.args)
-                    ? props.args.map(el => Array.isArray(el) ? 'array' : typeof el)
-                    : []
+            const args = Array.isArray(props.args)
+                ? props.args.map(el => Array.isArray(el) ? 'array' : typeof el)
+                : []
 
-                const isOverflowAgain =
-                    error.message === lastError.message &&
-                    error.message.match(overflowRegex) !== null
+            const isFriendly = error instanceof FriendlyError
 
-                const isSameError =
-                    descr === lastError.descr &&
-                    error.message === lastError.message
+            const userMsg = isFriendly ? error.message : `Issue with: ${descr}`
 
-                if (isDevelopment && !isSameError && !isOverflowAgain) {
-                    devLogger(
-                        '\n',
-                        'Issue with:', descr, '\n',
-                        'Function arguments:', args, '\n',
-                        error, '\n'
-                    )
-                }
-
-                Object.assign(lastError, { descr, message: error.message })
-
-                const isFriendly = error instanceof FriendlyError
-                const userMsg = isFriendly ? error.message : `Issue with: ${descr}`
-                const productionInfo = {
-                    description: descr,
-                    arguments: args,
-                    date: (new Date()).toUTCString(),
-                    error
-                }
-
-                if (isBrowser) {
-                    Object.assign(productionInfo, {
-                        localUrl: window.location.href,
-                        machineInfo: {
-                            browserInfo: window.navigator.userAgent,
-                            language: window.navigator.language,
-                            osType: window.navigator.platform
-                        }
-                    })
-                }
-
-                if (isNodeJS) {
-                    Object.assign(productionInfo, {
-                        localUrl: process.cwd(),
-                        machineInfo: {
-                            cpuArch: process.arch,
-                            osType: process.platform,
-                            depVersions: process.versions
-                        }
-                    })
-                }
-
-                notify({
-                    isDevelopment,
-                    isUncaught,
-                    isFriendly,
-                    userMsg,
-                    productionInfo,
-                    error
-                })
-            } catch (error) {
-                if (isDevelopment) {
-                    devLogger(' Issue with: error logger\n', error, '\n')
-                }
+            const productionInfo = {
+                description: descr,
+                arguments: args,
+                date: (new Date()).toUTCString(),
+                error
             }
-        }, 0)
+
+            if (isBrowser) {
+                Object.assign(productionInfo, {
+                    localUrl: window.location.href,
+                    machineInfo: {
+                        browserInfo: window.navigator.userAgent,
+                        language: window.navigator.language,
+                        osType: window.navigator.platform
+                    }
+                })
+            }
+
+            if (isNodeJS) {
+                Object.assign(productionInfo, {
+                    localUrl: process.cwd(),
+                    machineInfo: {
+                        cpuArch: process.arch,
+                        osType: process.platform,
+                        depVersions: process.versions
+                    }
+                })
+            }
+
+            errorLogger(
+                '\n',
+                'Issue with:', descr, '\n',
+                'Function arguments:', args, '\n',
+                error, '\n'
+            )
+
+            notify({
+                isDevelopment,
+                isUncaught,
+                isFriendly,
+                userMsg,
+                productionInfo,
+                error
+            })
+        } catch (error) {
+            errorLogger(' Issue with: error logger\n', error, '\n')
+        }
     }
 
     const createFunc = function (props) {
         try {
             props = Object.assign({}, props)
 
-            const descr = typeof props.descr === 'string'
-                ? props.descr
-                : defaultDescr
+            const { descr, useCache } = props
 
             const data = typeof props.data === 'function'
                 ? props.data
                 : () => {}
 
-            const onCatch = typeof props.onCatch === 'function'
-                ? props.onCatch
+            const onError = typeof props.onError === 'function'
+                ? createFunc({
+                    descr: `catching errors for ${descr}`,
+                    data: props.onError
+                })
                 : () => {}
 
-            const useCache = props.useCache
+            let unfinishedCalls = 0
 
-            let cacheKeys = []
-            let cacheValues = []
-
-            const innerCatch = function (error, args) {
-                logError({ descr, error, args })
-
-                // clear the cache on overflows
-                if (
-                    typeof useCache === 'function' &&
-                    isObject(error) &&
-                    typeof error.message === 'string' &&
-                    error.message.match(overflowRegex) !== null
-                ) {
-                    cacheKeys = []
-                    cacheValues = []
+            const innerCatch = function ({ error, args }) {
+                if (unfinishedCalls > 1) {
+                    throw error
                 }
 
-                return createFunc({
-                    descr: `catching errors for ${descr}`,
-                    data: onCatch
-                })({ descr, error, args })
+                logError({ descr, error, args })
+
+                return onError(args, error)
             }
 
             return function innerFunc (...args) {
-                // creating more variables hurts performance
-                const v = {
-                    neededArgs: undefined,
-                    curCacheKey: undefined,
-                    result: undefined,
-                    areEqual: undefined,
-                    i: undefined,
-                    m: undefined
-                }
-
-                if (typeof useCache === 'function') {
-                    try {
-                        v.neededArgs = useCache(args)
-
-                        if (Array.isArray(v.neededArgs)) {
-                            v.curCacheKey = [this].concat(v.neededArgs)
-
-                            // prevent error on stack overflow
-                            v.i = Array.isArray(cacheKeys)
-                                ? cacheKeys.length
-                                : 0
-
-                            while (v.i--) {
-                                v.areEqual = true
-                                // prevent error on stack overflow
-                                v.m = Array.isArray(cacheKeys[v.i])
-                                    ? cacheKeys[v.i].length
-                                    : 0
-
-                                while (v.m--) {
-                                    if (!Object.is(
-                                        cacheKeys[v.i][v.m],
-                                        v.curCacheKey[v.m]
-                                    )) {
-                                        v.areEqual = false
-                                        break
-                                    }
-                                }
-
-                                if (v.areEqual) {
-                                    return cacheValues[v.i]
-                                }
-                            }
-                        }
-                    } catch (error) {
-                        logError({ descr: 'retrieving result from cache', error, args })
-                    }
-                }
-
                 try {
-                    // if the function was called as constructor
-                    if (new.target !== undefined) {
-                        v.result = new function () {
+                    unfinishedCalls++
+
+                    let result, cacheItem, cacheArgs, storageKey, i
+
+                    // retrieve result from cache
+                    if (typeof useCache === 'function') {
+                        cacheArgs = useCache(args)
+
+                        if (Array.isArray(cacheArgs)) {
+                            if (!caches.has(innerFunc)) {
+                                caches.set(innerFunc, {})
+                            }
+
+                            cacheArgs = [this].concat(cacheArgs)
+                            cacheItem = caches.get(innerFunc)
+                            i = 0
+
+                            while (i < cacheArgs.length) {
+                                storageKey =
+                                    cacheArgs[i] !== null &&
+                                    ['object', 'function'].includes(typeof cacheArgs[i])
+                                        ? 'references'
+                                        : 'primitives'
+
+                                if (
+                                    storageKey in cacheItem &&
+                                    cacheItem[storageKey].has(cacheArgs[i])
+                                ) {
+                                    cacheItem = cacheItem[storageKey]
+                                        .get(cacheArgs[i])
+                                } else {
+                                    break
+                                }
+
+                                i++
+                            }
+
+                            if (i === cacheArgs.length && 'result' in cacheItem) {
+                                return cacheItem.result
+                            }
+
+                            // save on loop time
+                            cacheArgs.splice(0, i)
+                        }
+                    }
+
+                    // calculating result
+                    if (new.target === undefined) {
+                        result = data.apply(this, args)
+                    } else {
+                        result = (function () {
                             const obj = new data(...args)
 
-                            if (isObject(innerFunc.prototype)) {
+                            if (checkIfObject(innerFunc.prototype)) {
                                 Object.setPrototypeOf(obj, innerFunc.prototype)
                             }
 
                             return obj
-                        }()
-                    } else {
-                        v.result = data.apply(this, args)
+                        })()
                     }
 
                     // if the function returns a promise
                     if (
-                        isObject(v.result) &&
-                        typeof v.result.then === 'function' &&
-                        typeof v.result.catch === 'function'
+                        checkIfObject(result) &&
+                        typeof result.then === 'function' &&
+                        typeof result.catch === 'function'
                     ) {
-                        v.result = v.result.catch(function (error) {
-                            return innerCatch(error, args)
-                        })
+                        result = result.catch(error => innerCatch({ error, args }))
                     }
-                } catch (error) {
-                    v.result = innerCatch(error, args)
-                }
 
-                if (Array.isArray(v.curCacheKey)) {
-                    try {
-                        if (cacheKeys.length >= cacheLimit) {
-                            cacheKeys.shift()
-                            cacheValues.shift()
+                    // save the result in cache
+                    if (Array.isArray(cacheArgs)) {
+                        i = 0
+
+                        while (i < cacheArgs.length) {
+                            storageKey =
+                                cacheArgs[i] !== null &&
+                                ['object', 'function'].includes(typeof cacheArgs[i])
+                                    ? 'references'
+                                    : 'primitives'
+
+                            if (!(storageKey in cacheItem)) {
+                                cacheItem[storageKey] = storageKey === 'references'
+                                    ? new WeakMap()
+                                    : new Map()
+                            }
+
+                            cacheItem = cacheItem[storageKey].has(cacheArgs[i])
+                                ? cacheItem[storageKey].get(cacheArgs[i])
+                                : cacheItem[storageKey].set(cacheArgs[i], {})
+                                    .get(cacheArgs[i])
+
+                            i++
                         }
 
-                        cacheKeys.push(v.curCacheKey)
-                        cacheValues.push(v.result)
-                    } catch (error) {
-                        logError({ descr: 'assigning result to cache', error, args })
+                        cacheItem.result = result
                     }
-                }
 
-                return v.result
+                    return result
+                } catch (error) {
+                    return innerCatch({ error, args })
+                } finally {
+                    unfinishedCalls--
+                }
             }
         } catch (error) {
             logError({ descr: 'error handling functions', error, args: [props] })
@@ -317,234 +302,227 @@ module.exports = (props) => {
         }
     }
 
+    const assignHandledProps = createFunc({
+        descr: 'assigning error handled properties',
+        data: function (props) {
+            props = Object.assign({}, props)
+
+            const { source, target, descr, refs } = props
+            const descriptors = Object.getOwnPropertyDescriptors(source)
+            const descriptorKeys = Object
+                .getOwnPropertyNames(descriptors)
+                .concat(Object.getOwnPropertySymbols(descriptors))
+
+            let i = descriptorKeys.length
+
+            while (i--) {
+                const key = descriptorKeys[i]
+
+                try {
+                    let value = descriptors[key].value
+
+                    if (
+                        ['object', 'function'].includes(typeof value) &&
+                        value !== null &&
+                        !String(key).match(/.+(OnError|UseCache)$/)
+                    ) {
+                        value = createData({
+                            // key can be a Symbol
+                            descr: `${descr}["${String(key)}"]`,
+                            data: value,
+                            onError: source[`${String(key)}OnError`],
+                            useCache: source[`${String(key)}UseCache`],
+                            refs
+                        })
+                    }
+
+                    Object.defineProperty(target, key, Object.assign(
+                        descriptors[key],
+                        ('value' in descriptors[key]) ? { value } : null
+                    ))
+                } catch (error) {
+                    logError({
+                        // key can be a Symbol
+                        descr: `assigning method ${String(key)} to ${descr}`,
+                        error,
+                        args: [source, target]
+                    })
+                }
+            }
+        }
+    })
+
+    const createData = createFunc({
+        descr: 'creating error handled data',
+        data: function (props) {
+            props = Object.assign({}, props)
+
+            const { descr, data, onError, useCache, refs } = props
+
+            if (data instanceof Date) {
+                const copy = new Date()
+
+                copy.setTime(data.getTime())
+
+                return copy
+            }
+
+            if (data instanceof RegExp) {
+                const regExpText = String(data)
+                const lastSlashIdx = regExpText.lastIndexOf('/')
+
+                return new RegExp(
+                    regExpText.slice(1, lastSlashIdx),
+                    regExpText.slice(lastSlashIdx + 1)
+                )
+            }
+
+            if (
+                !['object', 'function'].includes(typeof data) ||
+                data === null ||
+                alreadyHandled.has(data)
+            ) {
+                return data
+            }
+
+            if (refs.has(data)) {
+                return refs.get(data)
+            }
+
+            let handledData
+
+            if (typeof data === 'function') {
+                handledData = createFunc({ descr, data, onError, useCache })
+            } else if (Array.isArray(data)) {
+                handledData = []
+            } else {
+                handledData = {}
+            }
+
+            refs.set(data, handledData)
+
+            assignHandledProps({ source: data, target: handledData, descr, refs })
+
+            const dataProto = Object.getPrototypeOf(data)
+            let handledProto
+
+            if (dataProto === null || builtinPrototypes.includes(dataProto)) {
+                handledProto = dataProto
+            } else {
+                handledProto = createData({
+                    descr: `${descr}["__proto__"]`,
+                    data: dataProto,
+                    refs
+                })
+            }
+
+            Object.setPrototypeOf(handledData, handledProto)
+
+            if (typeof data === 'function') {
+                // set descr as the name of the function
+                if (!descr.includes(defaultDescr)) {
+                    Object.defineProperty(handledData, 'name', {
+                        value: descr,
+                        configurable: true
+                    })
+                }
+
+                // constructor inside the prototype of a function should be
+                // the same as the function itself
+                if (
+                    checkIfObject(data.prototype) &&
+                    data.prototype.constructor === data
+                ) {
+                    Object.defineProperty(
+                        handledData.prototype,
+                        'constructor',
+                        {
+                            value: handledData,
+                            writable: true,
+                            configurable: true
+                        }
+                    )
+                }
+            }
+
+            alreadyHandled.add(handledData)
+
+            return handledData
+        },
+        onError: ([props]) => Object.assign({}, props).data
+    })
+
     const tieUp = createFunc({
         descr: 'tying up data with error handling',
-        useCache: ([descr, data]) => [typeof descr !== 'string' ? descr : data],
         data: function (descr, data, options) {
             if (typeof descr !== 'string') {
                 descr = defaultDescr
                 data = arguments[0]
                 options = arguments[1]
-            } else {
-                descr = `(${descr})`
             }
 
-            if (
-                !['object', 'function'].includes(typeof data) ||
-                data === null
-            ) {
+            if (!['object', 'function'].includes(typeof data) || data === null) {
                 return data
             }
 
-            const createData = createFunc({
-                descr: 'creating error handled data',
-                useCache: ([props]) => [Object.assign({}, props).data],
-                data: function (props) {
-                    props = Object.assign({}, props)
-
-                    const { descr, data, onCatch, useCache, refs } = props
-
-                    if (data instanceof Date) {
-                        const copy = new Date()
-
-                        copy.setTime(data.getTime())
-
-                        return copy
-                    }
-
-                    if (data instanceof RegExp) {
-                        const regExpText = String(data)
-                        const lastSlashIdx = regExpText.lastIndexOf('/')
-
-                        return new RegExp(
-                            regExpText.slice(1, lastSlashIdx),
-                            regExpText.slice(lastSlashIdx + 1)
-                        )
-                    }
-
-                    if (
-                        !['object', 'function'].includes(typeof data) ||
-                        data === null
-                    ) {
-                        return data
-                    }
-
-                    if (refs.has(data)) {
-                        return refs.get(data)
-                    }
-
-                    const assignHandledProps = createFunc({
-                        descr: 'assigning error handled properties',
-                        useCache: args => args,
-                        data: function (source, target) {
-                            const descriptors = Object.getOwnPropertyDescriptors(source)
-                            const descriptorKeys = Object
-                                .getOwnPropertyNames(descriptors)
-                                .concat(Object.getOwnPropertySymbols(descriptors))
-
-                            let i = descriptorKeys.length
-
-                            while (i--) {
-                                const key = descriptorKeys[i]
-
-                                try {
-                                    let value = descriptors[key].value
-
-                                    if (
-                                        ['object', 'function'].includes(typeof value) &&
-                                        value !== null
-                                    ) {
-                                        value = createData({
-                                            // key can be a Symbol
-                                            descr: `${descr}["${String(key)}"]`,
-                                            data: value,
-                                            onCatch: source[`${String(key)}OnCatch`],
-                                            useCache: source[`${String(key)}UseCache`],
-                                            refs
-                                        })
-                                    }
-
-                                    Object.defineProperty(target, key, Object.assign(
-                                        descriptors[key],
-                                        ('value' in descriptors[key]) ? { value } : null
-                                    ))
-                                } catch (error) {
-                                    logError({
-                                        // key can be a Symbol
-                                        descr: `assigning ${String(key)} to ${descr}`,
-                                        error,
-                                        args: [source, target]
-                                    })
-                                }
-                            }
-                        }
-                    })
-
-                    let handledData
-
-                    if (typeof data === 'function') {
-                        handledData = createFunc({ descr, data, onCatch, useCache })
-                    } else if (Array.isArray(data)) {
-                        handledData = []
-                    } else {
-                        handledData = {}
-                    }
-
-                    refs.set(data, handledData)
-
-                    assignHandledProps(data, handledData)
-
-                    const dataProto = Object.getPrototypeOf(data)
-                    let handledProto
-
-                    if (dataProto === null || builtinPrototypes.includes(dataProto)) {
-                        handledProto = dataProto
-                    } else {
-                        handledProto = createData({
-                            descr: `${descr}["__proto__"]`,
-                            data: dataProto,
-                            refs
-                        })
-                    }
-
-                    Object.setPrototypeOf(handledData, handledProto)
-
-                    if (typeof data === 'function') {
-                        // set descr as the name of the function
-                        try {
-                            Object.defineProperty(handledData, 'name', {
-                                value: descr,
-                                configurable: true
-                            })
-                        } catch (error) {
-                            logError({
-                                descr: `setting description as name for ${descr}`,
-                                error
-                            })
-                        }
-
-                        // constructor inside the prototype of a function should be
-                        // the same as the function itself
-                        if (
-                            isObject(data.prototype) &&
-                            data.prototype.constructor === data
-                        ) {
-                            try {
-                                Object.defineProperty(
-                                    handledData.prototype,
-                                    'constructor',
-                                    {
-                                        value: handledData,
-                                        writable: true,
-                                        configurable: true
-                                    }
-                                )
-                            } catch (error) {
-                                logError({
-                                    descr: `assigning constructor to ${descr}`,
-                                    error
-                                })
-                            }
-                        }
-                    }
-
-                    return handledData
-                },
-                onCatch: ({ args: [props] }) => Object.assign({}, props).data
-            })
-
             return createData({
-                descr,
+                descr: `[${descr}]`,
                 data,
-                onCatch: Object.assign({}, options).onCatch,
+                onError: Object.assign({}, options).onError,
                 useCache: Object.assign({}, options).useCache,
                 refs: new WeakMap()
             })
         },
-        onCatch: ({ args: [descr, data] }) => typeof descr !== 'string' ? descr : data
+        onError: ([descr, data]) => typeof descr !== 'string' ? descr : data
     })
+
+    const clearCache = tieUp(
+        'clearing the cache for a tied up function',
+        function (tiedFunc) {
+            if (typeof tiedFunc === 'function' && caches.has(tiedFunc)) {
+                caches.delete(tiedFunc)
+            }
+        }
+    )
 
     const getHandledServer = tieUp(
         'initializing error handling for server',
-        function (server) {
+        function (server, sockets) {
             if (!isNodeJS) {
                 throw new Error('This function is meant for NodeJS')
             }
 
             server = tieUp('HTTP server', server)
 
-            const sockets = new Set()
-            const serverErrorListener = tieUp(
-                'handling server closing',
-                function () {
-                    server.close()
-                    sockets.forEach(socket => { socket.destroy() })
-                }
-            )
+            sockets = sockets instanceof Set
+                ? sockets
+                : new Set()
 
-            if (isNodeJS) {
-                server.on('connection', socket => {
-                    sockets.add(socket)
-                    socket.on('close', () => { sockets.delete(socket) })
-                })
+            server.on('connection', socket => {
+                sockets.add(socket)
+                socket.on('close', () => { sockets.delete(socket) })
+            })
 
-                let i = nodeEventNames.length
+            let i = nodeEventNames.length
 
-                while (i--) {
-                    const eventName = nodeEventNames[i]
-
-                    process.prependListener(eventName, serverErrorListener)
-                }
+            while (i--) {
+                process.prependListener(nodeEventNames[i], tieUp(
+                    'handling server closing',
+                    () => {
+                        server.close()
+                        sockets.forEach(socket => { socket.destroy() })
+                    }
+                ))
             }
 
             return server
         },
-        { useCache: ([server]) => [server], onCatch: ({ args: [server] }) => server }
+        { useCache: ([server]) => [server], onError: ([server]) => server }
     )
 
     const getRoutingCreator = tieUp(
         'creating function for routing',
-        function (app, onCatch) {
+        function (app, onError) {
             if (!isNodeJS) {
                 throw new Error('This function is meant for NodeJS')
             }
@@ -552,16 +530,16 @@ module.exports = (props) => {
             if (
                 app === null ||
                 !['object', 'function'].includes(typeof app) ||
-                !['undefined', 'function'].includes(typeof onCatch)
+                !['undefined', 'function'].includes(typeof onError)
             ) {
                 throw new Error(
                     'Invalid parameters, expected: ' +
-                    'app(function/object), onCatch(undefined/function)'
+                    'app(function/object), onError(undefined/function)'
                 )
             }
 
-            if (onCatch === undefined) {
-                onCatch = function ({ error, args: [_req, res] }) {
+            if (onError === undefined) {
+                onError = function ([_req, res], error) {
                     if (!res.headersSent) {
                         res.status(500).json({
                             error: {
@@ -591,12 +569,12 @@ module.exports = (props) => {
                     app[method](path, tieUp(
                         `${method.toUpperCase()} ${path}`,
                         callback,
-                        { onCatch }
+                        { onError }
                     ))
                 }
             )
         },
-        { onCatch: () => () => {}, useCache: args => args }
+        { onError: () => () => {}, useCache: ([app]) => [app] }
     )
 
     const errorListener = tieUp(
@@ -656,10 +634,11 @@ module.exports = (props) => {
 
     return {
         isDevelopment,
-        devLogger,
+        errorLogger,
         notify,
         FriendlyError,
         tieUp,
+        clearCache,
         getHandledServer,
         getRoutingCreator
     }

@@ -41,7 +41,7 @@ const printNum = tieUp(
         blabla
         return num
     },
-    { onCatch: ({ args: [num] }) => {
+    { onError: ([num]) => {
         console.log(`Ran inside catch - the argument was ${num}`)
         return 0
     } }
@@ -55,7 +55,7 @@ const fib = tieUp(
 
         return n <= 1 ? n : fib(n-1) + fib(n-2)
     },
-    { useCache: ([n]) => [n], onCatch: () => 0 }
+    { useCache: ([n]) => [n], onError: () => 0 }
 )
 
 const measureFib = tieUp(
@@ -69,7 +69,7 @@ const measureFib = tieUp(
             console.log(`execution time ${Date.now() - startTime}ms`)
         }
     },
-    { onCatch: () => 'Incorrect fibonacchi calculation' }
+    { onError: () => 'Incorrect fibonacchi calculation' }
 )
 
 const delayReturn = tieUp(
@@ -82,7 +82,7 @@ const delayReturn = tieUp(
         else
             throw new FriendlyError('Could not delay properly')
     },
-    { onCatch: () => 'Default result' }
+    { onError: () => 'Default result' }
 )
 
 console.log('printNum(9)', printNum(9))
@@ -153,15 +153,10 @@ server.listen(port, () => {
       and logging in production.
   * `isDevelopment`: Boolean that indicates if the environment is not in prod
   * `isUncaught`: Boolean that indicates whether the error was caught in catch or not
-  * `isFriendly`: Boolean that indicates whether `userMsg` is for regular users or developers
+  * `isFriendly`: Boolean that indicates whether `userMsg` is for regular users
   * `userMsg`: String that describes what the functionality was supposed to be doing
   * `productionInfo`: Object that consists of useful info for production logging
   * `error`: Error object that was thrown
-
-* `cacheLimit`
-  * type: `number`
-  * default: `1,000,000`
-  * definition: Max amount of entries in the cache
 
 ### API for returned values from the imported function:
 * `isDevelopment`
@@ -183,35 +178,42 @@ server.listen(port, () => {
       the message is user friendly
 
 * `tieUp`
-  * type: `(descr, data, { onCatch, useCache })` -> `error handled data`
+  * type: `(descr, data, { onError, useCache })` -> `error handled data`
   * definition: Function that error handles any type of data that you give it.
   * `descr`: String that describes the data. Can be ommited. It is used to name functions
       and for better description in errors.
   * `data`: Any data which we error handle deeply. Arrays, functions and their
       arguments, objects and their methods, etc. Returns the error handled version.
-  * `onCatch`: Function that executes after the internal catch logic. Accepts
-      arguments `({ descr, err, args })`, where `descr` is same as above, `err`
-      is the thrown Error, `args` are the function arguments. Additionaly, methods with
-      names `someMethodOnCatch` are considered the same as this function, but
-      for `someMethod`
-  * `useCache`: Function that if given enables caching. It has the following format -
-      `([a, b]) => [b]`. To clarify - the array of arguments is given to the function
-      and the array it returns is used for creating a cache key every time. If every
-      value in the returned array is the same, then there was a cache hit. Additionaly,
-      methods with names `someMethodUseCache` are considered the same as this function,
-      but for `someMethod`
+  * `onError`: Function that executes after the internal catch logic. Can be used to
+      return a default value on error. Accepts arguments `(args, error)`, where `args`
+      are the function arguments and `err` is the thrown Error. Additionaly, a method
+      with name `someMethodOnError` is considered the same as this function, but
+      for `someMethod`.
+  * `useCache`: Function that if given enables extremely fast, memory efficient caching.
+      Example: `(args) => [args[1]]`. Where `args` are the function arguments.
+      The function must return array which will used for creating a cache key. `this`
+      is automatically used every time for the creating of the cache key.
+      Additionaly, a method with the name `someMethodUseCache` is considered
+      the same as this function, but for `someMethod`.
+
+* `clearCache`
+  * type: `tiedFunc` -> ?
+  * definition: Function that clears the cache of the provided tied function.
+  * `tiedFunc`: Function that was created with `tieUp` and has caching enabled
+      via `useCache`.
 
 * `getHandledServer`
-  * type: `server` -> `handledServer`
-  * definition: Return a server that is error handled and closed gracefully on uncaught errors
+  * type: `(server, sockets)` -> `handledServer`
+  * definition: Returns a server that is error handled and closed on uncaught errors
   * `server`: Object that is the back-end server (ex: http.createServer(expressApp))
+  * `sockets`: Optional `Set` of sockets, if not provided an empty `Set` is used insted.
 
 * `getRoutingCreator`
-  * type: `(app, onCatch)` -> `createRoute`
+  * type: `(app, onError)` -> `createRoute`
   * definition: Creates a function that can be used with different server frameworks.
       Returns a function that takes `(method, path, onTry)` and creates a route.
       An example: `getRoutingCreator(app)('get', '/api', (req, res) => {})` is equal
-      to `app.get('/api', (req, res) => {})`, but applies the same `onCatch` to all routes
+      to `app.get('/api', (req, res) => {})`, but applies the same `onError` to all routes
   * `app`: Function/object that is generated from the server framework (ex: Express)
-  * `onCatch`: Function to be executed on error for any route. Default `onCatch` is
+  * `onError`: Function to be executed on error for any route. Default `onError` is
       provided if you haven't specified it yourself.

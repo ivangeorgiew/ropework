@@ -1,35 +1,48 @@
-// const tiedPants = require('./source')
-// const { tieUp, FriendlyError } = tiedPants({ isDevelopment: true })
-
 // const commonFib = (n, cache = {}) => {
-//     if (n in cache) {
+//     try {
+//         if (n in cache) {
+//             return cache[n]
+//         }
+
+//         cache[n] = n <= 1 ? n : commonFib(n - 1, cache) + commonFib(n - 2, cache)
+
 //         return cache[n]
+//     } catch (error) {
+//         console.error(error)
+
+//         return NaN
 //     }
-
-//     cache[n] = n <= 1 ? n : commonFib(n - 1, cache) + commonFib(n - 2, cache)
-
-//     return cache[n]
 // }
-
 // const startTime = Date.now()
 // console.log(commonFib(7000))
 // console.log(`executed in ${Date.now() - startTime} ms`)
+// const used = process.memoryUsage()
+// for (const key in used) {
+//     console.log(`${key}: ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`)
+// }
+
+// const tiedPants = require('./source')
+// const { tieUp, clearCache, FriendlyError } = tiedPants({ isDevelopment: true })
 
 // const fib = tieUp(
 //     'calculating fibonacci number',
 //     function (n, a, b, c, d, e) {
 //         if (n < 0 || Math.trunc(n) !== n) {
 //             throw new FriendlyError('The passed input wasnt possitive number')
+//         } else if (n > 1) {
+//             const pre = fib.call(this, n - 2, a, b, c, d, e)
+//             const prepre = fib.call(this, n - 1, a, b, c, d, e)
+
+//             return pre + prepre
 //         }
 
-//         return n <= 1
-//             ? n
-//             : fib.call(this, n - 1, a, b, c, d, e) + fib.call(this, n - 2, a, b, c, d, e)
+//         return n
 //     },
-//     { useCache: ([n]) => [n], onCatch: () => 0 }
+//     { useCache: ([n]) => [n], onError: () => NaN }
 // )
 
 // const measureFib = tieUp(
+//     'measuring the time it takes to calculate fibonacci number',
 //     function (n, a, b, c, d, e) {
 //         const startTime = Date.now()
 
@@ -39,7 +52,7 @@
 //             console.log(`execution time ${Date.now() - startTime}ms`)
 //         }
 //     },
-//     { onCatch: () => 'Incorrect fibonacchi calculation' }
+//     { onError: () => 'Incorrect fibonacchi calculation' }
 // )
 
 // const a = () => { throw new Error('sup') }
@@ -62,7 +75,7 @@
 //             // return 'sup'
 //         }
 
-//         someMethodOnCatch () {
+//         someMethodOnError () {
 //             return 5
 //         }
 //     }
@@ -81,28 +94,28 @@
 //             // return 'bla'
 //         }
 
-//         otherMethodOnCatch () {
+//         otherMethodOnError () {
 //             return 10
 //         }
 //     }
 // )
 
-// console.log(process.memoryUsage())
-// console.log(measureFib.call(c, 2000, a, b, c, d, B))
-// console.log(process.memoryUsage())
+// console.log(measureFib.call(c, 4300, a, b, c, d, B))
 // console.log(measureFib.call(c, 4000, a, b, c, d, B))
-// console.log(process.memoryUsage())
-// console.log(measureFib.call(c, 6000, a, b, c, d, B))
-// console.log(process.memoryUsage())
-// console.log(measureFib(2000))
-// console.log(measureFib(4000))
-// console.log(measureFib(6000))
-// console.log(measureFib(8000))
-// console.log(measureFib(10000))
-// console.log(fib.name)
+// console.log(measureFib.call(c, 4000, a, b, c, d, B))
 
-// for (let i = 1; i <= 5; i++) {
-//     console.log(measureFib(i*1000, 5, 5, 5, 5))
+// for (let i = 1; i <= 100; i++) {
+//     console.log(measureFib.call(c, i * 4000, a, b, c, d, B))
+// }
+// let used = process.memoryUsage()
+// for (const key in used) {
+//     console.log(`${key}: ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`)
+// }
+// clearCache(fib)
+// global.gc()
+// used = process.memoryUsage()
+// for (const key in used) {
+//     console.log(`${key}: ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`)
 // }
 
 // const e = new B({ a: 123 })
@@ -142,7 +155,7 @@
 // const asyncF = tieUp(
 //     'Asynchronous function test',
 //     async function (i) {
-//         throw new Error('intended')
+//         // throw new Error('intended')
 //         await new Promise((resolve) => setTimeout(resolve, 1000))
 //         return i
 //     },
@@ -165,7 +178,7 @@
 
 //         resolve(v)
 //     }),
-//     { useCache: args => args, onCatch: () => new Promise() }
+//     { useCache: args => args, onError: () => new Promise() }
 // )
 
 // let startTime = Date.now()
