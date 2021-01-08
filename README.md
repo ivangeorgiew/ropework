@@ -3,10 +3,10 @@ Error handling utilities for better user and developer experience.
 
 In programming most errors could have been caught by developers, but they were
 lazy or negligent. This is me trying (pun intended) to semi-automate the process
-of catching errors so your app DOESN'T crash when it doesn't need to
-and that it DOES when it should. All done with useful and friendly logging.
+of catching errors so your app only crashes when it really should. All done with
+useful and friendly logging. Oh, also extremely powerful caching is included.
 
-Be a good developer, tie your pants...
+Be a good developer, tie your pants!
 
 ## Usage
 To start using this package you need to first install locally:

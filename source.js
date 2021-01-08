@@ -22,7 +22,7 @@ module.exports = (props) => {
         ? console.error
         : () => {}
 
-    const defaultDescr = 'part of the app'
+    const defaultDescr = 'part of the application'
 
     const browserEventNames = ['error', 'unhandledrejection']
 
@@ -619,7 +619,11 @@ module.exports = (props) => {
             window.addEventListener(browserEventNames[i], errorListener, true)
         }
 
-        Object.defineProperty(window, 'tp_areUnhandledCaught', { value: true })
+        Object.defineProperty(
+            window,
+            'tp_areUnhandledCaught',
+            { value: true, configurable: true }
+        )
     }
 
     if (isNodeJS && !global.tp_areUnhandledCaught) {
@@ -629,7 +633,11 @@ module.exports = (props) => {
             process.on(nodeEventNames[i], errorListener)
         }
 
-        Object.defineProperty(global, 'tp_areUnhandledCaught', { value: true })
+        Object.defineProperty(
+            global,
+            'tp_areUnhandledCaught',
+            { value: true, configurable: true }
+        )
     }
 
     return {
