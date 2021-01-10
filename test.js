@@ -22,8 +22,10 @@
 // }
 
 // const tiedPants = require('./source')
-// const { tieUp, clearCache, FriendlyError } = tiedPants({ isDevelopment: true })
+// const utilities = tiedPants({ isDevelopment: true })
+// const { tieUp } = utilities
 
+// const { FriendlyError } = utilities
 // const fib = tieUp(
 //     'calculating fibonacci number',
 //     function (n, a, b, c, d, e) {
@@ -193,3 +195,31 @@
 //         console.log(result)
 //     })
 // })
+
+// const { tieUpPartial } = utilities
+// const addNumbers = tieUpPartial(
+//     'adding two numbers',
+//     (a) => {
+//         console.log('ran outer')
+
+//         if (typeof a !== 'number') {
+//             throw new Error('Outer error - please pass number')
+//         }
+
+//         // return []
+//         return (b) => {
+//             if (typeof b !== 'number') {
+//                 throw new Error('Inner error - please pass number')
+//             }
+
+//             return a + b
+//         }
+//     },
+//     { useOuterCache: args => args }
+// )
+
+// const addTenTo = addNumbers(10)
+// const copyOfAddTenTo = addNumbers(10)
+// console.log(addTenTo(5))
+// const addTenTo = addNumbers('sup')
+// console.log(addTenTo('sup'))

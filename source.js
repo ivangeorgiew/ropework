@@ -1,7 +1,7 @@
 module.exports = (props) => {
     'use strict'
 
-    // - Constants -------------------------------------------------------------
+    // - Variables -----------------------------------------------------------------------
     const checkIfObject = val =>
         typeof val === 'object' && !Array.isArray(val) && val !== null
 
@@ -22,7 +22,7 @@ module.exports = (props) => {
         ? console.error
         : () => {}
 
-    const defaultDescr = 'part of the application'
+    const defaultDescr = '[part of the app]'
 
     const browserEventNames = ['error', 'unhandledrejection']
 
@@ -48,7 +48,9 @@ module.exports = (props) => {
 
     const caches = new WeakMap()
 
-    // - Parameters ------------------------------------------------------------
+    const lastError = Object.seal({ descr: '', argsInfo: '', errorMsg: '', time: 0 })
+
+    // - Parameters ----------------------------------------------------------------------
     props = Object.assign({}, props)
 
     const isDevelopment = typeof props.isDevelopment === 'boolean'
@@ -96,15 +98,25 @@ module.exports = (props) => {
 
             const descr = typeof props.descr === 'string'
                 ? props.descr
-                : isUncaught ? 'unhandled error' : defaultDescr
+                : isUncaught ? '[unhandled error]' : defaultDescr
 
             const error = props.error instanceof Error
                 ? props.error
                 : isUncaught ? new Error('Uncaught error') : new Error('Unknown error')
 
-            const args = Array.isArray(props.args)
-                ? props.args.map(el => Array.isArray(el) ? 'array' : typeof el)
-                : []
+            const argsInfo = Array.isArray(props.args)
+                ? props.args.reduce((acc, el, idx) => {
+                    let parsedEl
+
+                    if (el !== null && ['object', 'function'].includes(typeof el)) {
+                        parsedEl = Array.isArray(el) ? '[array]' : `[${typeof el}]`
+                    } else {
+                        parsedEl = el
+                    }
+
+                    return idx === 0 ? acc + parsedEl : `${acc} , ${parsedEl}`
+                }, '')
+                : ''
 
             const isFriendly = error instanceof FriendlyError
 
@@ -112,7 +124,7 @@ module.exports = (props) => {
 
             const productionInfo = {
                 description: descr,
-                arguments: args,
+                arguments: argsInfo,
                 date: (new Date()).toUTCString(),
                 error
             }
@@ -139,20 +151,36 @@ module.exports = (props) => {
                 })
             }
 
-            errorLogger(
-                '\n',
-                'Issue with:', descr, '\n',
-                'Function arguments:', args, '\n',
-                error, '\n'
-            )
+            // prevent immedeately repeating errors
+            const curTime = Date.now()
 
-            notify({
-                isDevelopment,
-                isUncaught,
-                isFriendly,
-                userMsg,
-                productionInfo,
-                error
+            if (
+                lastError.descr !== descr ||
+                lastError.argsInfo !== argsInfo ||
+                lastError.errorMsg !== error.message ||
+                (curTime - lastError.time) > 500
+            ) {
+                errorLogger(
+                    `\n Issue with: ${descr}\n`,
+                    `Function arguments: ${argsInfo}\n`,
+                    error, '\n'
+                )
+
+                notify({
+                    isDevelopment,
+                    isUncaught,
+                    isFriendly,
+                    userMsg,
+                    productionInfo,
+                    error
+                })
+            }
+
+            Object.assign(lastError, {
+                descr,
+                argsInfo,
+                errorMsg: error.message,
+                time: curTime
             })
         } catch (error) {
             errorLogger(' Issue with: error logger\n', error, '\n')
@@ -163,18 +191,21 @@ module.exports = (props) => {
         try {
             props = Object.assign({}, props)
 
-            const { descr, useCache } = props
+            const descr = typeof props.descr === 'string'
+                ? props.descr
+                : defaultDescr
 
             const data = typeof props.data === 'function'
                 ? props.data
                 : () => {}
 
             const onError = typeof props.onError === 'function'
-                ? createFunc({
-                    descr: `catching errors for ${descr}`,
-                    data: props.onError
-                })
+                ? props.onError
                 : () => {}
+
+            const useCache = typeof props.useCache === 'function'
+                ? props.useCache
+                : undefined
 
             let unfinishedCalls = 0
 
@@ -185,7 +216,15 @@ module.exports = (props) => {
 
                 logError({ descr, error, args })
 
-                return onError(args, error)
+                try {
+                    return onError(args, error)
+                } catch (error) {
+                    logError({
+                        descr: `catching errors for ${descr}`,
+                        args,
+                        error
+                    })
+                }
             }
 
             return function innerFunc (...args) {
@@ -196,7 +235,15 @@ module.exports = (props) => {
 
                     // retrieve result from cache
                     if (typeof useCache === 'function') {
-                        cacheArgs = useCache(args)
+                        try {
+                            cacheArgs = useCache(args)
+                        } catch (error) {
+                            logError({
+                                descr: `creating a cache key for ${descr}`,
+                                args,
+                                error
+                            })
+                        }
 
                         if (Array.isArray(cacheArgs)) {
                             if (!caches.has(innerFunc)) {
@@ -459,21 +506,82 @@ module.exports = (props) => {
                 descr = defaultDescr
                 data = arguments[0]
                 options = arguments[1]
+            } else {
+                descr = `[${descr}]`
             }
 
             if (!['object', 'function'].includes(typeof data) || data === null) {
                 return data
             }
 
+            options = Object.assign({}, options)
+
             return createData({
-                descr: `[${descr}]`,
+                descr,
                 data,
-                onError: Object.assign({}, options).onError,
-                useCache: Object.assign({}, options).useCache,
+                onError: options.onError,
+                useCache: options.useCache,
                 refs: new WeakMap()
             })
         },
         onError: ([descr, data]) => typeof descr !== 'string' ? descr : data
+    })
+
+    const tieUpPartial = createFunc({
+        descr: 'tying up partial function with error handling',
+        data: function (descr, data, options) {
+            if (typeof descr !== 'string') {
+                descr = defaultDescr
+                data = arguments[0]
+                options = arguments[1]
+            } else {
+                descr = `[${descr}]`
+            }
+
+            if (typeof data !== 'function') {
+                throw new Error(
+                    'Expected partial function, instead got ' +
+                    typeof data
+                )
+            }
+
+            if (alreadyHandled.has(data)) {
+                return data
+            }
+
+            options = Object.assign({}, options)
+
+            const useOuterCache = options.useOuterCache
+
+            const onOuterError = typeof options.onOuterError === 'function'
+                ? options.onOuterError
+                : () => () => {}
+
+            const handledPartialFunc = tieUp(
+                `partial call of ${descr}`,
+                function (...args) {
+                    const appliedData = data.apply(this, args)
+
+                    if (typeof appliedData !== 'function') {
+                        throw new Error(
+                            'Expected function to be returned, ' +
+                            'instead received ' + typeof appliedData
+                        )
+                    }
+
+                    return tieUp(descr, appliedData, {
+                        useCache: options.useCache,
+                        onError: options.onError
+                    })
+                },
+                { useCache: useOuterCache, onError: onOuterError }
+            )
+
+            alreadyHandled.add(handledPartialFunc)
+
+            return handledPartialFunc
+        },
+        onError: () => () => () => {}
     })
 
     const clearCache = tieUp(
@@ -646,6 +754,7 @@ module.exports = (props) => {
         notify,
         FriendlyError,
         tieUp,
+        tieUpPartial,
         clearCache,
         getHandledServer,
         getRoutingCreator

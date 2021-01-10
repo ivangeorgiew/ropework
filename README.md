@@ -183,7 +183,7 @@ server.listen(port, () => {
   * `descr`: String that describes the data. Can be ommited. It is used to name functions
       and for better description in errors.
   * `data`: Any data which we error handle deeply. Arrays, functions and their
-      arguments, objects and their methods, etc. Returns the error handled version.
+      arguments, objects and their methods, etc.
   * `onError`: Function that executes after the internal catch logic. Can be used to
       return a default value on error. Accepts arguments `(args, error)`, where `args`
       are the function arguments and `err` is the thrown Error. Additionaly, a method
@@ -195,6 +195,17 @@ server.listen(port, () => {
       is automatically used every time for the creating of the cache key.
       Additionaly, a method with the name `someMethodUseCache` is considered
       the same as this function, but for `someMethod`.
+
+* `tieUpPartial`
+  * type: `(descr, data, { onOuterError, onError, useOuterCache, useCache })` ->
+      `error handled function`
+  * definition: Function that error handles a function that returns another function.
+  * `descr`: String used for `descr` of the inner function.
+  * `data`: Function that returns another function. Example: `() => () => {}`.
+  * `onOuterError`: Same as above for the outer function. Defaults to `() => () => {}`.
+  * `onError`: Same as above for the inner function.
+  * `useOuterCache`: Same as above for the outer function.
+  * `usecache`: Same as above for the inner function.
 
 * `clearCache`
   * type: `tiedFunc` -> ?
