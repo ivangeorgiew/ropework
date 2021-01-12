@@ -1,15 +1,15 @@
-module.exports = (props) => {
+module.exports = function (props) {
     'use strict'
 
     // - Variables -----------------------------------------------------------------------
     const checkIfObject = val =>
         typeof val === 'object' && !Array.isArray(val) && val !== null
 
-    const isBrowser = typeof window !== 'undefined' &&
-        ({}).toString.call(window) === '[object Window]'
-
-    const isNodeJS = typeof global !== 'undefined' &&
-        ({}).toString.call(global) === '[object global]'
+    const isBrowser = typeof window !== 'object'
+    const isWorker = typeof importScripts === 'function'
+    const isNodeJS = typeof process === 'object' &&
+        typeof process.versions === 'object' &&
+        typeof process.versions.node === 'string'
 
     const FriendlyError = class extends Error {
         constructor (...args) {
@@ -27,7 +27,7 @@ module.exports = (props) => {
     const browserEventNames = ['error', 'unhandledrejection']
 
     const nodeEventNames =
-        ['uncaughtException', 'unhandledRejection', 'SIGTERM', 'SIGINT']
+        ['uncaughtException', 'unhandledRejection', 'SIGTERM', 'SIGINT', 'SIGHUP']
 
     const GeneratorFunction = function * () {}.constructor
     const AsyncFunction = async function () {}.constructor
@@ -105,7 +105,7 @@ module.exports = (props) => {
                 : isUncaught ? new Error('Uncaught error') : new Error('Unknown error')
 
             const argsInfo = Array.isArray(props.args)
-                ? props.args.reduce((acc, el, idx) => {
+                ? props.args.reduce(function (acc, el, idx) {
                     let parsedEl
 
                     if (el !== null && ['object', 'function'].includes(typeof el)) {
@@ -129,25 +129,20 @@ module.exports = (props) => {
                 error
             }
 
-            if (isBrowser) {
+            if (isBrowser || isWorker) {
                 Object.assign(productionInfo, {
-                    localUrl: window.location.href,
-                    machineInfo: {
-                        browserInfo: window.navigator.userAgent,
-                        language: window.navigator.language,
-                        osType: window.navigator.platform
-                    }
+                    localUrl: self.location.href,
+                    browserInfo: self.navigator.userAgent,
+                    osType: self.navigator.platform
                 })
             }
 
             if (isNodeJS) {
                 Object.assign(productionInfo, {
                     localUrl: process.cwd(),
-                    machineInfo: {
-                        cpuArch: process.arch,
-                        osType: process.platform,
-                        depVersions: process.versions
-                    }
+                    cpuArch: process.arch,
+                    osType: process.platform,
+                    depVersions: process.versions
                 })
             }
 
@@ -527,26 +522,26 @@ module.exports = (props) => {
         onError: ([descr, data]) => typeof descr !== 'string' ? descr : data
     })
 
-    const tieUpPartial = createFunc({
-        descr: 'tying up partial function with error handling',
-        data: function (descr, data, options) {
+    const tieUpPartial = tieUp(
+        'tying up partial function with error handling',
+        function (descr, func, options) {
             if (typeof descr !== 'string') {
                 descr = defaultDescr
-                data = arguments[0]
+                func = arguments[0]
                 options = arguments[1]
             } else {
                 descr = `[${descr}]`
             }
 
-            if (typeof data !== 'function') {
+            if (typeof func !== 'function') {
                 throw new Error(
                     'Expected partial function, instead got ' +
-                    typeof data
+                    typeof func
                 )
             }
 
-            if (alreadyHandled.has(data)) {
-                return data
+            if (alreadyHandled.has(func)) {
+                return func
             }
 
             options = Object.assign({}, options)
@@ -560,7 +555,7 @@ module.exports = (props) => {
             const handledPartialFunc = tieUp(
                 `partial call of ${descr}`,
                 function (...args) {
-                    const appliedData = data.apply(this, args)
+                    const appliedData = func.apply(this, args)
 
                     if (typeof appliedData !== 'function') {
                         throw new Error(
@@ -581,8 +576,8 @@ module.exports = (props) => {
 
             return handledPartialFunc
         },
-        onError: () => () => () => {}
-    })
+        { onError: () => () => () => {} }
+    )
 
     const clearCache = tieUp(
         'clearing the cache for a tied up function',
@@ -606,17 +601,20 @@ module.exports = (props) => {
                 ? sockets
                 : new Set()
 
-            server.on('connection', socket => {
-                sockets.add(socket)
-                socket.on('close', () => { sockets.delete(socket) })
-            })
+            server.on('connection', tieUp(
+                'adding sockets to server',
+                function (socket) {
+                    sockets.add(socket)
+                    socket.on('close', () => { sockets.delete(socket) })
+                }
+            ))
 
             let i = nodeEventNames.length
 
             while (i--) {
                 process.prependListener(nodeEventNames[i], tieUp(
                     'handling server closing',
-                    () => {
+                    function () {
                         server.close()
                         sockets.forEach(socket => { socket.destroy() })
                     }
@@ -688,22 +686,26 @@ module.exports = (props) => {
     const errorListener = tieUp(
         'listening for unexpected errors',
         function (eventOrError) {
-            if (isBrowser) {
+            if (isBrowser || isWorker) {
+                let error
+
                 if (eventOrError instanceof Event) {
                     eventOrError.stopImmediatePropagation()
                     eventOrError.preventDefault()
 
-                    const error = eventOrError.reason instanceof Error
+                    error = eventOrError.reason instanceof Error
                         ? eventOrError.reason
                         : eventOrError.error instanceof Error
                             ? eventOrError.error
                             : undefined
-
-                    logError({ isUncaught: true, error })
                 }
 
+                logError({ isUncaught: true, error })
+
                 // prevent user from interacting with the page
-                window.document.body.style['pointer-events'] = 'none'
+                if (isBrowser) {
+                    window.document.body.style['pointer-events'] = 'none'
+                }
             }
 
             if (isNodeJS) {
@@ -715,20 +717,20 @@ module.exports = (props) => {
                     logError({ isUncaught: true, error: eventOrError })
                 }
 
-                setTimeout(() => { process.exit(exitCode) }, 1000).unref()
+                global.setTimeout(() => { process.exit(exitCode) }, 500).unref()
             }
         }
     )
 
-    if (isBrowser && !window.tp_areUnhandledCaught) {
+    if ((isBrowser || isWorker) && !self.tp_areUnhandledCaught) {
         let i = browserEventNames.length
 
         while (i--) {
-            window.addEventListener(browserEventNames[i], errorListener, true)
+            self.addEventListener(browserEventNames[i], errorListener, true)
         }
 
         Object.defineProperty(
-            window,
+            self,
             'tp_areUnhandledCaught',
             { value: true, configurable: true }
         )
