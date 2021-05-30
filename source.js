@@ -5,7 +5,7 @@ module.exports = function (props) {
     const checkIfObject = val =>
         typeof val === 'object' && !Array.isArray(val) && val !== null
 
-    const isBrowser = typeof window !== 'object'
+    const isBrowser = typeof window === 'object'
     const isWorker = typeof importScripts === 'function'
     const isNodeJS = typeof process === 'object' &&
         typeof process.versions === 'object' &&
@@ -58,6 +58,10 @@ module.exports = function (props) {
         : checkIfObject(process) && checkIfObject(process.env)
             ? process.env.NODE_ENV !== 'production'
             : false
+
+    const shouldFreezePage = typeof props.shouldFreezePage === 'boolean'
+        ? props.shouldFreezePage
+        : false
 
     const errorLoggerUnhandled = typeof props.errorLogger === 'function'
         ? props.errorLogger
@@ -529,8 +533,6 @@ module.exports = function (props) {
                 descr = defaultDescr
                 func = arguments[0]
                 options = arguments[1]
-            } else {
-                descr = `[${descr}]`
             }
 
             if (typeof func !== 'function') {
@@ -553,7 +555,7 @@ module.exports = function (props) {
                 : () => () => {}
 
             const handledPartialFunc = tieUp(
-                `partial call of ${descr}`,
+                `partial call of [${descr}]`,
                 function (...args) {
                     const appliedData = func.apply(this, args)
 
@@ -684,7 +686,7 @@ module.exports = function (props) {
     )
 
     const errorListener = tieUp(
-        'listening for unexpected errors',
+        'listening for uncaught errors',
         function (eventOrError) {
             if (isBrowser || isWorker) {
                 let error
@@ -703,7 +705,7 @@ module.exports = function (props) {
                 logError({ isUncaught: true, error })
 
                 // prevent user from interacting with the page
-                if (isBrowser) {
+                if (isBrowser && shouldFreezePage) {
                     window.document.body.style['pointer-events'] = 'none'
                 }
             }

@@ -23,7 +23,7 @@
 
 // const tiedPants = require('./source')
 // const utilities = tiedPants({ isDevelopment: true })
-// const { tieUp } = utilities
+// const { tieUp, clearCache } = utilities
 
 // const { FriendlyError } = utilities
 // const fib = tieUp(
@@ -218,8 +218,11 @@
 //     { useOuterCache: args => args }
 // )
 
+// const addTenTo = addNumbers('sup')
+// console.log(addTenTo('sup'))
+
 // const addTenTo = addNumbers(10)
 // const copyOfAddTenTo = addNumbers(10)
 // console.log(addTenTo(5))
-// const addTenTo = addNumbers('sup')
-// console.log(addTenTo('sup'))
+// console.log(copyOfAddTenTo(5))
+// console.log(copyOfAddTenTo('bla'))

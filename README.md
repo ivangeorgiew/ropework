@@ -140,8 +140,13 @@ server.listen(port, () => {
   * default: `process.env.NODE_ENV !== 'production'`
   * definition: Boolean that indicates if the environment is not in prod
 
-* `devLogger`
-  * type: `devMsg` -> ?
+* `shouldFreezePage`
+  * type: `boolean`
+  * default: `false`
+  * definition: Should the webpage be frozen on unhandled error
+
+* `errorLogger`
+  * type: `errMsg` -> ?
   * default: `console.error`
   * definition: Function for logging developer errors
   * `devMsg`: ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
@@ -163,8 +168,8 @@ server.listen(port, () => {
   * type: `boolean`
   * definition: Boolean parameter that was parsed from `tiedPants`
 
-* `devLogger`
-  * type: `devMsg` -> ?
+* `errorLogger`
+  * type: `errMsg` -> ?
   * definition: Function parameter that was parsed from `tiedPants`
 
 * `notify`
@@ -191,7 +196,7 @@ server.listen(port, () => {
       for `someMethod`.
   * `useCache`: Function that if given enables extremely fast, memory efficient caching.
       Example: `(args) => [args[1]]`. Where `args` are the function arguments.
-      The function must return array which will used for creating a cache key. `this`
+      The function must return an array which be will used for creating a cache key. `this`
       is automatically used every time for the creating of the cache key.
       Additionaly, a method with the name `someMethodUseCache` is considered
       the same as this function, but for `someMethod`.
