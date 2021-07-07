@@ -41,7 +41,7 @@ const printNum = tieUp(
         blabla
         return num
     },
-    { onError: ([num]) => {
+    { onError: ({ args: [num] }) => {
         console.log(`Ran inside catch - the argument was ${num}`)
         return 0
     } }
@@ -190,10 +190,9 @@ server.listen(port, () => {
   * `data`: Any data which we error handle deeply. Arrays, functions and their
       arguments, objects and their methods, etc.
   * `onError`: Function that executes after the internal catch logic. Can be used to
-      return a default value on error. Accepts arguments `(args, error)`, where `args`
-      are the function arguments and `err` is the thrown Error. Additionaly, a method
-      with name `someMethodOnError` is considered the same as this function, but
-      for `someMethod`.
+      return a default value on error. Accepts arguments `({ descr, args, error })`.
+      Additionaly, a method with name `someMethodOnError` is considered the same as this
+      function, but for `someMethod`.
   * `useCache`: Function that if given enables extremely fast, memory efficient caching.
       Example: `(args) => [args[1]]`. Where `args` are the function arguments.
       The function must return an array which be will used for creating a cache key. `this`

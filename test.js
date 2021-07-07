@@ -22,10 +22,9 @@
 // }
 
 // const tiedPants = require('./source')
-// const utilities = tiedPants({ isDevelopment: true })
-// const { tieUp, clearCache } = utilities
+// const { tieUp, tieUpPartial, clearCache, FriendlyError } =
+//     tiedPants({ isDevelopment: true })
 
-// const { FriendlyError } = utilities
 // const fib = tieUp(
 //     'calculating fibonacci number',
 //     function (n, a, b, c, d, e) {
@@ -87,8 +86,8 @@
 //     'class B',
 //     class extends A {
 //         constructor ({ a, b }) {
-//             super(arguments)
-//             this.b = b
+//             super({ a })
+//             this.c = b
 //         }
 
 //         otherMethod () {
@@ -109,6 +108,7 @@
 // for (let i = 1; i <= 100; i++) {
 //     console.log(measureFib.call(c, i * 4000, a, b, c, d, B))
 // }
+// // node --expose-gc
 // let used = process.memoryUsage()
 // for (const key in used) {
 //     console.log(`${key}: ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`)
@@ -120,25 +120,27 @@
 //     console.log(`${key}: ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`)
 // }
 
-// const e = new B({ a: 123 })
+// const e = new B({ a: 123, b: 5 })
 // console.log(e.someMethod())
 // console.log(e.otherMethod())
+// console.log(e)
 
 // const asyncGen = tieUp(
 //     'Asynchronous generator function test',
 //     async function * (i) {
 //         yield i
+//         // throw new Error('intended')
 //         await new Promise((resolve) => setTimeout(resolve, 1000))
-//         yield i + 10
+//         return i + 10
 //     }
 // )
 // const rag = asyncGen(10)
 
 // rag.next().then(res => {
-//     console.log(res.value)
+//     console.log(res)
 
 //     rag.next().then(res => {
-//         console.log(res.value)
+//         console.log(res)
 //     })
 // })
 
@@ -146,19 +148,20 @@
 //     'Generator function test',
 //     function * (i) {
 //         yield i
-//         yield i + 10
+//         // throw new Error('intended')
+//         return i + 10
 //     },
 //     { useCache: args => args }
 // )
 
-// console.log(gen(10).next().value)
-// console.log(gen(10).next().value)
+// console.log(gen(10).next())
+// console.log(gen(10).next())
 
 // const asyncF = tieUp(
 //     'Asynchronous function test',
 //     async function (i) {
-//         // throw new Error('intended')
 //         await new Promise((resolve) => setTimeout(resolve, 1000))
+//         // throw new Error('intended')
 //         return i
 //     },
 //     { useCache: args => args }
@@ -196,7 +199,6 @@
 //     })
 // })
 
-// const { tieUpPartial } = utilities
 // const addNumbers = tieUpPartial(
 //     'adding two numbers',
 //     (a) => {
@@ -224,5 +226,5 @@
 // const addTenTo = addNumbers(10)
 // const copyOfAddTenTo = addNumbers(10)
 // console.log(addTenTo(5))
-// console.log(copyOfAddTenTo(5))
+// console.log(copyOfAddTenTo(6))
 // console.log(copyOfAddTenTo('bla'))

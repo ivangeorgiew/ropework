@@ -22,26 +22,16 @@ module.exports = function (props) {
         ? console.error
         : () => {}
 
-    const defaultDescr = '[part of the app]'
-
     const browserEventNames = ['error', 'unhandledrejection']
 
     const nodeEventNames =
         ['uncaughtException', 'unhandledRejection', 'SIGTERM', 'SIGINT', 'SIGHUP']
 
-    const GeneratorFunction = function * () {}.constructor
-    const AsyncFunction = async function () {}.constructor
-    const AsyncGeneratorFunction = async function * () {}.constructor
-
     const builtinPrototypes = [
+        null,
         Object.prototype,
         Array.prototype,
-        Function.prototype,
-        AsyncFunction.prototype,
-        GeneratorFunction.prototype,
-        AsyncGeneratorFunction.prototype,
-        GeneratorFunction.prototype.prototype,
-        AsyncGeneratorFunction.prototype.prototype
+        Function.prototype
     ]
 
     const alreadyHandled = new WeakSet()
@@ -74,7 +64,7 @@ module.exports = function (props) {
             }
         } catch (error) {
             if (isDevelopment) {
-                defaultLogger(' Issue with: parameter errorLogger\n', error)
+                defaultLogger('\n Issue with: parameter errorLogger\n', error, '\n')
             }
         }
     }
@@ -87,7 +77,7 @@ module.exports = function (props) {
         try {
             notifyUnhandled.apply(this, args)
         } catch (error) {
-            errorLogger(' Issue with: parameter notify\n', error)
+            errorLogger('\n Issue with: parameter notify\n', error, '\n')
         }
     }
 
@@ -102,7 +92,7 @@ module.exports = function (props) {
 
             const descr = typeof props.descr === 'string'
                 ? props.descr
-                : isUncaught ? '[unhandled error]' : defaultDescr
+                : isUncaught ? 'unhandled error' : 'part of the app'
 
             const error = props.error instanceof Error
                 ? props.error
@@ -114,6 +104,8 @@ module.exports = function (props) {
 
                     if (el !== null && ['object', 'function'].includes(typeof el)) {
                         parsedEl = Array.isArray(el) ? '[array]' : `[${typeof el}]`
+                    } else if (typeof el === 'string') {
+                        parsedEl = `"${el}"`
                     } else {
                         parsedEl = el
                     }
@@ -182,29 +174,13 @@ module.exports = function (props) {
                 time: curTime
             })
         } catch (error) {
-            errorLogger(' Issue with: error logger\n', error, '\n')
+            errorLogger('\n Issue with: logging errors\n', error, '\n')
         }
     }
 
-    const createFunc = function (props) {
+    const createFunc = function (descr, func, options) {
         try {
-            props = Object.assign({}, props)
-
-            const descr = typeof props.descr === 'string'
-                ? props.descr
-                : defaultDescr
-
-            const data = typeof props.data === 'function'
-                ? props.data
-                : () => {}
-
-            const onError = typeof props.onError === 'function'
-                ? props.onError
-                : () => {}
-
-            const useCache = typeof props.useCache === 'function'
-                ? props.useCache
-                : undefined
+            const { onError = () => {}, useCache } = Object.assign({}, options)
 
             let unfinishedCalls = 0
 
@@ -216,7 +192,7 @@ module.exports = function (props) {
                 logError({ descr, error, args })
 
                 try {
-                    return onError(args, error)
+                    return onError({ descr, args, error })
                 } catch (error) {
                     logError({
                         descr: `catching errors for ${descr}`,
@@ -282,28 +258,52 @@ module.exports = function (props) {
                         }
                     }
 
-                    // calculating result
+                    // regular function call
                     if (new.target === undefined) {
-                        result = data.apply(this, args)
+                        result = func.apply(this, args)
+                    // creating an object with constructor
                     } else {
-                        result = (function () {
-                            const obj = new data(...args)
-
-                            if (checkIfObject(innerFunc.prototype)) {
-                                Object.setPrototypeOf(obj, innerFunc.prototype)
-                            }
-
-                            return obj
-                        })()
+                        result = (function (Cons) {
+                            return Object.create(
+                                innerFunc.prototype,
+                                Object.getOwnPropertyDescriptors(new Cons(...args))
+                            )
+                        })(func)
                     }
 
-                    // if the function returns a promise
-                    if (
-                        checkIfObject(result) &&
-                        typeof result.then === 'function' &&
-                        typeof result.catch === 'function'
-                    ) {
-                        result = result.catch(error => innerCatch({ error, args }))
+                    // handle async, generator and async generator
+                    if (checkIfObject(result)) {
+                        // the function returns an async iterator
+                        if (typeof result[Symbol.asyncIterator] === 'function') {
+                            result = (async function * (iter) {
+                                try {
+                                    return yield * iter
+                                } catch (error) {
+                                    return innerCatch({ error, args })
+                                }
+                            })(result)
+                        // the function returns an iterator
+                        } else if (typeof result[Symbol.iterator] === 'function') {
+                            result = (function * (iter) {
+                                try {
+                                    return yield * iter
+                                } catch (error) {
+                                    return innerCatch({ error, args })
+                                }
+                            })(result)
+                        // the function returns a promise
+                        } else if (
+                            typeof result.then === 'function' &&
+                            typeof result.catch === 'function'
+                        ) {
+                            result = (async function (prom) {
+                                try {
+                                    return await prom
+                                } catch (error) {
+                                    return innerCatch({ error, args })
+                                }
+                            })(result)
+                        }
                     }
 
                     // save the result in cache
@@ -342,15 +342,19 @@ module.exports = function (props) {
                 }
             }
         } catch (error) {
-            logError({ descr: 'error handling functions', error, args: [props] })
+            logError({
+                descr: 'creating error-handled function',
+                error,
+                args: [descr, func, options]
+            })
 
             return () => {}
         }
     }
 
-    const assignHandledProps = createFunc({
-        descr: 'assigning error handled properties',
-        data: function (props) {
+    const assignHandledProps = createFunc(
+        'assigning error-handled properties',
+        function (props) {
             props = Object.assign({}, props)
 
             const { source, target, descr, refs } = props
@@ -368,17 +372,19 @@ module.exports = function (props) {
                     let value = descriptors[key].value
 
                     if (
-                        ['object', 'function'].includes(typeof value) &&
                         value !== null &&
+                        ['object', 'function'].includes(typeof value) &&
                         !String(key).match(/.+(OnError|UseCache)$/)
                     ) {
-                        value = createData({
+                        value = copyData({
                             // key can be a Symbol
                             descr: `${descr}["${String(key)}"]`,
                             data: value,
-                            onError: source[`${String(key)}OnError`],
-                            useCache: source[`${String(key)}UseCache`],
-                            refs
+                            refs,
+                            options: {
+                                onError: source[`${String(key)}OnError`],
+                                useCache: source[`${String(key)}UseCache`]
+                            }
                         })
                     }
 
@@ -396,14 +402,14 @@ module.exports = function (props) {
                 }
             }
         }
-    })
+    )
 
-    const createData = createFunc({
-        descr: 'creating error handled data',
-        data: function (props) {
+    const copyData = createFunc(
+        'copying error-handled data',
+        function (props) {
             props = Object.assign({}, props)
 
-            const { descr, data, onError, useCache, refs } = props
+            const { descr, data, refs, options } = props
 
             if (data instanceof Date) {
                 const copy = new Date()
@@ -424,8 +430,8 @@ module.exports = function (props) {
             }
 
             if (
-                !['object', 'function'].includes(typeof data) ||
                 data === null ||
+                !['object', 'function'].includes(typeof data) ||
                 alreadyHandled.has(data)
             ) {
                 return data
@@ -438,7 +444,7 @@ module.exports = function (props) {
             let handledData
 
             if (typeof data === 'function') {
-                handledData = createFunc({ descr, data, onError, useCache })
+                handledData = createFunc(descr, data, options)
             } else if (Array.isArray(data)) {
                 handledData = []
             } else {
@@ -452,10 +458,10 @@ module.exports = function (props) {
             const dataProto = Object.getPrototypeOf(data)
             let handledProto
 
-            if (dataProto === null || builtinPrototypes.includes(dataProto)) {
+            if (builtinPrototypes.includes(dataProto)) {
                 handledProto = dataProto
             } else {
-                handledProto = createData({
+                handledProto = copyData({
                     descr: `${descr}["__proto__"]`,
                     data: dataProto,
                     refs
@@ -464,82 +470,63 @@ module.exports = function (props) {
 
             Object.setPrototypeOf(handledData, handledProto)
 
-            if (typeof data === 'function') {
-                // set descr as the name of the function
-                if (!descr.includes(defaultDescr)) {
-                    Object.defineProperty(handledData, 'name', {
-                        value: descr,
-                        configurable: true
-                    })
-                }
-
-                // constructor inside the prototype of a function should be
-                // the same as the function itself
-                if (
-                    checkIfObject(data.prototype) &&
-                    data.prototype.constructor === data
-                ) {
-                    Object.defineProperty(
-                        handledData.prototype,
-                        'constructor',
-                        {
-                            value: handledData,
-                            writable: true,
-                            configurable: true
-                        }
-                    )
-                }
-            }
-
             alreadyHandled.add(handledData)
 
             return handledData
         },
-        onError: ([props]) => Object.assign({}, props).data
-    })
+        { onError: ({ args: [props] }) => Object.assign({}, props).data }
+    )
 
-    const tieUp = createFunc({
-        descr: 'tying up data with error handling',
-        data: function (descr, data, options) {
+    const tieUp = createFunc(
+        'tying up data',
+        function (descr, data, options) {
             if (typeof descr !== 'string') {
-                descr = defaultDescr
-                data = arguments[0]
-                options = arguments[1]
-            } else {
-                descr = `[${descr}]`
+                throw new Error('First arg has to be a description string')
             }
 
-            if (!['object', 'function'].includes(typeof data) || data === null) {
+            if (data === null || !['object', 'function'].includes(typeof data)) {
                 return data
             }
 
-            options = Object.assign({}, options)
+            const { onError = () => {}, useCache } = Object.assign({}, options)
 
-            return createData({
+            if (typeof onError !== 'function') {
+                throw new Error('onError must be a function')
+            }
+
+            if (useCache !== undefined && typeof useCache !== 'function') {
+                throw new Error('useCache must be a function')
+            }
+
+            const handledData = copyData({
                 descr,
                 data,
-                onError: options.onError,
-                useCache: options.useCache,
-                refs: new WeakMap()
+                refs: new WeakMap(),
+                options: { onError, useCache }
             })
+
+            // set descr as the name of the function
+            if (typeof handledData === 'function') {
+                Object.defineProperty(handledData, 'name', {
+                    value: descr,
+                    configurable: true
+                })
+            }
+
+            return handledData
         },
-        onError: ([descr, data]) => typeof descr !== 'string' ? descr : data
-    })
+        { onError: ({ args: [_, data] }) => data }
+    )
 
     const tieUpPartial = tieUp(
-        'tying up partial function with error handling',
+        'tying up a partial function',
         function (descr, func, options) {
             if (typeof descr !== 'string') {
-                descr = defaultDescr
-                func = arguments[0]
-                options = arguments[1]
+                throw new Error('First arg must be a description string')
             }
 
             if (typeof func !== 'function') {
-                throw new Error(
-                    'Expected partial function, instead got ' +
-                    typeof func
-                )
+                throw new Error('Second arg must be a function')
             }
 
             if (alreadyHandled.has(func)) {
@@ -548,28 +535,42 @@ module.exports = function (props) {
 
             options = Object.assign({}, options)
 
-            const useOuterCache = options.useOuterCache
+            const {
+                onOuterError = () => () => {},
+                useOuterCache,
+                onError = () => {},
+                useCache
+            } = Object.assign({}, options)
 
-            const onOuterError = typeof options.onOuterError === 'function'
-                ? options.onOuterError
-                : () => () => {}
+            if (typeof onOuterError !== 'function') {
+                throw new Error('onOuterError must be a function')
+            }
+
+            if (useOuterCache !== undefined && typeof useOuterCache !== 'function') {
+                throw new Error('useOuterCache must be a function')
+            }
+
+            if (typeof onError !== 'function') {
+                throw new Error('onError must be a function')
+            }
+
+            if (useCache !== undefined && typeof useCache !== 'function') {
+                throw new Error('useCache must be a function')
+            }
 
             const handledPartialFunc = tieUp(
-                `partial call of [${descr}]`,
+                `partially ${descr}`,
                 function (...args) {
-                    const appliedData = func.apply(this, args)
+                    const appliedFunc = func.apply(this, args)
 
-                    if (typeof appliedData !== 'function') {
+                    if (typeof appliedFunc !== 'function') {
                         throw new Error(
-                            'Expected function to be returned, ' +
-                            'instead received ' + typeof appliedData
+                            'Partial function should return a function, ' +
+                            'instead received ' + typeof appliedFunc
                         )
                     }
 
-                    return tieUp(descr, appliedData, {
-                        useCache: options.useCache,
-                        onError: options.onError
-                    })
+                    return tieUp(descr, appliedFunc, { useCache, onError })
                 },
                 { useCache: useOuterCache, onError: onOuterError }
             )
@@ -625,7 +626,10 @@ module.exports = function (props) {
 
             return server
         },
-        { useCache: ([server]) => [server], onError: ([server]) => server }
+        {
+            useCache: ([server]) => [server],
+            onError: ({ args: [server] }) => server
+        }
     )
 
     const getRoutingCreator = tieUp(
@@ -642,12 +646,12 @@ module.exports = function (props) {
             ) {
                 throw new Error(
                     'Invalid parameters, expected: ' +
-                    'app(function/object), onError(undefined/function)'
+                    'app(function|object), onError(undefined|function)'
                 )
             }
 
             if (onError === undefined) {
-                onError = function ([_req, res], error) {
+                onError = function ({ args: [_, res], error }) {
                     if (!res.headersSent) {
                         res.status(500).json({
                             error: {
@@ -685,7 +689,7 @@ module.exports = function (props) {
         { onError: () => () => {}, useCache: ([app]) => [app] }
     )
 
-    const errorListener = tieUp(
+    const uncaughtErrorListener = tieUp(
         'listening for uncaught errors',
         function (eventOrError) {
             if (isBrowser || isWorker) {
@@ -728,7 +732,7 @@ module.exports = function (props) {
         let i = browserEventNames.length
 
         while (i--) {
-            self.addEventListener(browserEventNames[i], errorListener, true)
+            self.addEventListener(browserEventNames[i], uncaughtErrorListener, true)
         }
 
         Object.defineProperty(
@@ -742,7 +746,7 @@ module.exports = function (props) {
         let i = nodeEventNames.length
 
         while (i--) {
-            process.on(nodeEventNames[i], errorListener)
+            process.on(nodeEventNames[i], uncaughtErrorListener)
         }
 
         Object.defineProperty(
