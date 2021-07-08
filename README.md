@@ -217,6 +217,10 @@ server.listen(port, () => {
   * `tiedFunc`: Function that was created with `tieUp` and has caching enabled
       via `useCache`.
 
+* `clearAllCaches`
+  * type: `()` -> ?
+  * definition: Function that clears all function caches.
+
 * `getHandledServer`
   * type: `(server, sockets)` -> `handledServer`
   * definition: Returns a server that is error handled and closed on uncaught errors

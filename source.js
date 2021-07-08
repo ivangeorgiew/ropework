@@ -36,7 +36,7 @@ module.exports = function (props) {
 
     const alreadyHandled = new WeakSet()
 
-    const caches = new WeakMap()
+    let caches = new WeakMap()
 
     const lastError = Object.seal({ descr: '', argsInfo: '', errorMsg: '', time: 0 })
 
@@ -591,6 +591,11 @@ module.exports = function (props) {
         }
     )
 
+    const clearAllCaches = tieUp(
+        'clearing all the caches',
+        function () { caches = new WeakMap() }
+    )
+
     const getHandledServer = tieUp(
         'initializing error handling for server',
         function (server, sockets) {
@@ -763,6 +768,7 @@ module.exports = function (props) {
         FriendlyError,
         tieUp,
         tieUpPartial,
+        clearAllCaches,
         clearCache,
         getHandledServer,
         getRoutingCreator
