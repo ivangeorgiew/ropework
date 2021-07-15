@@ -27,18 +27,11 @@ module.exports = function (props) {
     const nodeEventNames =
         ['uncaughtException', 'unhandledRejection', 'SIGTERM', 'SIGINT', 'SIGHUP']
 
-    const builtinPrototypes = [
-        null,
-        Object.prototype,
-        Array.prototype,
-        Function.prototype
-    ]
-
     const alreadyHandled = new WeakSet()
 
     let caches = new WeakMap()
 
-    const lastError = Object.seal({ descr: '', argsInfo: '', errorMsg: '', time: 0 })
+    const lastError = Object.seal({ errorDescr: '', argsInfo: '', errorMsg: '', time: 0 })
 
     // - Parameters ----------------------------------------------------------------------
     props = Object.assign({}, props)
@@ -90,43 +83,59 @@ module.exports = function (props) {
                 ? props.isUncaught
                 : false
 
-            const descr = typeof props.descr === 'string'
-                ? props.descr
-                : isUncaught ? 'unhandled error' : 'part of the app'
+            const errorDescr = (function () {
+                let descr = 'Issue with: '
+
+                if (typeof props.descr === 'string') {
+                    descr += props.descr
+                } else if (isUncaught) {
+                    descr += 'unhandled error'
+                } else {
+                    descr += 'a part of the app'
+                }
+
+                return descr
+            })()
 
             const error = props.error instanceof Error
                 ? props.error
                 : isUncaught ? new Error('Uncaught error') : new Error('Unknown error')
 
-            const argsInfo = Array.isArray(props.args)
-                ? props.args.reduce(function (acc, el, idx) {
-                    let parsedEl
+            const argsInfo = (function () {
+                if (!Array.isArray(props.args)) {
+                    return ''
+                }
 
-                    if (el !== null && ['object', 'function'].includes(typeof el)) {
-                        parsedEl = Array.isArray(el) ? '[array]' : `[${typeof el}]`
-                    } else if (typeof el === 'string') {
-                        parsedEl = `"${el}"`
-                    } else {
-                        parsedEl = el
+                let [result, i] = ['', -1]
+
+                while (props.args.length - (++i)) {
+                    let arg = props.args[i]
+
+                    if (arg !== null && ['object', 'function'].includes(typeof arg)) {
+                        arg = Array.isArray(arg) ? '[array]' : `[${typeof arg}]`
+                    } else if (typeof arg === 'string') {
+                        arg = `"${arg}"`
                     }
 
-                    return idx === 0 ? acc + parsedEl : `${acc} , ${parsedEl}`
-                }, '')
-                : ''
+                    result += i === 0 ? arg : ` , ${arg}`
+                }
 
-            const isFriendly = error instanceof FriendlyError
+                return result.length > 100
+                    ? result.slice(0, 100) + '...'
+                    : result
+            })()
 
-            const userMsg = isFriendly ? error.message : `Issue with: ${descr}`
+            const isFriendlyError = error instanceof FriendlyError
 
-            const productionInfo = {
-                description: descr,
+            const prodInfo = {
+                errorDescription: errorDescr,
                 arguments: argsInfo,
                 date: (new Date()).toUTCString(),
                 error
             }
 
             if (isBrowser || isWorker) {
-                Object.assign(productionInfo, {
+                Object.assign(prodInfo, {
                     localUrl: self.location.href,
                     browserInfo: self.navigator.userAgent,
                     osType: self.navigator.platform
@@ -134,7 +143,7 @@ module.exports = function (props) {
             }
 
             if (isNodeJS) {
-                Object.assign(productionInfo, {
+                Object.assign(prodInfo, {
                     localUrl: process.cwd(),
                     cpuArch: process.arch,
                     osType: process.platform,
@@ -146,29 +155,29 @@ module.exports = function (props) {
             const curTime = Date.now()
 
             if (
-                lastError.descr !== descr ||
+                lastError.errorDescr !== errorDescr ||
                 lastError.argsInfo !== argsInfo ||
                 lastError.errorMsg !== error.message ||
-                (curTime - lastError.time) > 500
+                (curTime - lastError.time) > 1000
             ) {
                 errorLogger(
-                    `\n Issue with: ${descr}\n`,
+                    `\n ${errorDescr}\n`,
                     `Function arguments: ${argsInfo}\n`,
                     error, '\n'
                 )
 
                 notify({
+                    isFriendlyError,
                     isDevelopment,
                     isUncaught,
-                    isFriendly,
-                    userMsg,
-                    productionInfo,
-                    error
+                    prodInfo,
+                    error,
+                    errorDescr
                 })
             }
 
             Object.assign(lastError, {
-                descr,
+                errorDescr,
                 argsInfo,
                 errorMsg: error.message,
                 time: curTime
@@ -180,7 +189,35 @@ module.exports = function (props) {
 
     const createFunc = function (descr, func, options) {
         try {
-            const { onError = () => {}, useCache } = Object.assign({}, options)
+            options = Object.assign({}, options)
+
+            // TODO: add 'types = []' and validate them
+            const { onError = () => {}, useCache } = options
+
+            if (typeof descr !== 'string') {
+                throw new TypeError(`${descr} - First arg must be a string`)
+            }
+
+            if (typeof func !== 'function') {
+                throw new TypeError(`"${descr}" must be a function`)
+            }
+
+            if (typeof onError !== 'function') {
+                throw new TypeError(`${descr} - onError must be a function`)
+            }
+
+            if (useCache !== undefined && typeof useCache !== 'function') {
+                throw new TypeError(`${descr} - useCache must be a function`)
+            }
+
+            // TODO
+            // if (!Array.isArray(types)) {
+            //     throw new TypeError(`${descr} - types must be an array`)
+            // }
+
+            if (alreadyHandled.has(func)) {
+                return func
+            }
 
             let unfinishedCalls = 0
 
@@ -202,7 +239,7 @@ module.exports = function (props) {
                 }
             }
 
-            return function innerFunc (...args) {
+            const innerFunc = function (...args) {
                 try {
                     unfinishedCalls++
 
@@ -227,9 +264,9 @@ module.exports = function (props) {
 
                             cacheArgs = [this].concat(cacheArgs)
                             cacheItem = caches.get(innerFunc)
-                            i = 0
+                            i = -1
 
-                            while (i < cacheArgs.length) {
+                            while (cacheArgs.length - (++i)) {
                                 storageKey =
                                     cacheArgs[i] !== null &&
                                     ['object', 'function'].includes(typeof cacheArgs[i])
@@ -245,8 +282,6 @@ module.exports = function (props) {
                                 } else {
                                     break
                                 }
-
-                                i++
                             }
 
                             if (i === cacheArgs.length && 'result' in cacheItem) {
@@ -263,10 +298,10 @@ module.exports = function (props) {
                         result = func.apply(this, args)
                     // creating an object with constructor
                     } else {
-                        result = (function (Cons) {
+                        result = (function (Constr) {
                             return Object.create(
                                 innerFunc.prototype,
-                                Object.getOwnPropertyDescriptors(new Cons(...args))
+                                Object.getOwnPropertyDescriptors(new Constr(...args))
                             )
                         })(func)
                     }
@@ -308,9 +343,9 @@ module.exports = function (props) {
 
                     // save the result in cache
                     if (Array.isArray(cacheArgs)) {
-                        i = 0
+                        i = -1
 
-                        while (i < cacheArgs.length) {
+                        while (cacheArgs.length - (++i)) {
                             storageKey =
                                 cacheArgs[i] !== null &&
                                 ['object', 'function'].includes(typeof cacheArgs[i])
@@ -327,8 +362,6 @@ module.exports = function (props) {
                                 ? cacheItem[storageKey].get(cacheArgs[i])
                                 : cacheItem[storageKey].set(cacheArgs[i], {})
                                     .get(cacheArgs[i])
-
-                            i++
                         }
 
                         cacheItem.result = result
@@ -341,6 +374,10 @@ module.exports = function (props) {
                     unfinishedCalls--
                 }
             }
+
+            alreadyHandled.add(innerFunc)
+
+            return innerFunc
         } catch (error) {
             logError({
                 descr: 'creating error-handled function',
@@ -351,6 +388,194 @@ module.exports = function (props) {
             return () => {}
         }
     }
+
+    const parseArgTypes = createFunc(
+        'parsing argTypes string to array',
+        function ({ descr, argTypes = '' }) {
+            if (typeof argTypes !== 'string') {
+                throw new TypeError(`${descr} - argTypes must be a string`)
+            }
+
+            argTypes = argTypes.replace(/\n|\t|\r/g, '')
+
+            const keyReg = /^\s*:.+:\s*/
+            const simpleTypeReg = new RegExp(
+                '^\\s*(:([^:]+):\\s*)?(\\{\\s*\\}|\\[\\s*\\]|\\(\\s*\\)|' +
+                '@?\\w+\\s*(=\\s*\\d+|>\\s*\\d+|>=\\s*\\d+)?\\s*' +
+                '(<\\s*\\d+|<=\\s*\\d+)?)\\s*'
+            )
+            const openSymReg = /^\s*(:([^:]+):\s*)?(\{|\[|\()\s*/
+            const closeSymReg = /^\s*(\}|\]|\))\s*/
+            const endReg = /^(\}|\]|\)|\||,|$)/
+            const reg1 = /^(null|undef|bool)\w*$/
+            const reg2 = /^@(\w+)$/
+            const reg3 = /^(str|num|int)\w*(=\d+|>\d+|>=\d+)?(<\d+|<=\d+)?$/
+            const reg4 = /^(\{\}|\[\]|\(\))$/
+            const closeSymDict = { '{': '}', '[': ']', '(': ')' }
+            const parsedTypes = [[]]
+            const pathToStore = [0]
+            const openSymHistory = []
+
+            while (argTypes.length) {
+                const currStore = (function () {
+                    let [acc, i] = [parsedTypes, -1]
+
+                    while (pathToStore.length - (++i)) {
+                        acc = acc[pathToStore[i]]
+                    }
+
+                    return acc
+                })()
+
+                if (simpleTypeReg.test(argTypes)) {
+                    const workingPart = simpleTypeReg.exec(argTypes)[0]
+                    const objKey = keyReg.test(workingPart)
+                        ? workingPart.replace(simpleTypeReg, '$2')
+                        : ''
+                    const typeDescr = workingPart.replace(simpleTypeReg, '$3')
+                        .replace(/\s+/g, '')
+
+                    let parsedType
+
+                    // parse typeDescr to type object
+                    if (reg1.test(typeDescr)) {
+                        parsedType = { type: typeDescr.replace(reg1, '$1') }
+                    } else if (reg2.test(typeDescr)) {
+                        parsedType = { inst: typeDescr.replace(reg2, '$1') }
+                    } else if (reg3.test(typeDescr)) {
+                        parsedType = JSON.parse(typeDescr.replace(reg3, `{
+                            "type": "$1",
+                            "eqs": ["$2", "$3"]
+                        }`))
+                        parsedType.eqs = parsedType.eqs.filter(eq => eq.length > 0)
+                    } else if (reg4.test(typeDescr)) {
+                        parsedType = { type: typeDescr[0] }
+                    } else {
+                        throw new Error(`${typeDescr} is invalid simple type`)
+                    }
+
+                    // remove the already parsed part
+                    argTypes = argTypes.replace(simpleTypeReg, '')
+
+                    // must have an ending symbol
+                    if (!endReg.test(argTypes)) {
+                        throw new Error('Missing ending symbol in argTypes')
+                    }
+
+                    const endSym = argTypes[0]
+
+                    // save parsedType and modify parsedTypes, pathToStore
+                    if (objKey === '') {
+                        currStore.push(parsedType)
+
+                        if (endSym === ',') {
+                            if (pathToStore.length === 1) {
+                                parsedTypes.push([])
+                                pathToStore[0]++
+                            } else {
+                                pathToStore.pop()
+                            }
+                        }
+                    } else {
+                        currStore[objKey] = [parsedType]
+
+                        if (endSym === '|') {
+                            pathToStore.push(objKey)
+                        }
+                    }
+
+                    // remove seperating symbol
+                    if (/\||,/.test(endSym)) {
+                        argTypes = argTypes.slice(1)
+                    }
+                } else if (openSymReg.test(argTypes)) {
+                    const workingPart = openSymReg.exec(argTypes)[0]
+                    const objKey = keyReg.test(workingPart)
+                        ? workingPart.replace(openSymReg, '$2')
+                        : ''
+                    const openSym = workingPart.replace(openSymReg, '$3')
+                    const parsedType = { type: openSym, props: {} }
+
+                    // remove the already parsed part
+                    argTypes = argTypes.replace(openSymReg, '')
+
+                    // save parsedType and modify parsedTypes, pathToStore
+                    if (objKey === '') {
+                        currStore.push(parsedType)
+                        pathToStore.push(currStore.length - 1, 'props')
+                    } else {
+                        currStore[objKey] = [parsedType]
+                        pathToStore.push(objKey, 0, 'props')
+                    }
+
+                    // add an opening symbol to history
+                    openSymHistory.push(openSym)
+                } else if (closeSymReg.test(argTypes)) {
+                    const workingPart = closeSymReg.exec(argTypes)[0]
+                    const closeSym = workingPart.replace(closeSymReg, '$1')
+                    const lastOpenSym = openSymHistory[openSymHistory.length - 1]
+
+                    // last open symbol has to match current close symbol
+                    if (closeSymDict[lastOpenSym] !== closeSym) {
+                        throw new Error(
+                            'There is a mismatch between opening and closing symbols'
+                        )
+                    }
+
+                    // remove the already parsed part
+                    argTypes = argTypes.replace(closeSymReg, '')
+
+                    // must have an ending symbol
+                    if (!endReg.test(argTypes)) {
+                        throw new Error('Missing ending symbol in argTypes')
+                    }
+
+                    const endSym = argTypes[0]
+
+                    // modify parsedTypes, pathToStore
+                    pathToStore.pop()
+                    pathToStore.pop()
+
+                    if (endSym !== '|') {
+                        if (pathToStore.length === 1) {
+                            parsedTypes.push([])
+                            pathToStore[0]++
+                        } else {
+                            pathToStore.pop()
+                        }
+                    }
+
+                    // remove seperating symbol
+                    if (/\||,/.test(endSym)) {
+                        argTypes = argTypes.slice(1)
+                    }
+
+                    // open symbols history must not be empty
+                    if (openSymHistory.length < 1) {
+                        throw new Error('There are more closing symbols than opening')
+                    }
+
+                    // remove last opened sym, already handled
+                    openSymHistory.pop()
+                } else {
+                    throw new Error('Argument argTypes has incorrect format')
+                }
+            }
+
+            // every opening {|[|( must be closed
+            if (openSymHistory.length > 0) {
+                throw new Error('There are more opening symbols than closing')
+            }
+
+            // handle dangling comma
+            if (parsedTypes[parsedTypes.length - 1].length === 0) {
+                parsedTypes.pop()
+            }
+
+            return parsedTypes
+        },
+        { onError: () => ([]) }
+    )
 
     const assignHandledProps = createFunc(
         'assigning error-handled properties',
@@ -363,9 +588,9 @@ module.exports = function (props) {
                 .getOwnPropertyNames(descriptors)
                 .concat(Object.getOwnPropertySymbols(descriptors))
 
-            let i = descriptorKeys.length
+            let i = -1
 
-            while (i--) {
+            while (descriptorKeys.length - (++i)) {
                 const key = descriptorKeys[i]
 
                 try {
@@ -376,14 +601,19 @@ module.exports = function (props) {
                         ['object', 'function'].includes(typeof value) &&
                         !String(key).match(/.+(OnError|UseCache)$/)
                     ) {
-                        value = copyData({
+                        const keyDescr = `${descr}["${String(key)}"]`
+                        const argTypes = source[`${String(key)}ArgTypes`]
+                        const types = parseArgTypes({ descr: keyDescr, argTypes })
+
+                        value = cloneData({
                             // key can be a Symbol
-                            descr: `${descr}["${String(key)}"]`,
+                            descr: keyDescr,
                             data: value,
                             refs,
                             options: {
                                 onError: source[`${String(key)}OnError`],
-                                useCache: source[`${String(key)}UseCache`]
+                                useCache: source[`${String(key)}UseCache`],
+                                types
                             }
                         })
                     }
@@ -404,35 +634,16 @@ module.exports = function (props) {
         }
     )
 
-    const copyData = createFunc(
-        'copying error-handled data',
+    const cloneData = createFunc(
+        'cloning data error-handled',
         function (props) {
             props = Object.assign({}, props)
 
             const { descr, data, refs, options } = props
 
-            if (data instanceof Date) {
-                const copy = new Date()
-
-                copy.setTime(data.getTime())
-
-                return copy
-            }
-
-            if (data instanceof RegExp) {
-                const regExpText = String(data)
-                const lastSlashIdx = regExpText.lastIndexOf('/')
-
-                return new RegExp(
-                    regExpText.slice(1, lastSlashIdx),
-                    regExpText.slice(lastSlashIdx + 1)
-                )
-            }
-
             if (
                 data === null ||
-                !['object', 'function'].includes(typeof data) ||
-                alreadyHandled.has(data)
+                !['object', 'function'].includes(typeof data)
             ) {
                 return data
             }
@@ -445,6 +656,16 @@ module.exports = function (props) {
 
             if (typeof data === 'function') {
                 handledData = createFunc(descr, data, options)
+            } else if (data instanceof RegExp) {
+                const regExpText = String(data)
+                const lastSlashIdx = regExpText.lastIndexOf('/')
+
+                handledData = new RegExp(
+                    regExpText.slice(1, lastSlashIdx),
+                    regExpText.slice(lastSlashIdx + 1)
+                )
+            } else if (data instanceof Date) {
+                handledData = new Date(data.getTime())
             } else if (Array.isArray(data)) {
                 handledData = []
             } else {
@@ -455,22 +676,7 @@ module.exports = function (props) {
 
             assignHandledProps({ source: data, target: handledData, descr, refs })
 
-            const dataProto = Object.getPrototypeOf(data)
-            let handledProto
-
-            if (builtinPrototypes.includes(dataProto)) {
-                handledProto = dataProto
-            } else {
-                handledProto = copyData({
-                    descr: `${descr}["__proto__"]`,
-                    data: dataProto,
-                    refs
-                })
-            }
-
-            Object.setPrototypeOf(handledData, handledProto)
-
-            alreadyHandled.add(handledData)
+            Object.setPrototypeOf(handledData, Object.getPrototypeOf(data))
 
             return handledData
         },
@@ -480,29 +686,21 @@ module.exports = function (props) {
     const tieUp = createFunc(
         'tying up data',
         function (descr, data, options) {
-            if (typeof descr !== 'string') {
-                throw new Error('First arg has to be a description string')
-            }
-
             if (data === null || !['object', 'function'].includes(typeof data)) {
                 return data
             }
 
-            const { onError = () => {}, useCache } = Object.assign({}, options)
+            options = Object.assign({}, options)
+            options.types = parseArgTypes({
+                descr,
+                argTypes: options.argTypes
+            })
 
-            if (typeof onError !== 'function') {
-                throw new Error('onError must be a function')
-            }
-
-            if (useCache !== undefined && typeof useCache !== 'function') {
-                throw new Error('useCache must be a function')
-            }
-
-            const handledData = copyData({
+            const handledData = cloneData({
                 descr,
                 data,
-                refs: new WeakMap(),
-                options: { onError, useCache }
+                options,
+                refs: new WeakMap()
             })
 
             // set descr as the name of the function
@@ -521,42 +719,16 @@ module.exports = function (props) {
     const tieUpPartial = tieUp(
         'tying up a partial function',
         function (descr, func, options) {
-            if (typeof descr !== 'string') {
-                throw new Error('First arg must be a description string')
-            }
-
-            if (typeof func !== 'function') {
-                throw new Error('Second arg must be a function')
-            }
-
-            if (alreadyHandled.has(func)) {
-                return func
-            }
-
             options = Object.assign({}, options)
 
             const {
-                onOuterError = () => () => {},
-                useOuterCache,
+                onErrorOuter = () => () => {},
+                useCacheOuter,
+                argTypesOuter,
                 onError = () => {},
-                useCache
+                useCache,
+                argTypes
             } = Object.assign({}, options)
-
-            if (typeof onOuterError !== 'function') {
-                throw new Error('onOuterError must be a function')
-            }
-
-            if (useOuterCache !== undefined && typeof useOuterCache !== 'function') {
-                throw new Error('useOuterCache must be a function')
-            }
-
-            if (typeof onError !== 'function') {
-                throw new Error('onError must be a function')
-            }
-
-            if (useCache !== undefined && typeof useCache !== 'function') {
-                throw new Error('useCache must be a function')
-            }
 
             const handledPartialFunc = tieUp(
                 `partially ${descr}`,
@@ -570,12 +742,18 @@ module.exports = function (props) {
                         )
                     }
 
-                    return tieUp(descr, appliedFunc, { useCache, onError })
+                    return tieUp(
+                        descr,
+                        appliedFunc,
+                        { useCache, onError, argTypes }
+                    )
                 },
-                { useCache: useOuterCache, onError: onOuterError }
+                {
+                    argTypes: argTypesOuter,
+                    useCache: useCacheOuter,
+                    onError: onErrorOuter
+                }
             )
-
-            alreadyHandled.add(handledPartialFunc)
 
             return handledPartialFunc
         },
@@ -603,8 +781,6 @@ module.exports = function (props) {
                 throw new Error('This function is meant for NodeJS')
             }
 
-            server = tieUp('HTTP server', server)
-
             sockets = sockets instanceof Set
                 ? sockets
                 : new Set()
@@ -617,9 +793,9 @@ module.exports = function (props) {
                 }
             ))
 
-            let i = nodeEventNames.length
+            let i = -1
 
-            while (i--) {
+            while (nodeEventNames.length - (++i)) {
                 process.prependListener(nodeEventNames[i], tieUp(
                     'handling server closing',
                     function () {
@@ -734,9 +910,9 @@ module.exports = function (props) {
     )
 
     if ((isBrowser || isWorker) && !self.tp_areUnhandledCaught) {
-        let i = browserEventNames.length
+        let i = -1
 
-        while (i--) {
+        while (browserEventNames.length - (++i)) {
             self.addEventListener(browserEventNames[i], uncaughtErrorListener, true)
         }
 
@@ -748,9 +924,9 @@ module.exports = function (props) {
     }
 
     if (isNodeJS && !global.tp_areUnhandledCaught) {
-        let i = nodeEventNames.length
+        let i = -1
 
-        while (i--) {
+        while (nodeEventNames.length - (++i)) {
             process.on(nodeEventNames[i], uncaughtErrorListener)
         }
 

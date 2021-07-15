@@ -17,20 +17,20 @@ To start using this package you need to first install locally:
 import tiedPants from 'tied-pants'
 
 const { tieUp, FriendlyError } = tiedPants({
-    notify: ({ isDevelopment, isUncaught, isFriendly, userMsg, productionInfo }) => {
+    notify: ({ isDevelopment, isUncaught, isFriendlyError, errorDescr, prodInfo }) => {
         if (isUncaught) {
             // TODO change with ERROR notification
-            alert(`ERROR - ${userMsg}`)
+            alert(`ERROR - ${errorDescr}`)
         }
-        // TODO if app is for developers, remove isFriendly check
-        else if (isFriendly) {
+        // TODO if app is for developers, remove isFriendlyError check
+        else if (isFriendlyError) {
             // TODO change with WARNING notification
-            alert(`WARNING - ${userMsg}`)
+            alert(`WARNING - ${error.message}`)
         }
 
-        // TODO add production logger that uses productionInfo
+        // TODO add production logger that uses prodInfo
         if (!isDevelopment) {
-            // callProdLoggerService(productionInfo)
+            // callProdLoggerService(prodInfo)
         }
     }
 })
@@ -149,18 +149,18 @@ server.listen(port, () => {
   * type: `errMsg` -> ?
   * default: `console.error`
   * definition: Function for logging developer errors
-  * `devMsg`: ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
+  * `errMsg`: ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
 
 * `notify`
-  * type: `({ isDevelopment, isUncaught, isFriendly, userMsg, productionInfo, error })` -> ?
+  * type: `({ isDevelopment, isUncaught, isFriendlyError, errorDescr, prodInfo, error })` -> ?
   * default: `() => {}`
   * definition: Function for notifying the user with friendly error messages
       and logging in production.
   * `isDevelopment`: Boolean that indicates if the environment is not in prod
   * `isUncaught`: Boolean that indicates whether the error was caught in catch or not
-  * `isFriendly`: Boolean that indicates whether `userMsg` is for regular users
-  * `userMsg`: String that describes what the functionality was supposed to be doing
-  * `productionInfo`: Object that consists of useful info for production logging
+  * `isFriendlyError`: Boolean that indicates whether `error.message` is for regular users
+  * `errorDescr`: String that describes what the functionality was supposed to be doing
+  * `prodInfo`: Object that consists of useful info for production logging
   * `error`: Error object that was thrown
 
 ### API for returned values from the imported function:
@@ -173,7 +173,7 @@ server.listen(port, () => {
   * definition: Function parameter that was parsed from `tiedPants`
 
 * `notify`
-  * type: `({ isUncaught, isFriendly, userMsg, productionInfo })` -> ?
+  * type: `({ isUncaught, isFriendlyError, errorDescr, prodInfo })` -> ?
   * definition: Function parameter that was parsed from `tiedPants`
 
 * `FriendlyError`
@@ -201,14 +201,14 @@ server.listen(port, () => {
       the same as this function, but for `someMethod`.
 
 * `tieUpPartial`
-  * type: `(descr, data, { onOuterError, onError, useOuterCache, useCache })` ->
+  * type: `(descr, data, { onErrorOuter, onError, useCacheOuter, useCache })` ->
       `error handled function`
   * definition: Function that error handles a function that returns another function.
   * `descr`: String used for `descr` of the inner function.
   * `data`: Function that returns another function. Example: `() => () => {}`.
-  * `onOuterError`: Same as above for the outer function. Defaults to `() => () => {}`.
+  * `onErrorOuter`: Same as above for the outer function. Defaults to `() => () => {}`.
   * `onError`: Same as above for the inner function.
-  * `useOuterCache`: Same as above for the outer function.
+  * `useCacheOuter`: Same as above for the outer function.
   * `usecache`: Same as above for the inner function.
 
 * `clearCache`
