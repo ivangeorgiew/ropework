@@ -577,108 +577,128 @@ module.exports = function (props) {
         { onError: () => ([]) }
     )
 
-    const assignHandledProps = createFunc(
-        'assigning error-handled properties',
-        function (props) {
-            props = Object.assign({}, props)
-
-            const { source, target, descr, refs } = props
-            const descriptors = Object.getOwnPropertyDescriptors(source)
-            const descriptorKeys = Object
-                .getOwnPropertyNames(descriptors)
-                .concat(Object.getOwnPropertySymbols(descriptors))
-
-            let i = -1
-
-            while (descriptorKeys.length - (++i)) {
-                const key = descriptorKeys[i]
-
-                try {
-                    let value = descriptors[key].value
-
-                    if (
-                        value !== null &&
-                        ['object', 'function'].includes(typeof value) &&
-                        !String(key).match(/.+(OnError|UseCache)$/)
-                    ) {
-                        const keyDescr = `${descr}["${String(key)}"]`
-                        const argTypes = source[`${String(key)}ArgTypes`]
-                        const types = parseArgTypes({ descr: keyDescr, argTypes })
-
-                        value = cloneData({
-                            // key can be a Symbol
-                            descr: keyDescr,
-                            data: value,
-                            refs,
-                            options: {
-                                onError: source[`${String(key)}OnError`],
-                                useCache: source[`${String(key)}UseCache`],
-                                types
-                            }
-                        })
-                    }
-
-                    Object.defineProperty(target, key, Object.assign(
-                        descriptors[key],
-                        ('value' in descriptors[key]) ? { value } : null
-                    ))
-                } catch (error) {
-                    logError({
-                        // key can be a Symbol
-                        descr: `assigning method ${String(key)} to ${descr}`,
-                        error,
-                        args: [source, target]
-                    })
-                }
-            }
-        }
-    )
-
     const cloneData = createFunc(
         'cloning data error-handled',
         function (props) {
             props = Object.assign({}, props)
 
-            const { descr, data, refs, options } = props
-
             if (
-                data === null ||
-                !['object', 'function'].includes(typeof data)
+                props.data === null ||
+                !['object', 'function'].includes(typeof props.data)
             ) {
-                return data
+                return props.data
             }
 
-            if (refs.has(data)) {
-                return refs.get(data)
+            const stack = [props]
+            let [result, isFirstCall] = [undefined, true]
+
+            while (stack.length) {
+                const curr = stack.pop()
+                const { descr, data, refs, options } = curr
+                const { target, targetKey, targetDescriptor } = curr
+
+                if (refs.has(data)) {
+                    Object.defineProperty(target, targetKey, Object.assign(
+                        targetDescriptor,
+                        { value: refs.get(data) }
+                    ))
+                    continue
+                }
+
+                let handledData
+
+                if (typeof data === 'function') {
+                    handledData = createFunc(descr, data, options)
+                } else if (data instanceof RegExp) {
+                    const regExpText = String(data)
+                    const lastSlashIdx = regExpText.lastIndexOf('/')
+
+                    handledData = new RegExp(
+                        regExpText.slice(1, lastSlashIdx),
+                        regExpText.slice(lastSlashIdx + 1)
+                    )
+                } else if (data instanceof Date) {
+                    handledData = new Date(data.getTime())
+                } else if (Array.isArray(data)) {
+                    handledData = []
+                } else {
+                    handledData = {}
+                }
+
+                refs.set(data, handledData)
+                Object.setPrototypeOf(handledData, Object.getPrototypeOf(data))
+
+                const descriptors = Object.getOwnPropertyDescriptors(data)
+                const descriptorKeys = Object
+                    .getOwnPropertyNames(descriptors)
+                    .concat(Object.getOwnPropertySymbols(descriptors))
+
+                let i = -1
+
+                while (descriptorKeys.length - (++i)) {
+                    const key = descriptorKeys[i]
+
+                    try {
+                        const value = descriptors[key].value
+
+                        if (!('value' in descriptors[key])) {
+                            Object.defineProperty(handledData, key, descriptors[key])
+                            continue
+                        }
+
+                        if (
+                            value !== null &&
+                            ['object', 'function'].includes(typeof value) &&
+                            !String(key).match(/.+(OnError|UseCache)$/)
+                        ) {
+                            // key can be a Symbol
+                            const keyDescr = `${descr}["${String(key)}"]`
+                            const argTypes = data[`${String(key)}ArgTypes`]
+                            const types = parseArgTypes({ descr: keyDescr, argTypes })
+
+                            stack.push({
+                                target: handledData,
+                                targetKey: key,
+                                targetDescriptor: descriptors[key],
+                                descr: keyDescr,
+                                data: value,
+                                refs,
+                                options: {
+                                    onError: data[`${String(key)}OnError`],
+                                    useCache: data[`${String(key)}UseCache`],
+                                    types
+                                }
+                            })
+                            continue
+                        }
+
+                        Object.defineProperty(
+                            handledData,
+                            key,
+                            Object.assign(descriptors[key], { value })
+                        )
+                    } catch (error) {
+                        logError({
+                            // key can be a Symbol
+                            descr: `assigning method ${String(key)} to ${descr}`,
+                            error,
+                            args: [data, handledData]
+                        })
+                    }
+                }
+
+                if (isFirstCall) {
+                    result = handledData
+                    isFirstCall = false
+                } else {
+                    Object.defineProperty(target, targetKey, Object.assign(
+                        targetDescriptor,
+                        { value: handledData }
+                    ))
+                }
             }
 
-            let handledData
-
-            if (typeof data === 'function') {
-                handledData = createFunc(descr, data, options)
-            } else if (data instanceof RegExp) {
-                const regExpText = String(data)
-                const lastSlashIdx = regExpText.lastIndexOf('/')
-
-                handledData = new RegExp(
-                    regExpText.slice(1, lastSlashIdx),
-                    regExpText.slice(lastSlashIdx + 1)
-                )
-            } else if (data instanceof Date) {
-                handledData = new Date(data.getTime())
-            } else if (Array.isArray(data)) {
-                handledData = []
-            } else {
-                handledData = {}
-            }
-
-            refs.set(data, handledData)
-
-            assignHandledProps({ source: data, target: handledData, descr, refs })
-
-            Object.setPrototypeOf(handledData, Object.getPrototypeOf(data))
-
-            return handledData
+            return result
         },
         { onError: ({ args: [props] }) => Object.assign({}, props).data }
     )
