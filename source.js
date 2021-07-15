@@ -42,10 +42,6 @@ module.exports = function (props) {
             ? process.env.NODE_ENV !== 'production'
             : false
 
-    const shouldFreezePage = typeof props.shouldFreezePage === 'boolean'
-        ? props.shouldFreezePage
-        : false
-
     const errorLoggerUnhandled = typeof props.errorLogger === 'function'
         ? props.errorLogger
         : defaultLogger
@@ -116,20 +112,10 @@ module.exports = function (props) {
         try {
             props = Object.assign({}, props)
 
-            const isUncaught = typeof props.isUncaught === 'boolean'
-                ? props.isUncaught
-                : false
-
             const errorDescr = (function () {
-                let descr
-
-                if (typeof props.descr === 'string') {
-                    descr = props.descr
-                } else if (isUncaught) {
-                    descr = 'unhandled error'
-                } else {
-                    descr = 'a part of the app'
-                }
+                const descr = typeof props.descr === 'string'
+                    ? props.descr
+                    : 'a part of the app'
 
                 return descr.length > 80
                     ? `Issue with: ${descr.slice(0, 77)} ...}`
@@ -138,7 +124,7 @@ module.exports = function (props) {
 
             const error = props.error instanceof Error
                 ? props.error
-                : isUncaught ? new Error('Uncaught error') : new Error('Unknown error')
+                : new Error('Unknown error')
 
             const argsInfo = (function () {
                 if (!Array.isArray(props.args)) {
@@ -208,7 +194,6 @@ module.exports = function (props) {
                 notify({
                     isFriendlyError,
                     isDevelopment,
-                    isUncaught,
                     prodInfo,
                     error,
                     errorDescr
@@ -892,13 +877,11 @@ module.exports = function (props) {
 
             if (onError === undefined) {
                 onError = function ({ args: [_, res], error }) {
+                    const { message = error, stack = '' } = Object.assign({}, error)
+
                     if (!res.headersSent) {
                         res.status(500).json({
-                            error: {
-                                name: 'Internal server error',
-                                message: error.message,
-                                stack: error.stack
-                            }
+                            error: { name: 'Internal server error', message, stack }
                         })
                     }
                 }
@@ -943,13 +926,13 @@ module.exports = function (props) {
                         ? eventOrError.reason
                         : eventOrError.error instanceof Error
                             ? eventOrError.error
-                            : undefined
+                            : new Error('Uncaught error')
                 }
 
-                logError({ isUncaught: true, error })
+                logError({ descr: 'unhandled error', error })
 
                 // prevent user from interacting with the page
-                if (isBrowser && shouldFreezePage) {
+                if (isBrowser) {
                     window.document.body.style['pointer-events'] = 'none'
                 }
             }
@@ -960,7 +943,7 @@ module.exports = function (props) {
                 if (eventOrError instanceof Error) {
                     exitCode = 1
 
-                    logError({ isUncaught: true, error: eventOrError })
+                    logError({ descr: 'unhandled error', error: eventOrError })
                 }
 
                 global.setTimeout(() => { process.exit(exitCode) }, 500).unref()

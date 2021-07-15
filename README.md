@@ -17,11 +17,7 @@ To start using this package you need to first install locally:
 import tiedPants from 'tied-pants'
 
 const { tieUp, FriendlyError } = tiedPants({
-    notify: ({ isDevelopment, isUncaught, isFriendlyError, errorDescr, prodInfo }) => {
-        if (isUncaught) {
-            // TODO change with ERROR notification
-            alert(`ERROR - ${errorDescr}`)
-        }
+    notify: ({ isDevelopment, isFriendlyError, errorDescr, prodInfo }) => {
         // TODO if app is for developers, remove isFriendlyError check
         else if (isFriendlyError) {
             // TODO change with WARNING notification
@@ -152,12 +148,11 @@ server.listen(port, () => {
   * `errMsg`: ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
 
 * `notify`
-  * type: `({ isDevelopment, isUncaught, isFriendlyError, errorDescr, prodInfo, error })` -> ?
+  * type: `({ isDevelopment, isFriendlyError, errorDescr, prodInfo, error })` -> ?
   * default: `() => {}`
   * definition: Function for notifying the user with friendly error messages
       and logging in production.
   * `isDevelopment`: Boolean that indicates if the environment is not in prod
-  * `isUncaught`: Boolean that indicates whether the error was caught in catch or not
   * `isFriendlyError`: Boolean that indicates whether `error.message` is for regular users
   * `errorDescr`: String that describes what the functionality was supposed to be doing
   * `prodInfo`: Object that consists of useful info for production logging
@@ -173,7 +168,7 @@ server.listen(port, () => {
   * definition: Function parameter that was parsed from `tiedPants`
 
 * `notify`
-  * type: `({ isUncaught, isFriendlyError, errorDescr, prodInfo })` -> ?
+  * type: `({ isDevelopment, isFriendlyError, error, errorDescr, prodInfo })` -> ?
   * definition: Function parameter that was parsed from `tiedPants`
 
 * `FriendlyError`
