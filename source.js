@@ -75,6 +75,43 @@ module.exports = function (props) {
     }
 
     // - Functions -------------------------------------------------------------
+    const stringifyAll = function (data) {
+        try {
+            const seen = new WeakSet()
+            const parser = function (_key, val) {
+                if ([Infinity, NaN, null, undefined].includes(val)) {
+                    return String(val)
+                }
+
+                if (typeof val === 'bigint') {
+                    return Number(val)
+                }
+
+                if (typeof val === 'object' || typeof val === 'function') {
+                    if (seen.has(val)) {
+                        return '$selfRef'
+                    }
+
+                    seen.add(val)
+
+                    if (typeof val === 'function') {
+                        return '()'
+                    }
+                }
+
+                return val
+            }
+
+            return JSON.stringify(data, parser)
+        } catch (error) {
+            if (isDevelopment) {
+                errorLogger('\n Issue with: stringifying data\n', error, '\n')
+            }
+
+            return JSON.stringify(`[unparsed ${typeof data}]`)
+        }
+    }
+
     const logError = function (props) {
         try {
             props = Object.assign({}, props)
@@ -84,17 +121,19 @@ module.exports = function (props) {
                 : false
 
             const errorDescr = (function () {
-                let descr = 'Issue with: '
+                let descr
 
                 if (typeof props.descr === 'string') {
-                    descr += props.descr
+                    descr = props.descr
                 } else if (isUncaught) {
-                    descr += 'unhandled error'
+                    descr = 'unhandled error'
                 } else {
-                    descr += 'a part of the app'
+                    descr = 'a part of the app'
                 }
 
-                return descr
+                return descr.length > 80
+                    ? `Issue with: ${descr.slice(0, 77)} ...}`
+                    : `Issue with: ${descr}`
             })()
 
             const error = props.error instanceof Error
@@ -111,17 +150,17 @@ module.exports = function (props) {
                 while (props.args.length - (++i)) {
                     let arg = props.args[i]
 
-                    if (arg !== null && ['object', 'function'].includes(typeof arg)) {
-                        arg = Array.isArray(arg) ? '[array]' : `[${typeof arg}]`
-                    } else if (typeof arg === 'string') {
-                        arg = `"${arg}"`
+                    if (typeof arg === 'function') {
+                        arg = '()'
+                    } else {
+                        arg = stringifyAll(arg).replace(/\n|\t|\r/g, '')
                     }
 
                     result += i === 0 ? arg : ` , ${arg}`
                 }
 
-                return result.length > 100
-                    ? result.slice(0, 100) + '...'
+                return result.length > 80
+                    ? result.slice(0, 77) + '...'
                     : result
             })()
 
