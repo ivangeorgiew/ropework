@@ -1,29 +1,78 @@
-// const commonFib = (n, cache = {}) => {
+/* bool
+ * null
+ * undef
+ * @URIError (for check use window['URIError'])
+ * str, str <= 10, str >= 0, str >= 0 <= 10, str = 5
+ * num, num <= 10, num >= 0, num >= 0 <= 10, num = 5
+ * int, int <= 10, int >= 0, int >= 0 <= 10, int = 5
+ * [], [ length: int > 2, someProp: bool ]
+ * {}, { a: num >= 5, b: bool }
+ * (), ( a: ( b: [] ) )
+ * combination of with |
+ */
+
+// const testArgTypes = `
+//     str >= 10 <= 20 | [],
+//     {
+//         :my Arr: [ :0: str, :length: int < 3 ] | null,
+//         :inner: { :abc: str >= 5 | bool, :ii: undef },
+//         :map: ( :su: bool ) | [ :2: int ] | undef,
+//         :obj: { :b: undef, :c: ( :d: { :abc: int } ) }
+//     } | { :my: int },
+//     @URIError,
+//     { :date: @Date },
+// `
+// const testArgTypes = `
+//     str >= 10 <= 20 | [ :0: int ] | null,
+//     { :a b: () | undef, :c: int },
+//     boolean   ,
+//     undef,
+//     @URIError | @Error | null,
+//     int > 5 <= 10
+// `
+
+// console.dir(parseArgTypes({ argTypes: testArgTypes }), { depth: null })
+
+// const commonFib = function (n) {
 //     try {
-//         if (n in cache) {
-//             return cache[n]
+//         if (typeof n !== 'number' || n < 0) {
+//             throw new Error('Please pass a positive integer')
+//         } else if (n > 1e7) {
+//             return Infinity
+//         } else if (n < 2) {
+//             return n
 //         }
 
-//         cache[n] = n <= 1 ? n : commonFib(n - 1, cache) + commonFib(n - 2, cache)
+//         let [res, pre1, pre2] = [0, 0, 1]
 
-//         return cache[n]
-//     } catch (error) {
-//         console.error(error)
+//         while (--n) {
+//             res = pre1 + pre2
+//             pre1 = pre2
+//             pre2 = res
+//         }
+
+//         return res
+//     } catch (err) {
+//         console.error(err)
 
 //         return NaN
 //     }
 // }
-// const startTime = Date.now()
-// console.log(commonFib(7000))
-// console.log(`executed in ${Date.now() - startTime} ms`)
+
+// const t = Date.now()
+// console.log(commonFib(1e7))
+// console.log(`exec in ${Date.now() - t}ms`)
 // const used = process.memoryUsage()
-// for (const key in used) {
-//     console.log(`${key}: ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`)
+// for (const objKey in used) {
+//     console.log(
+//         `${objKey}: ${Math.round((used[objKey] / 1024 / 1024) * 100) / 100} MB`
+//     )
 // }
 
 // const tiedPants = require('./source')
-// const { tieUp, tieUpPartial, clearCache, FriendlyError } =
-//     tiedPants({ isDevelopment: true })
+// const { tieUp, tieUpPartial, clearCache, FriendlyError } = tiedPants({
+//     isDevelopment: true
+// })
 
 // const fib = tieUp(
 //     'calculating fibonacci number',
@@ -56,7 +105,9 @@
 //     { onError: () => 'Incorrect fibonacchi calculation' }
 // )
 
-// const a = () => { throw new Error('sup') }
+// const a = () => {
+//     throw new Error('sup')
+// }
 // const b = new Error('blabla')
 // const c = [5, 6]
 // const d = { b: 6, a }
@@ -101,36 +152,56 @@
 //     }
 // )
 
+// const e = new B({ a: 123, b: 5 })
+// console.log(e.someMethod({}, [5, 10], () => {}, 5))
+// console.log(e.otherMethod({ a: true }, [], 'supup', 5))
+
 // console.log(measureFib.call(c, 4300, a, b, c, d, B))
 // console.log(measureFib.call(c, 4000, a, b, c, d, B))
 // console.log(measureFib.call(c, 4000, a, b, c, d, B))
 
-// for (let i = 1; i <= 100; i++) {
-//     console.log(measureFib.call(c, i * 4000, a, b, c, d, B))
-// }
-// // node --expose-gc
+// node --expose-gc
 // let used = process.memoryUsage()
-// for (const key in used) {
-//     console.log(`${key}: ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`)
+// for (const objKey in used) {
+//     console.log(
+//         `${objKey}: ${Math.round((used[objKey] / 1024 / 1024) * 100) / 100} MB`
+//     )
+// }
+// for (let i = 1; i <= 10000; i++) {
+//     // console.log(measureFib.call(c, i * 4000, a, b, c, d, B))
+//     tieUp('uaoeu', function () {})
+// }
+// used = process.memoryUsage()
+// for (const objKey in used) {
+//     console.log(
+//         `${objKey}: ${Math.round((used[objKey] / 1024 / 1024) * 100) / 100} MB`
+//     )
+// }
+// for (let i = 1; i <= 10000; i++) {
+//     // console.log(measureFib.call(c, i * 4000, a, b, c, d, B))
+//     tieUp('uaoeu', function () {})
+// }
+// used = process.memoryUsage()
+// for (const objKey in used) {
+//     console.log(
+//         `${objKey}: ${Math.round((used[objKey] / 1024 / 1024) * 100) / 100} MB`
+//     )
 // }
 // clearCache(fib)
 // global.gc()
 // used = process.memoryUsage()
-// for (const key in used) {
-//     console.log(`${key}: ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`)
+// for (const objKey in used) {
+//     console.log(
+//         `${objKey}: ${Math.round((used[objKey] / 1024 / 1024) * 100) / 100} MB`
+//     )
 // }
-
-// const e = new B({ a: 123, b: 5 })
-// console.log(e.someMethod())
-// console.log(e.otherMethod())
-// console.log(e)
 
 // const asyncGen = tieUp(
 //     'Asynchronous generator function test',
-//     async function * (i) {
+//     async function* (i) {
 //         yield i
 //         // throw new Error('intended')
-//         await new Promise((resolve) => setTimeout(resolve, 1000))
+//         await new Promise(resolve => setTimeout(resolve, 1000))
 //         return i + 10
 //     }
 // )
@@ -146,7 +217,7 @@
 
 // const gen = tieUp(
 //     'Generator function test',
-//     function * (i) {
+//     function* (i) {
 //         yield i
 //         // throw new Error('intended')
 //         return i + 10
@@ -160,7 +231,7 @@
 // const asyncF = tieUp(
 //     'Asynchronous function test',
 //     async function (i) {
-//         await new Promise((resolve) => setTimeout(resolve, 1000))
+//         await new Promise(resolve => setTimeout(resolve, 1000))
 //         // throw new Error('intended')
 //         return i
 //     },
@@ -169,20 +240,23 @@
 
 // asyncF(10).then(res => {
 //     console.log(res)
-//     asyncF(10).then(res => { console.log(res) })
+//     asyncF(10).then(res => {
+//         console.log(res)
+//     })
 // })
 
 // const loopAsync = tieUp(
 //     'cached loop async function',
-//     (fn, n) => new Promise((resolve, reject) => {
-//         let v
+//     (fn, n) =>
+//         new Promise((resolve, reject) => {
+//             let v
 
-//         for (let i = 0; i < n; i++) {
-//             v = fn(i)
-//         }
+//             for (let i = 0; i < n; i++) {
+//                 v = fn(i)
+//             }
 
-//         resolve(v)
-//     }),
+//             resolve(v)
+//         }),
 //     { useCache: args => args, onError: () => new Promise() }
 // )
 
@@ -201,7 +275,7 @@
 
 // const addNumbers = tieUpPartial(
 //     'adding two numbers',
-//     (a) => {
+//     a => {
 //         console.log('ran outer')
 
 //         if (typeof a !== 'number') {
@@ -209,7 +283,7 @@
 //         }
 
 //         // return []
-//         return (b) => {
+//         return b => {
 //             if (typeof b !== 'number') {
 //                 throw new Error('Inner error - please pass number')
 //             }

@@ -7,9 +7,7 @@ module.exports = function (props) {
 
     const isBrowser = typeof window === 'object'
     const isWorker = typeof importScripts === 'function'
-    const isNodeJS = typeof process === 'object' &&
-        typeof process.versions === 'object' &&
-        typeof process.versions.node === 'string'
+    const isNodeJS = typeof process?.versions?.node === 'string'
 
     const FriendlyError = class extends Error {
         constructor (...args) {
@@ -18,33 +16,44 @@ module.exports = function (props) {
         }
     }
 
-    const defaultLogger = checkIfObject(console) && typeof console.error === 'function'
-        ? console.error
-        : () => {}
+    const defaultLogger =
+        typeof console?.error === 'function' ? console.error : () => {}
 
     const browserEventNames = ['error', 'unhandledrejection']
 
-    const nodeEventNames =
-        ['uncaughtException', 'unhandledRejection', 'SIGTERM', 'SIGINT', 'SIGHUP']
+    const nodeEventNames = [
+        'uncaughtException',
+        'unhandledRejection',
+        'SIGTERM',
+        'SIGINT',
+        'SIGHUP'
+    ]
 
     const alreadyHandled = new WeakSet()
 
     let caches = new WeakMap()
 
-    const lastError = Object.seal({ errorDescr: '', argsInfo: '', errorMsg: '', time: 0 })
+    const lastError = Object.seal({
+        errorDescr: '',
+        argsInfo: '',
+        errorMsg: '',
+        time: 0
+    })
 
     // - Parameters ----------------------------------------------------------------------
     props = Object.assign({}, props)
 
-    const isDevelopment = typeof props.isDevelopment === 'boolean'
-        ? props.isDevelopment
-        : checkIfObject(process) && checkIfObject(process.env)
-            ? process.env.NODE_ENV !== 'production'
-            : false
+    const isDevelopment =
+        typeof props.isDevelopment === 'boolean'
+            ? props.isDevelopment
+            : typeof process?.env?.NODE_ENV === 'string'
+                ? process.env.NODE_ENV !== 'production'
+                : false
 
-    const errorLoggerUnhandled = typeof props.errorLogger === 'function'
-        ? props.errorLogger
-        : defaultLogger
+    const errorLoggerUnhandled =
+        typeof props.errorLogger === 'function'
+            ? props.errorLogger
+            : defaultLogger
 
     const errorLogger = function (...args) {
         try {
@@ -53,14 +62,17 @@ module.exports = function (props) {
             }
         } catch (error) {
             if (isDevelopment) {
-                defaultLogger('\n Issue with: parameter errorLogger\n', error, '\n')
+                defaultLogger(
+                    '\n Issue with: parameter errorLogger\n',
+                    error,
+                    '\n'
+                )
             }
         }
     }
 
-    const notifyUnhandled = typeof props.notify === 'function'
-        ? props.notify
-        : () => {}
+    const notifyUnhandled =
+        typeof props.notify === 'function' ? props.notify : () => {}
 
     const notify = function (...args) {
         try {
@@ -113,18 +125,20 @@ module.exports = function (props) {
             props = Object.assign({}, props)
 
             const errorDescr = (function () {
-                const descr = typeof props.descr === 'string'
-                    ? props.descr
-                    : 'a part of the app'
+                const descr =
+                    typeof props.descr === 'string'
+                        ? props.descr
+                        : 'a part of the app'
 
                 return descr.length > 80
                     ? `Issue with: ${descr.slice(0, 77)} ...}`
                     : `Issue with: ${descr}`
             })()
 
-            const error = props.error instanceof Error
-                ? props.error
-                : new Error('Unknown error')
+            const error =
+                props.error instanceof Error
+                    ? props.error
+                    : new Error('Unknown error')
 
             const argsInfo = (function () {
                 if (!Array.isArray(props.args)) {
@@ -133,7 +147,7 @@ module.exports = function (props) {
 
                 let [result, i] = ['', -1]
 
-                while (props.args.length - (++i)) {
+                while (props.args.length - ++i) {
                     let arg = props.args[i]
 
                     if (typeof arg === 'function') {
@@ -145,9 +159,7 @@ module.exports = function (props) {
                     result += i === 0 ? arg : ` , ${arg}`
                 }
 
-                return result.length > 80
-                    ? result.slice(0, 77) + '...'
-                    : result
+                return result.length > 80 ? result.slice(0, 77) + '...' : result
             })()
 
             const isFriendlyError = error instanceof FriendlyError
@@ -155,7 +167,7 @@ module.exports = function (props) {
             const prodInfo = {
                 errorDescription: errorDescr,
                 arguments: argsInfo,
-                date: (new Date()).toUTCString(),
+                date: new Date().toUTCString(),
                 error
             }
 
@@ -183,12 +195,13 @@ module.exports = function (props) {
                 lastError.errorDescr !== errorDescr ||
                 lastError.argsInfo !== argsInfo ||
                 lastError.errorMsg !== error.message ||
-                (curTime - lastError.time) > 1000
+                curTime - lastError.time > 1000
             ) {
                 errorLogger(
                     `\n ${errorDescr}\n`,
                     `Function arguments: ${argsInfo}\n`,
-                    error, '\n'
+                    error,
+                    '\n'
                 )
 
                 notify({
@@ -290,10 +303,12 @@ module.exports = function (props) {
                             cacheItem = caches.get(innerFunc)
                             i = -1
 
-                            while (cacheArgs.length - (++i)) {
+                            while (cacheArgs.length - ++i) {
                                 storageKey =
                                     cacheArgs[i] !== null &&
-                                    ['object', 'function'].includes(typeof cacheArgs[i])
+                                    ['object', 'function'].includes(
+                                        typeof cacheArgs[i]
+                                    )
                                         ? 'references'
                                         : 'primitives'
 
@@ -301,14 +316,18 @@ module.exports = function (props) {
                                     storageKey in cacheItem &&
                                     cacheItem[storageKey].has(cacheArgs[i])
                                 ) {
-                                    cacheItem = cacheItem[storageKey]
-                                        .get(cacheArgs[i])
+                                    cacheItem = cacheItem[storageKey].get(
+                                        cacheArgs[i]
+                                    )
                                 } else {
                                     break
                                 }
                             }
 
-                            if (i === cacheArgs.length && 'result' in cacheItem) {
+                            if (
+                                i === cacheArgs.length &&
+                                'result' in cacheItem
+                            ) {
                                 return cacheItem.result
                             }
 
@@ -320,12 +339,14 @@ module.exports = function (props) {
                     // regular function call
                     if (new.target === undefined) {
                         result = func.apply(this, args)
-                    // creating an object with constructor
+                        // creating an object with constructor
                     } else {
                         result = (function (Constr) {
                             return Object.create(
                                 innerFunc.prototype,
-                                Object.getOwnPropertyDescriptors(new Constr(...args))
+                                Object.getOwnPropertyDescriptors(
+                                    new Constr(...args)
+                                )
                             )
                         })(func)
                     }
@@ -333,7 +354,9 @@ module.exports = function (props) {
                     // handle async, generator and async generator
                     if (checkIfObject(result)) {
                         // the function returns an async iterator
-                        if (typeof result[Symbol.asyncIterator] === 'function') {
+                        if (
+                            typeof result[Symbol.asyncIterator] === 'function'
+                        ) {
                             result = (async function * (iter) {
                                 try {
                                     return yield * iter
@@ -341,8 +364,10 @@ module.exports = function (props) {
                                     return innerCatch({ error, args })
                                 }
                             })(result)
-                        // the function returns an iterator
-                        } else if (typeof result[Symbol.iterator] === 'function') {
+                            // the function returns an iterator
+                        } else if (
+                            typeof result[Symbol.iterator] === 'function'
+                        ) {
                             result = (function * (iter) {
                                 try {
                                     return yield * iter
@@ -350,7 +375,7 @@ module.exports = function (props) {
                                     return innerCatch({ error, args })
                                 }
                             })(result)
-                        // the function returns a promise
+                            // the function returns a promise
                         } else if (
                             typeof result.then === 'function' &&
                             typeof result.catch === 'function'
@@ -369,22 +394,26 @@ module.exports = function (props) {
                     if (Array.isArray(cacheArgs)) {
                         i = -1
 
-                        while (cacheArgs.length - (++i)) {
+                        while (cacheArgs.length - ++i) {
                             storageKey =
                                 cacheArgs[i] !== null &&
-                                ['object', 'function'].includes(typeof cacheArgs[i])
+                                ['object', 'function'].includes(
+                                    typeof cacheArgs[i]
+                                )
                                     ? 'references'
                                     : 'primitives'
 
                             if (!(storageKey in cacheItem)) {
-                                cacheItem[storageKey] = storageKey === 'references'
-                                    ? new WeakMap()
-                                    : new Map()
+                                cacheItem[storageKey] =
+                                    storageKey === 'references'
+                                        ? new WeakMap()
+                                        : new Map()
                             }
 
                             cacheItem = cacheItem[storageKey].has(cacheArgs[i])
                                 ? cacheItem[storageKey].get(cacheArgs[i])
-                                : cacheItem[storageKey].set(cacheArgs[i], {})
+                                : cacheItem[storageKey]
+                                    .set(cacheArgs[i], {})
                                     .get(cacheArgs[i])
                         }
 
@@ -425,8 +454,8 @@ module.exports = function (props) {
             const keyReg = /^\s*:.+:\s*/
             const simpleTypeReg = new RegExp(
                 '^\\s*(:([^:]+):\\s*)?(\\{\\s*\\}|\\[\\s*\\]|\\(\\s*\\)|' +
-                '@?\\w+\\s*(=\\s*\\d+|>\\s*\\d+|>=\\s*\\d+)?\\s*' +
-                '(<\\s*\\d+|<=\\s*\\d+)?)\\s*'
+                    '@?\\w+\\s*(=\\s*\\d+|>\\s*\\d+|>=\\s*\\d+)?\\s*' +
+                    '(<\\s*\\d+|<=\\s*\\d+)?)\\s*'
             )
             const openSymReg = /^\s*(:([^:]+):\s*)?(\{|\[|\()\s*/
             const closeSymReg = /^\s*(\}|\]|\))\s*/
@@ -444,7 +473,7 @@ module.exports = function (props) {
                 const currStore = (function () {
                     let [acc, i] = [parsedTypes, -1]
 
-                    while (pathToStore.length - (++i)) {
+                    while (pathToStore.length - ++i) {
                         acc = acc[pathToStore[i]]
                     }
 
@@ -456,7 +485,8 @@ module.exports = function (props) {
                     const objKey = keyReg.test(workingPart)
                         ? workingPart.replace(simpleTypeReg, '$2')
                         : ''
-                    const typeDescr = workingPart.replace(simpleTypeReg, '$3')
+                    const typeDescr = workingPart
+                        .replace(simpleTypeReg, '$3')
                         .replace(/\s+/g, '')
 
                     let parsedType
@@ -467,11 +497,15 @@ module.exports = function (props) {
                     } else if (reg2.test(typeDescr)) {
                         parsedType = { inst: typeDescr.replace(reg2, '$1') }
                     } else if (reg3.test(typeDescr)) {
-                        parsedType = JSON.parse(typeDescr.replace(reg3, `{
-                            "type": "$1",
-                            "eqs": ["$2", "$3"]
-                        }`))
-                        parsedType.eqs = parsedType.eqs.filter(eq => eq.length > 0)
+                        parsedType = JSON.parse(
+                            typeDescr.replace(
+                                reg3,
+                                '{ "type": "$1", "eqs": ["$2", "$3"] }'
+                            )
+                        )
+                        parsedType.eqs = parsedType.eqs.filter(
+                            eq => eq.length > 0
+                        )
                     } else if (reg4.test(typeDescr)) {
                         parsedType = { type: typeDescr[0] }
                     } else {
@@ -537,7 +571,8 @@ module.exports = function (props) {
                 } else if (closeSymReg.test(argTypes)) {
                     const workingPart = closeSymReg.exec(argTypes)[0]
                     const closeSym = workingPart.replace(closeSymReg, '$1')
-                    const lastOpenSym = openSymHistory[openSymHistory.length - 1]
+                    const lastOpenSym =
+                        openSymHistory[openSymHistory.length - 1]
 
                     // last open symbol has to match current close symbol
                     if (closeSymDict[lastOpenSym] !== closeSym) {
@@ -576,7 +611,9 @@ module.exports = function (props) {
 
                     // open symbols history must not be empty
                     if (openSymHistory.length < 1) {
-                        throw new Error('There are more closing symbols than opening')
+                        throw new Error(
+                            'There are more closing symbols than opening'
+                        )
                     }
 
                     // remove last opened sym, already handled
@@ -598,7 +635,7 @@ module.exports = function (props) {
 
             return parsedTypes
         },
-        { onError: () => ([]) }
+        { onError: () => [] }
     )
 
     const cloneData = createFunc(
@@ -622,10 +659,13 @@ module.exports = function (props) {
                 const { target, targetKey, targetDescriptor } = curr
 
                 if (refs.has(data)) {
-                    Object.defineProperty(target, targetKey, Object.assign(
-                        targetDescriptor,
-                        { value: refs.get(data) }
-                    ))
+                    Object.defineProperty(
+                        target,
+                        targetKey,
+                        Object.assign(targetDescriptor, {
+                            value: refs.get(data)
+                        })
+                    )
                     continue
                 }
 
@@ -653,20 +693,25 @@ module.exports = function (props) {
                 Object.setPrototypeOf(handledData, Object.getPrototypeOf(data))
 
                 const descriptors = Object.getOwnPropertyDescriptors(data)
-                const descriptorKeys = Object
-                    .getOwnPropertyNames(descriptors)
-                    .concat(Object.getOwnPropertySymbols(descriptors))
+                const descriptorKeys = Object.getOwnPropertyNames(
+                    descriptors
+                ).concat(Object.getOwnPropertySymbols(descriptors))
 
                 let i = -1
 
-                while (descriptorKeys.length - (++i)) {
-                    const key = descriptorKeys[i]
+                while (descriptorKeys.length - ++i) {
+                    // key can be a Symbol
+                    const key = String(descriptorKeys[i])
 
                     try {
                         const value = descriptors[key].value
 
                         if (!('value' in descriptors[key])) {
-                            Object.defineProperty(handledData, key, descriptors[key])
+                            Object.defineProperty(
+                                handledData,
+                                key,
+                                descriptors[key]
+                            )
                             continue
                         }
 
@@ -675,10 +720,12 @@ module.exports = function (props) {
                             ['object', 'function'].includes(typeof value) &&
                             !String(key).match(/.+(OnError|UseCache)$/)
                         ) {
-                            // key can be a Symbol
-                            const keyDescr = `${descr}["${String(key)}"]`
-                            const argTypes = data[`${String(key)}ArgTypes`]
-                            const types = parseArgTypes({ descr: keyDescr, argTypes })
+                            const keyDescr = `${descr}["${key}"]`
+                            const argTypes = data[`${key}ArgTypes`]
+                            const types = parseArgTypes({
+                                descr: keyDescr,
+                                argTypes
+                            })
 
                             stack.push({
                                 target: handledData,
@@ -688,8 +735,8 @@ module.exports = function (props) {
                                 data: value,
                                 refs,
                                 options: {
-                                    onError: data[`${String(key)}OnError`],
-                                    useCache: data[`${String(key)}UseCache`],
+                                    onError: data[`${key}OnError`],
+                                    useCache: data[`${key}UseCache`],
                                     types
                                 }
                             })
@@ -703,8 +750,7 @@ module.exports = function (props) {
                         )
                     } catch (error) {
                         logError({
-                            // key can be a Symbol
-                            descr: `assigning method ${String(key)} to ${descr}`,
+                            descr: `assigning method ${key} to ${descr}`,
                             error,
                             args: [data, handledData]
                         })
@@ -715,10 +761,11 @@ module.exports = function (props) {
                     result = handledData
                     isFirstCall = false
                 } else {
-                    Object.defineProperty(target, targetKey, Object.assign(
-                        targetDescriptor,
-                        { value: handledData }
-                    ))
+                    Object.defineProperty(
+                        target,
+                        targetKey,
+                        Object.assign(targetDescriptor, { value: handledData })
+                    )
                 }
             }
 
@@ -730,7 +777,10 @@ module.exports = function (props) {
     const tieUp = createFunc(
         'tying up data',
         function (descr, data, options) {
-            if (data === null || !['object', 'function'].includes(typeof data)) {
+            if (
+                data === null ||
+                !['object', 'function'].includes(typeof data)
+            ) {
                 return data
             }
 
@@ -782,15 +832,16 @@ module.exports = function (props) {
                     if (typeof appliedFunc !== 'function') {
                         throw new Error(
                             'Partial function should return a function, ' +
-                            'instead received ' + typeof appliedFunc
+                                'instead received ' +
+                                typeof appliedFunc
                         )
                     }
 
-                    return tieUp(
-                        descr,
-                        appliedFunc,
-                        { useCache, onError, argTypes }
-                    )
+                    return tieUp(descr, appliedFunc, {
+                        useCache,
+                        onError,
+                        argTypes
+                    })
                 },
                 {
                     argTypes: argTypesOuter,
@@ -813,10 +864,9 @@ module.exports = function (props) {
         }
     )
 
-    const clearAllCaches = tieUp(
-        'clearing all the caches',
-        function () { caches = new WeakMap() }
-    )
+    const clearAllCaches = tieUp('clearing all the caches', function () {
+        caches = new WeakMap()
+    })
 
     const getHandledServer = tieUp(
         'initializing error handling for server',
@@ -825,28 +875,30 @@ module.exports = function (props) {
                 throw new Error('This function is meant for NodeJS')
             }
 
-            sockets = sockets instanceof Set
-                ? sockets
-                : new Set()
+            sockets = sockets instanceof Set ? sockets : new Set()
 
-            server.on('connection', tieUp(
-                'adding sockets to server',
-                function (socket) {
+            server.on(
+                'connection',
+                tieUp('adding sockets to server', function (socket) {
                     sockets.add(socket)
-                    socket.on('close', () => { sockets.delete(socket) })
-                }
-            ))
+                    socket.on('close', () => {
+                        sockets.delete(socket)
+                    })
+                })
+            )
 
             let i = -1
 
-            while (nodeEventNames.length - (++i)) {
-                process.prependListener(nodeEventNames[i], tieUp(
-                    'handling server closing',
-                    function () {
+            while (nodeEventNames.length - ++i) {
+                process.prependListener(
+                    nodeEventNames[i],
+                    tieUp('handling server closing', function () {
                         server.close()
-                        sockets.forEach(socket => { socket.destroy() })
-                    }
-                ))
+                        sockets.forEach(socket => {
+                            socket.destroy()
+                        })
+                    })
+                )
             }
 
             return server
@@ -871,17 +923,19 @@ module.exports = function (props) {
             ) {
                 throw new Error(
                     'Invalid parameters, expected: ' +
-                    'app(function|object), onError(undefined|function)'
+                        'app(function|object), onError(undefined|function)'
                 )
             }
 
             if (onError === undefined) {
                 onError = function ({ args: [_, res], error }) {
-                    const { message = error, stack = '' } = Object.assign({}, error)
-
                     if (!res.headersSent) {
                         res.status(500).json({
-                            error: { name: 'Internal server error', message, stack }
+                            error: {
+                                name: 'Internal server error',
+                                message: error?.message ?? error,
+                                stack: error?.stack ?? ''
+                            }
                         })
                     }
                 }
@@ -897,15 +951,16 @@ module.exports = function (props) {
                     ) {
                         throw new Error(
                             'Invalid parameters provided, expected: ' +
-                            'method(string), path(string), callback(function)'
+                                'method(string), path(string), callback(function)'
                         )
                     }
 
-                    app[method](path, tieUp(
-                        `${method.toUpperCase()} ${path}`,
-                        callback,
-                        { onError }
-                    ))
+                    app[method](
+                        path,
+                        tieUp(`${method.toUpperCase()} ${path}`, callback, {
+                            onError
+                        })
+                    )
                 }
             )
         },
@@ -922,11 +977,12 @@ module.exports = function (props) {
                     eventOrError.stopImmediatePropagation()
                     eventOrError.preventDefault()
 
-                    error = eventOrError.reason instanceof Error
-                        ? eventOrError.reason
-                        : eventOrError.error instanceof Error
-                            ? eventOrError.error
-                            : new Error('Uncaught error')
+                    error =
+                        eventOrError.reason instanceof Error
+                            ? eventOrError.reason
+                            : eventOrError.error instanceof Error
+                                ? eventOrError.error
+                                : new Error('Uncaught error')
                 }
 
                 logError({ descr: 'unhandled error', error })
@@ -946,7 +1002,11 @@ module.exports = function (props) {
                     logError({ descr: 'unhandled error', error: eventOrError })
                 }
 
-                global.setTimeout(() => { process.exit(exitCode) }, 500).unref()
+                global
+                    .setTimeout(() => {
+                        process.exit(exitCode)
+                    }, 500)
+                    .unref()
             }
         }
     )
@@ -954,29 +1014,31 @@ module.exports = function (props) {
     if ((isBrowser || isWorker) && !self.tp_areUnhandledCaught) {
         let i = -1
 
-        while (browserEventNames.length - (++i)) {
-            self.addEventListener(browserEventNames[i], uncaughtErrorListener, true)
+        while (browserEventNames.length - ++i) {
+            self.addEventListener(
+                browserEventNames[i],
+                uncaughtErrorListener,
+                true
+            )
         }
 
-        Object.defineProperty(
-            self,
-            'tp_areUnhandledCaught',
-            { value: true, configurable: true }
-        )
+        Object.defineProperty(self, 'tp_areUnhandledCaught', {
+            value: true,
+            configurable: true
+        })
     }
 
     if (isNodeJS && !global.tp_areUnhandledCaught) {
         let i = -1
 
-        while (nodeEventNames.length - (++i)) {
+        while (nodeEventNames.length - ++i) {
             process.on(nodeEventNames[i], uncaughtErrorListener)
         }
 
-        Object.defineProperty(
-            global,
-            'tp_areUnhandledCaught',
-            { value: true, configurable: true }
-        )
+        Object.defineProperty(global, 'tp_areUnhandledCaught', {
+            value: true,
+            configurable: true
+        })
     }
 
     return {

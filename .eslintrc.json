@@ -1,17 +1,18 @@
 {
     "env": {
         "browser": true,
-        "es2021": true,
+        "es6": true,
         "node": true,
         "worker": true
     },
     "extends": [
         "eslint:recommended",
-        "standard"
+        "standard",
+        "plugin:compat/recommended"
     ],
     "rules": {
         "no-undef": ["error", { "typeof": true }],
-        "max-len": ["error", { "code": 90 }],
+        "max-len": ["error", { "code": 100 }],
         "indent": ["error", 4],
         "no-use-before-define": "off",
         "new-cap": "off"
