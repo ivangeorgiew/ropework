@@ -1,4 +1,4 @@
-// const { FriendlyError, changeOptions, tieUp } = require('../dist/index')
+/// const { FriendlyError, changeOptions, tieUp } = require('../dist/index')
 
 // changeOptions({ isDevelopment: true })
 
