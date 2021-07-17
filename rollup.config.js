@@ -1,15 +1,28 @@
-import resolve from '@rollup/plugin-node-resolve'
+import babel from '@rollup/plugin-babel'
 import { terser } from 'rollup-plugin-terser'
 
 export default {
-    input: 'source.js',
-    output: [
-        { file: 'cjs/tied-pants.dev.js', format: 'cjs' },
-        {
-            file: 'cjs/tied-pants.prod.min.js',
-            format: 'cjs',
-            plugins: [terser()]
-        }
+    input: 'src/index.js',
+    plugins: [
+        babel({
+            babelHelpers: 'bundled',
+            presets: ['@babel/preset-env']
+        }),
+        terser({
+            ecma: 6,
+            compress: {
+                keep_infinity: true,
+                pure_getters: true,
+                passes: 5
+            }
+        })
     ],
-    plugins: [resolve()]
+    output: [
+        { file: 'dist/index.js', format: 'cjs', sourcemap: true },
+        { file: 'dist/index.esm.js', format: 'esm', sourcemap: true }
+    ],
+    treeshake: {
+        propertyReadSideEffects: false,
+        tryCatchDeoptimization: false
+    }
 }

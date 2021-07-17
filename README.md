@@ -12,14 +12,14 @@ Be a good developer, tie your pants!
 ## Usage
 
 To start using this package you need to first install locally:
-`npm i tied-pants` or `pnpm i tied-pants` or `yarn add tied-pants`
+`npm i tied-pants` or `pnpm add tied-pants` or `yarn add tied-pants`
 
 ## Front-end Example:
 
 ```
-import tiedPants from 'tied-pants'
+import { tieUp, FriendlyError, changeOptions } from 'tied-pants'
 
-const { tieUp, FriendlyError } = tiedPants({
+changeOptions({
     notify: ({ isDevelopment, isFriendlyError, errorDescr, prodInfo }) => {
         // TODO if app is for developers, remove isFriendlyError check
         else if (isFriendlyError) {
@@ -107,9 +107,8 @@ setTimeout(() => { uncaughtSyncFunc() }, 500)
 ```
 const http = require('http')
 const express = require('express')
-const tiedPants = require('tied-pants')
+const { getHandledServer, getRoutingCreator } = require('tied-pants')
 
-const { getHandledServer, getRoutingCreator } = tiedPants()
 const app = express()
 const createRoute = getRoutingCreator(app)
 
@@ -133,43 +132,6 @@ server.listen(port, () => {
     console.log(`Server running on port ${port}`)
 })
 ```
-
-### API for parameters passed to imported function:
-
--   `isDevelopment`
-
-    -   type: `boolean`
-    -   default: `process.env.NODE_ENV !== 'production'`
-    -   definition: Boolean that indicates if the environment is not in prod
-
--   `shouldFreezePage`
-
-    -   type: `boolean`
-    -   default: `false`
-    -   definition: Should the webpage be frozen on unhandled error
-
--   `errorLogger`
-
-    -   type: `errMsg` -> ?
-    -   default: `console.error`
-    -   definition: Function for logging developer errors
-    -   `errMsg`:
-        ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
-
--   `notify`
-    -   type:
-        `({ isDevelopment, isFriendlyError, errorDescr, prodInfo, error })` -> ?
-    -   default: `() => {}`
-    -   definition: Function for notifying the user with friendly error messages
-        and logging in production.
-    -   `isDevelopment`: Boolean that indicates if the environment is not in
-        prod
-    -   `isFriendlyError`: Boolean that indicates whether `error.message` is for
-        regular users
-    -   `errorDescr`: String that describes what the functionality was supposed
-        to be doing
-    -   `prodInfo`: Object that consists of useful info for production logging
-    -   `error`: Error object that was thrown
 
 ### API for returned values from the imported function:
 
@@ -242,11 +204,6 @@ server.listen(port, () => {
     -   `tiedFunc`: Function that was created with `tieUp` and has caching
         enabled via `useCache`.
 
--   `clearAllCaches`
-
-    -   type: `()` -> ?
-    -   definition: Function that clears all function caches.
-
 -   `getHandledServer`
 
     -   type: `(server, sockets)` -> `handledServer`
@@ -258,6 +215,7 @@ server.listen(port, () => {
         used insted.
 
 -   `getRoutingCreator`
+
     -   type: `(app, onError)` -> `createRoute`
     -   definition: Creates a function that can be used with different server
         frameworks. Returns a function that takes `(method, path, onTry)` and
@@ -269,3 +227,38 @@ server.listen(port, () => {
         Express)
     -   `onError`: Function to be executed on error for any route. Default
         `onError` is provided if you haven't specified it yourself.
+
+-   `changeOptions`
+    -   type: `({ isDevelopment, errorLogger, notify })` -> ?
+    -   definition: Changes the options according to the below api
+
+### API for options:
+
+-   `isDevelopment`
+
+    -   type: `boolean`
+    -   default: `process.env.NODE_ENV !== 'production'`
+    -   definition: Boolean that indicates if the environment is not in prod
+
+-   `errorLogger`
+
+    -   type: `errMsg` -> ?
+    -   default: `console.error`
+    -   definition: Function for logging developer errors
+    -   `errMsg`:
+        ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
+
+-   `notify`
+    -   type:
+        `({ isDevelopment, isFriendlyError, errorDescr, prodInfo, error })` -> ?
+    -   default: `() => {}`
+    -   definition: Function for notifying the user with friendly error messages
+        and logging in production.
+    -   `isDevelopment`: Boolean that indicates if the environment is not in
+        prod
+    -   `isFriendlyError`: Boolean that indicates whether `error.message` is for
+        regular users
+    -   `errorDescr`: String that describes what the functionality was supposed
+        to be doing
+    -   `prodInfo`: Object that consists of useful info for production logging
+    -   `error`: Error object that was thrown

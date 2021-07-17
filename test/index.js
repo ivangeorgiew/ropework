@@ -1,3 +1,7 @@
+// const { FriendlyError, changeOptions, tieUp } = require('../dist/index')
+
+// changeOptions({ isDevelopment: true })
+
 /* bool
  * null
  * undef
@@ -69,11 +73,6 @@
 //     )
 // }
 
-// const tiedPants = require('./source')
-// const { tieUp, tieUpPartial, clearCache, FriendlyError } = tiedPants({
-//     isDevelopment: true
-// })
-
 // const fib = tieUp(
 //     'calculating fibonacci number',
 //     function (n, a, b, c, d, e) {
@@ -117,17 +116,17 @@
 // const A = tieUp(
 //     'class A',
 //     class {
-//         constructor ({ a }) {
+//         constructor({ a }) {
 //             this.a = a
 //             this.b = 6
 //         }
 
-//         someMethod () {
+//         someMethod() {
 //             throw new Error('intentional error')
 //             // return 'sup'
 //         }
 
-//         someMethodOnError () {
+//         someMethodOnError() {
 //             return 5
 //         }
 //     }
@@ -136,17 +135,17 @@
 // const B = tieUp(
 //     'class B',
 //     class extends A {
-//         constructor ({ a, b }) {
+//         constructor({ a, b }) {
 //             super({ a })
 //             this.c = b
 //         }
 
-//         otherMethod () {
+//         otherMethod() {
 //             throw new Error('other error')
 //             // return 'bla'
 //         }
 
-//         otherMethodOnError () {
+//         otherMethodOnError() {
 //             return 10
 //         }
 //     }
@@ -157,8 +156,8 @@
 // console.log(e.otherMethod({ a: true }, [], 'supup', 5))
 
 // console.log(measureFib.call(c, 4300, a, b, c, d, B))
-// console.log(measureFib.call(c, 4000, a, b, c, d, B))
-// console.log(measureFib.call(c, 4000, a, b, c, d, B))
+// console.log(measureFib.call(c, 3800, a, b, c, d, B))
+// console.log(measureFib.call(c, 3800, a, b, c, d, B))
 
 // node --expose-gc
 // let used = process.memoryUsage()
@@ -187,7 +186,6 @@
 //         `${objKey}: ${Math.round((used[objKey] / 1024 / 1024) * 100) / 100} MB`
 //     )
 // }
-// clearCache(fib)
 // global.gc()
 // used = process.memoryUsage()
 // for (const objKey in used) {
