@@ -1,26 +1,28 @@
 import { createFunc } from './createFunc'
 import { logError } from './logging'
-import { parseArgTypes } from './validation'
 
-export const cloneData = createFunc(
-    'cloning data error-handled',
-    function (props) {
-        props = Object.assign({}, props)
-
-        if (
-            props.data === null ||
-            !['object', 'function'].includes(typeof props.data)
-        ) {
-            return props.data
-        }
-
+export const cloneData = createFunc({
+    descr: 'cloning data error-handled',
+    argTypes: `{
+        :options: {
+            :desrc: string,
+            :onError: () | undef,
+            :useCache: () | undef,
+            :argTypes: str | undef,
+            :data: {} | ()
+        },
+        :refs: @WeakMap
+    }`,
+    onError: ({ args: [props] }) => props?.options?.data,
+    data: function (props) {
         const stack = [props]
         let [result, isFirstCall] = [undefined, true]
 
         while (stack.length) {
             const curr = stack.pop()
-            const { descr, data, refs, options } = curr
             const { target, targetKey, targetDescriptor } = curr
+            const { options, refs } = curr
+            const { descr, data } = options
 
             if (refs.has(data)) {
                 Object.defineProperty(
@@ -36,7 +38,7 @@ export const cloneData = createFunc(
             let handledData
 
             if (typeof data === 'function') {
-                handledData = createFunc(descr, data, options)
+                handledData = createFunc(options)
             } else if (data instanceof RegExp) {
                 const regExpText = String(data)
                 const lastSlashIdx = regExpText.lastIndexOf('/')
@@ -84,24 +86,17 @@ export const cloneData = createFunc(
                         ['object', 'function'].includes(typeof value) &&
                         !String(key).match(/.+(OnError|UseCache)$/)
                     ) {
-                        const keyDescr = `${descr}["${key}"]`
-                        const argTypes = data[`${key}ArgTypes`]
-                        const types = parseArgTypes({
-                            descr: keyDescr,
-                            argTypes
-                        })
-
                         stack.push({
                             target: handledData,
                             targetKey: key,
                             targetDescriptor: descriptors[key],
-                            descr: keyDescr,
-                            data: value,
                             refs,
                             options: {
+                                descr: `${descr}["${key}"]`,
                                 onError: data[`${key}OnError`],
                                 useCache: data[`${key}UseCache`],
-                                types
+                                argTypes: data[`${key}ArgTypes`],
+                                data: value
                             }
                         })
                         continue
@@ -134,6 +129,5 @@ export const cloneData = createFunc(
         }
 
         return result
-    },
-    { onError: ({ args: [props] }) => Object.assign({}, props).data }
-)
+    }
+})

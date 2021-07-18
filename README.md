@@ -22,7 +22,7 @@ import { tieUp, FriendlyError, changeOptions } from 'tied-pants'
 changeOptions({
     notify: ({ isDevelopment, isFriendlyError, errorDescr, prodInfo }) => {
         // TODO if app is for developers, remove isFriendlyError check
-        else if (isFriendlyError) {
+        if (isFriendlyError) {
             // TODO change with WARNING notification
             alert(`WARNING - ${error.message}`)
         }
@@ -34,32 +34,36 @@ changeOptions({
     }
 })
 
-const printNum = tieUp(
-    'printing a number',
-    num => {
+const printNum = tieUp({
+    descr: 'printing a number',
+    argTypes: 'num',
+    data: num => {
         blabla
         return num
     },
-    { onError: ({ args: [num] }) => {
+    onError: ({ args: [num] }) => {
         console.log(`Ran inside catch - the argument was ${num}`)
         return 0
-    } }
-)
+    }
+})
 
-const fib = tieUp(
-    'calculating fibonacci number',
-    (n) => {
+const fib = tieUp({
+    descr: 'calculating fibonacci number',
+    argTypes: 'int',
+    useCache: ([n]) => [n],
+    onError: () => 0,
+    data: (n) => {
         if (n < 0 || Math.trunc(n) !== n)
             throw new FriendlyError('The passed input wasnt possitive number')
 
         return n <= 1 ? n : fib(n-1) + fib(n-2)
-    },
-    { useCache: ([n]) => [n], onError: () => 0 }
-)
+    }
+})
 
-const measureFib = tieUp(
-    'Measuring time for fibonacci number',
-    num => {
+const measureFib = tieUp({
+    descr: 'Measuring time for fibonacci number',
+    argTypes: 'int',
+    data: num => {
         const startTime = Date.now()
 
         try {
@@ -68,12 +72,13 @@ const measureFib = tieUp(
             console.log(`execution time ${Date.now() - startTime}ms`)
         }
     },
-    { onError: () => 'Incorrect fibonacchi calculation' }
-)
+    onError: () => 'Incorrect fibonacchi calculation'
+})
 
-const delayReturn = tieUp(
-    'Delaying async function',
-    async (ms) => {
+const delayReturn = tieUp({
+    descr: 'Delaying async function',
+    argTypes: 'int >= 500 <= 2000',
+    data: async (ms) => {
         await new Promise(resolve => setTimeout(resolve, ms))
 
         if (typeof ms === 'number')
@@ -81,8 +86,8 @@ const delayReturn = tieUp(
         else
             throw new FriendlyError('Could not delay properly')
     },
-    { onError: () => 'Default result' }
-)
+    onError: () => 'Default result'
+})
 
 console.log('printNum(9)', printNum(9))
 delayReturn(10).then(val => console.log('delayReturn(10) ' + val))
@@ -160,7 +165,8 @@ server.listen(port, () => {
 
 -   `tieUp`
 
-    -   type: `(descr, data, { onError, useCache })` -> `error handled data`
+    -   type: `({ descr, data, argTypes, onError, useCache })` ->
+        `error handled data`
     -   definition: Function that error handles any type of data that you give
         it.
     -   `descr`: String that describes the data. Can be ommited. It is used to
@@ -179,12 +185,39 @@ server.listen(port, () => {
         the creating of the cache key. Additionaly, a method with the name
         `someMethodUseCache` is considered the same as this function, but for
         `someMethod`.
+    -   `argTypes`: String which is used for checking function arguments types.
+        Supports simple types which start with the following wording `bool`,
+        `null`, `undef`, `any`, but `booleanSomeOtherChars` would also work.
+        Type for checking if an instance of is `@URIError` - must start with `@`
+        immediately followed by the constructor. Also supports the following
+        types: `str`, `num`, `int`. This is valid: `int > 10 <= 123`,
+        `str = 44`. Must start with `int (=|>|>=) 1234` and optionally followed
+        by `(<|<=) 4321`. Objects - `{}`, arrays - `[]`, functions - `()` can be
+        so defined or can contain property keys to be checked with the syntax -
+        `[ :my Specialy,% key: int, :length: 4, :a: { :b: bool } ]`. The key
+        must be between the starting and ending `:`. Finally - any of those
+        types can be followed by `|` which indicates OR some other type -
+        `null | { :a: @Error | {} | undef }`. Full example:
+        ```
+         const argTypes = `
+             str >= 10 <= 20 | [],
+             {
+                 :my Arr: [ :0: str, :length: int < 3 ] | null,
+                 :inner: { :abc: str >= 5 | any, :ii: undef },
+                 :map: ( :su: bool ) | [ :2: int ] | undef,
+                 :obj: { :b: undef, :c: ( :d: { :abc: int } ) }
+             } | { :my: any },
+             @URIError,
+             { :date: @Date },
+             any,
+        `
+        ```
 
 -   `tieUpPartial`
 
     -   type:
-        `(descr, data, { onErrorOuter, onError, useCacheOuter, useCache })` ->
-        `error handled function`
+        `({ descr, data, argTypesOuter, argTypes, onErrorOuter, onError, useCacheOuter, useCache })`
+        -> `error handled function`
     -   definition: Function that error handles a function that returns another
         function.
     -   `descr`: String used for `descr` of the inner function.
@@ -194,15 +227,9 @@ server.listen(port, () => {
         `() => () => {}`.
     -   `onError`: Same as above for the inner function.
     -   `useCacheOuter`: Same as above for the outer function.
-    -   `usecache`: Same as above for the inner function.
-
--   `clearCache`
-
-    -   type: `tiedFunc` -> ?
-    -   definition: Function that clears the cache of the provided tied
-        function.
-    -   `tiedFunc`: Function that was created with `tieUp` and has caching
-        enabled via `useCache`.
+    -   `useCache`: Same as above for the inner function.
+    -   `argTypesOuter`: Same as above for the outer function.
+    -   `argTypes`: Same as above for the inner function.
 
 -   `getHandledServer`
 

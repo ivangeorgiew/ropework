@@ -1,24 +1,33 @@
-import { createFunc } from './createFunc'
+import { logError } from './logging'
 
-export const parseArgTypes = createFunc(
-    'parsing argTypes string to array',
-    function ({ descr, argTypes = '' }) {
-        if (typeof argTypes !== 'string') {
-            throw new TypeError(`${descr} - argTypes must be a string`)
-        }
+/* bool
+ * null
+ * undef
+ * any
+ * @URIError (for check use window['URIError'])
+ * str, str <= 10, str >= 0, str >= 0 <= 10, str = 5
+ * num, num <= 10, num >= 0, num >= 0 <= 10, num = 5
+ * int, int <= 10, int >= 0, int >= 0 <= 10, int = 5
+ * [], [ length: int > 2, someProp: bool ]
+ * {}, { a: num >= 5, b: bool }
+ * (), ( a: ( b: [] ) )
+ * combination of with |
+ */
 
+export const parseArgTypes = function (argTypes) {
+    try {
         argTypes = argTypes.replace(/\n|\t|\r/g, '')
 
         const keyReg = /^\s*:.+:\s*/
         const simpleTypeReg = new RegExp(
             '^\\s*(:([^:]+):\\s*)?(\\{\\s*\\}|\\[\\s*\\]|\\(\\s*\\)|' +
-                '@?\\w+\\s*(=\\s*\\d+|>\\s*\\d+|>=\\s*\\d+)?\\s*' +
+                '@\\w+|\\w+\\s*(=\\s*\\d+|>\\s*\\d+|>=\\s*\\d+)?\\s*' +
                 '(<\\s*\\d+|<=\\s*\\d+)?)\\s*'
         )
         const openSymReg = /^\s*(:([^:]+):\s*)?(\{|\[|\()\s*/
         const closeSymReg = /^\s*(\}|\]|\))\s*/
         const endReg = /^(\}|\]|\)|\||,|$)/
-        const reg1 = /^(null|undef|bool)\w*$/
+        const reg1 = /^(null|undef|bool|any)\w*$/
         const reg2 = /^@(\w+)$/
         const reg3 = /^(str|num|int)\w*(=\d+|>\d+|>=\d+)?(<\d+|<=\d+)?$/
         const reg4 = /^(\{\}|\[\]|\(\))$/
@@ -189,6 +198,36 @@ export const parseArgTypes = createFunc(
         }
 
         return parsedTypes
-    },
-    { onError: () => [] }
-)
+    } catch (error) {
+        logError({
+            descr: 'parsing argTypes string to array',
+            args: [argTypes],
+            error
+        })
+
+        return []
+    }
+}
+
+// const testArgTypes = `
+//     str >= 10 <= 20 | [],
+//     {
+//         :my Arr: [ :0: str, :length: int < 3 ] | null,
+//         :inner: { :abc: str >= 5 | any, :ii: undef },
+//         :map: ( :su: bool ) | [ :2: int ] | undef,
+//         :obj: { :b: undef, :c: ( :d: { :abc: int } ) }
+//     } | { :my: any },
+//     @URIError,
+//     { :date: @Date },
+//     any,
+// `
+// const testArgTypes = `
+//     str >= 10 <= 20 | [ :0: int ] | null,
+//     { :a b: () | undef, :c: int },
+//     boolean   ,
+//     undef,
+//     @URIError | @Error | null,
+//     int > 5 <= 10
+// `
+
+// console.dir(parseArgTypes({ argTypes: testArgTypes }), { depth: null })

@@ -1,5 +1,12 @@
-import { FriendlyError, isBrowser, isNodeJS, isWorker } from './constants'
-import { errorLogger, isDevelopment, notify } from './options'
+import {
+    FriendlyError,
+    errorLogger,
+    isBrowser,
+    isDevelopment,
+    isNodeJS,
+    isWorker,
+    notify
+} from '../options'
 
 const lastError = Object.seal({
     errorDescr: '',

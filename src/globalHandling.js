@@ -1,10 +1,17 @@
-import { browserEventNames, isBrowser, isNodeJS, isWorker, nodeEventNames } from './constants'
-import { logError } from './logging'
+import {
+    browserEventNames,
+    isBrowser,
+    isNodeJS,
+    isWorker,
+    nodeEventNames
+} from './options'
 import { tieUp } from './tieUp'
+import { logError } from './utils/logging'
 
-const uncaughtErrorListener = tieUp(
-    'listening for uncaught errors',
-    function (eventOrError) {
+const uncaughtErrorListener = tieUp({
+    descr: 'listening for uncaught errors',
+    argTypes: '@Event | @Error | undef',
+    data: function (eventOrError) {
         if (isBrowser || isWorker) {
             let error
 
@@ -16,8 +23,8 @@ const uncaughtErrorListener = tieUp(
                     eventOrError.reason instanceof Error
                         ? eventOrError.reason
                         : eventOrError.error instanceof Error
-                            ? eventOrError.error
-                            : new Error('Uncaught error')
+                        ? eventOrError.error
+                        : new Error('Uncaught error')
             }
 
             logError({ descr: 'unhandled error', error })
@@ -44,7 +51,7 @@ const uncaughtErrorListener = tieUp(
                 .unref()
         }
     }
-)
+})
 
 if ((isBrowser || isWorker) && !self.tp_areUnhandledCaught) {
     let i = -1

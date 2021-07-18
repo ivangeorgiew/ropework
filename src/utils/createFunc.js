@@ -4,39 +4,22 @@ import { logError } from './logging'
 const alreadyHandled = new WeakSet()
 const caches = new WeakMap()
 
-export const createFunc = function (descr, func, options) {
+// TODO: validate createFunc args with argTypes validation
+export const createFunc = function (props) {
     try {
-        options = Object.assign({}, options)
+        props = Object.assign({}, props)
 
-        // TODO: add 'types = []' and validate them
-        const { onError = () => {}, useCache } = options
+        // TODO: , argTypes = ''
+        const { descr, data, onError = () => {}, useCache } = props
 
-        if (typeof descr !== 'string') {
-            throw new TypeError(`${descr} - First arg must be a string`)
-        }
-
-        if (typeof func !== 'function') {
-            throw new TypeError(`"${descr}" must be a function`)
-        }
-
-        if (typeof onError !== 'function') {
-            throw new TypeError(`${descr} - onError must be a function`)
-        }
-
-        if (useCache !== undefined && typeof useCache !== 'function') {
-            throw new TypeError(`${descr} - useCache must be a function`)
-        }
-
-        // TODO
-        // if (!Array.isArray(types)) {
-        //     throw new TypeError(`${descr} - types must be an array`)
-        // }
-
-        if (alreadyHandled.has(func)) {
-            return func
+        if (alreadyHandled.has(data)) {
+            return data
         }
 
         let unfinishedCalls = 0
+
+        // TODO: add and validate types
+        // const types = parseArgTypes(argTypes)
 
         const innerCatch = function ({ error, args }) {
             if (unfinishedCalls > 1) {
@@ -115,7 +98,7 @@ export const createFunc = function (descr, func, options) {
 
                 // regular function call
                 if (new.target === undefined) {
-                    result = func.apply(this, args)
+                    result = data.apply(this, args)
                     // creating an object with constructor
                 } else {
                     result = (function (Constr) {
@@ -125,7 +108,7 @@ export const createFunc = function (descr, func, options) {
                                 new Constr(...args)
                             )
                         )
-                    })(func)
+                    })(data)
                 }
 
                 // handle async, generator and async generator
@@ -206,7 +189,7 @@ export const createFunc = function (descr, func, options) {
         logError({
             descr: 'creating error-handled function',
             error,
-            args: [descr, func, options]
+            args: [props]
         })
 
         return () => {}

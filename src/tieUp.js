@@ -1,26 +1,24 @@
-import { cloneData } from './cloning'
-import { createFunc } from './createFunc'
-import { parseArgTypes } from './validation'
+import { cloneData } from './utils/cloning'
+import { createFunc } from './utils/createFunc'
 
-export const tieUp = createFunc(
-    'tying up data',
-    function (descr, data, options) {
+export const tieUp = createFunc({
+    descr: 'tying up data',
+    argTypes: `{
+        :descr: str,
+        :argTypes: str | undef,
+        :onError: () | undef,
+        :useCache: () | undef,
+        :data: any
+    }`,
+    onError: ({ args: [props] }) => props?.data,
+    data: function (props) {
+        const { descr, data } = props
+
         if (data === null || !['object', 'function'].includes(typeof data)) {
             return data
         }
 
-        options = Object.assign({}, options)
-        options.types = parseArgTypes({
-            descr,
-            argTypes: options.argTypes
-        })
-
-        const handledData = cloneData({
-            descr,
-            data,
-            options,
-            refs: new WeakMap()
-        })
+        const handledData = cloneData({ options: props, refs: new WeakMap() })
 
         if (typeof handledData === 'function') {
             Object.defineProperty(handledData, 'name', {
@@ -30,28 +28,41 @@ export const tieUp = createFunc(
         }
 
         return handledData
-    },
-    { onError: ({ args }) => args[1] }
-)
+    }
+})
 
-export const tieUpPartial = tieUp(
-    'tying up a partial function',
-    function (descr, func, options) {
-        options = Object.assign({}, options)
-
+export const tieUpPartial = tieUp({
+    descr: 'tying up a partial function',
+    argTypes: `{
+        :descr: str,
+        :argTypes: str | undef,
+        :onError: () | undef,
+        :useCache: () | undef,
+        :argTypesOuter: str | undef,
+        :onErrorOuter: () | undef,
+        :useCacheOuter: () | undef,
+        :data: ()
+    }`,
+    onError: () => () => () => {},
+    data: function (props) {
         const {
+            descr,
             onErrorOuter = () => () => {},
             useCacheOuter,
             argTypesOuter,
             onError = () => {},
             useCache,
-            argTypes
-        } = Object.assign({}, options)
+            argTypes,
+            data
+        } = props
 
-        const handledPartialFunc = tieUp(
-            `partially ${descr}`,
-            function (...args) {
-                const appliedFunc = func.apply(this, args)
+        const handledPartialFunc = tieUp({
+            descr: `partially ${descr}`,
+            argTypes: argTypesOuter,
+            useCache: useCacheOuter,
+            onError: onErrorOuter,
+            data: function (...args) {
+                const appliedFunc = data.apply(this, args)
 
                 if (typeof appliedFunc !== 'function') {
                     throw new Error(
@@ -61,20 +72,16 @@ export const tieUpPartial = tieUp(
                     )
                 }
 
-                return tieUp(descr, appliedFunc, {
+                return tieUp({
+                    descr,
                     useCache,
                     onError,
-                    argTypes
+                    argTypes,
+                    data: appliedFunc
                 })
-            },
-            {
-                argTypes: argTypesOuter,
-                useCache: useCacheOuter,
-                onError: onErrorOuter
             }
-        )
+        })
 
         return handledPartialFunc
-    },
-    { onError: () => () => () => {} }
-)
+    }
+})
