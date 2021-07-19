@@ -1,5 +1,15 @@
-import { isNodeJS, nodeEventNames } from './options'
+import { handledFuncs, isNodeJS, nodeEventNames } from './options'
 import { tieUp } from './tieUp'
+
+export const clearCache = tieUp({
+    descr: 'clear the cache for a tied up function',
+    argTypes: '()',
+    data: function (func) {
+        if (typeof handledFuncs.get(func) !== 'object') {
+            handledFuncs.set(func, {})
+        }
+    }
+})
 
 export const tieUpPartial = tieUp({
     descr: 'tying up a partial function',

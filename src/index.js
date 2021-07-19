@@ -13,4 +13,9 @@ export {
 
 export { tieUp } from './tieUp'
 
-export { tieUpPartial, getHandledServer, getRoutingCreator } from './extra'
+export {
+    tieUpPartial,
+    clearCache,
+    getHandledServer,
+    getRoutingCreator
+} from './extra'

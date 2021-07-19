@@ -17,6 +17,7 @@ export const nodeEventNames = [
     'SIGINT',
     'SIGHUP'
 ]
+export const handledFuncs = new WeakMap()
 
 // Options
 const defaultLogger =

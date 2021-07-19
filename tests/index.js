@@ -34,7 +34,12 @@
 //     )
 // }
 
-// const { changeOptions, tieUp, tieUpPartial } = require('../dist/index')
+// const {
+//     changeOptions,
+//     clearCache,
+//     tieUp,
+//     tieUpPartial
+// } = require('../dist/index')
 
 // changeOptions({ isDevelopment: true })
 
@@ -148,12 +153,13 @@
 // }
 // showMemory()
 // for (let i = 1; i <= 100; i++) {
-//     measureFib.call(c, i * 3000, a, b, c, d, B)
+//     fib.call(c, i * 3000, a, b, c, d, B)
 //     // tieUp({ descr: 'uaoeu', data: function () {} })
 // }
 // showMemory()
-// fib = null
-// measureFib = null
+// // fib = null
+// // measureFib = null
+// clearCache(fib)
 // global.gc()
 // showMemory()
 

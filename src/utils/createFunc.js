@@ -1,8 +1,6 @@
-import { defaultDescr } from '../options'
+import { defaultDescr, handledFuncs } from '../options'
 import { logError } from './logging'
 import { parseArgTypes, validateArgs } from './validation'
-
-const handledFuncs = new WeakMap()
 
 const searchCache = function ({ cacheArgs, cacheItem, cacheProps }) {
     if (!Array.isArray(cacheArgs)) {
