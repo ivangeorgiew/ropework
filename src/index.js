@@ -11,6 +11,6 @@ export {
     changeOptions
 } from './options'
 
-export { tieUp, tieUpPartial } from './tieUp'
+export { tieUp } from './tieUp'
 
-export { getHandledServer, getRoutingCreator } from './serverUtils'
+export { tieUpPartial, getHandledServer, getRoutingCreator } from './extra'

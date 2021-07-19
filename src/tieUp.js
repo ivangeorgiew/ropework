@@ -1,5 +1,5 @@
-import { cloneData } from './utils/cloning'
 import { createFunc } from './utils/createFunc'
+import { logError } from './utils/logging'
 
 export const tieUp = createFunc({
     descr: 'tying up data',
@@ -12,76 +12,135 @@ export const tieUp = createFunc({
     }`,
     onError: ({ args: [props] }) => props?.data,
     data: function (props) {
-        const { descr, data } = props
-
-        if (data === null || !['object', 'function'].includes(typeof data)) {
-            return data
+        if (
+            props.data === null ||
+            !['object', 'function'].includes(typeof props.data)
+        ) {
+            return props.data
         }
 
-        const handledData = cloneData({ options: props, refs: new WeakMap() })
+        const refs = new WeakMap()
+        const stack = [{ props }]
+        let [result, isFirstCall] = [undefined, true]
 
-        if (typeof handledData === 'function') {
-            Object.defineProperty(handledData, 'name', {
-                value: descr,
-                configurable: true
-            })
-        }
+        while (stack.length) {
+            const curr = stack.pop()
+            const { props, target, targetKey, targetDescriptor } = curr
+            const { descr, data } = props
 
-        return handledData
-    }
-})
+            if (refs.has(data)) {
+                Object.defineProperty(
+                    target,
+                    targetKey,
+                    Object.assign(targetDescriptor, {
+                        value: refs.get(data)
+                    })
+                )
+                continue
+            }
 
-export const tieUpPartial = tieUp({
-    descr: 'tying up a partial function',
-    argTypes: `{
-        :descr: str,
-        :argTypes: str | undef,
-        :onError: () | undef,
-        :useCache: () | undef,
-        :argTypesOuter: str | undef,
-        :onErrorOuter: () | undef,
-        :useCacheOuter: () | undef,
-        :data: ()
-    }`,
-    onError: () => () => () => {},
-    data: function (props) {
-        const {
-            descr,
-            onErrorOuter = () => () => {},
-            useCacheOuter,
-            argTypesOuter,
-            onError = () => {},
-            useCache,
-            argTypes,
-            data
-        } = props
+            let handledData
 
-        const handledPartialFunc = tieUp({
-            descr: `partially ${descr}`,
-            argTypes: argTypesOuter,
-            useCache: useCacheOuter,
-            onError: onErrorOuter,
-            data: function (...args) {
-                const appliedFunc = data.apply(this, args)
+            if (typeof data === 'function') {
+                handledData = createFunc(props)
+            } else if (data instanceof RegExp) {
+                const regExpText = String(data)
+                const lastSlashIdx = regExpText.lastIndexOf('/')
 
-                if (typeof appliedFunc !== 'function') {
-                    throw new Error(
-                        'Partial function should return a function, ' +
-                            'instead received ' +
-                            typeof appliedFunc
+                handledData = new RegExp(
+                    regExpText.slice(1, lastSlashIdx),
+                    regExpText.slice(lastSlashIdx + 1)
+                )
+            } else if (data instanceof Date) {
+                handledData = new Date(data.getTime())
+            } else if (Array.isArray(data)) {
+                handledData = []
+            } else {
+                handledData = {}
+            }
+
+            refs.set(data, handledData)
+            Object.setPrototypeOf(handledData, Object.getPrototypeOf(data))
+
+            const descriptors = Object.getOwnPropertyDescriptors(data)
+            const descriptorKeys = Object.getOwnPropertyNames(
+                descriptors
+            ).concat(Object.getOwnPropertySymbols(descriptors))
+
+            let i = -1
+
+            while (descriptorKeys.length - ++i) {
+                // key can be a Symbol
+                const key = String(descriptorKeys[i])
+
+                try {
+                    const value = descriptors[key].value
+
+                    if (!('value' in descriptors[key])) {
+                        Object.defineProperty(
+                            handledData,
+                            key,
+                            descriptors[key]
+                        )
+                        continue
+                    }
+
+                    if (
+                        value !== null &&
+                        ['object', 'function'].includes(typeof value) &&
+                        !/.+(OnError|UseCache)$/.test(key)
+                    ) {
+                        stack.push({
+                            target: handledData,
+                            targetKey: key,
+                            targetDescriptor: descriptors[key],
+                            props: {
+                                descr: `${descr}["${key}"]`,
+                                onError: data[`${key}OnError`],
+                                useCache: data[`${key}UseCache`],
+                                argTypes: data[`${key}ArgTypes`],
+                                data: value
+                            }
+                        })
+                        continue
+                    }
+
+                    Object.defineProperty(
+                        handledData,
+                        key,
+                        Object.assign(descriptors[key], { value })
                     )
+                } catch (error) {
+                    logError({
+                        descr: `assigning method ${key} to ${descr}`,
+                        error,
+                        args: [data, handledData]
+                    })
                 }
+            }
 
-                return tieUp({
-                    descr,
-                    useCache,
-                    onError,
-                    argTypes,
-                    data: appliedFunc
+            if (
+                typeof handledData === 'function' &&
+                ['anonymous', ''].includes(handledData.name)
+            ) {
+                Object.defineProperty(handledData, 'name', {
+                    value: descr,
+                    configurable: true
                 })
             }
-        })
 
-        return handledPartialFunc
+            if (isFirstCall) {
+                result = handledData
+                isFirstCall = false
+            } else {
+                Object.defineProperty(
+                    target,
+                    targetKey,
+                    Object.assign(targetDescriptor, { value: handledData })
+                )
+            }
+        }
+
+        return result
     }
 })

@@ -1,5 +1,6 @@
 import {
     FriendlyError,
+    defaultDescr,
     errorLogger,
     isBrowser,
     isDevelopment,
@@ -7,13 +8,6 @@ import {
     isWorker,
     notify
 } from '../options'
-
-const lastError = Object.seal({
-    errorDescr: '',
-    argsInfo: '',
-    errorMsg: '',
-    time: 0
-})
 
 const stringifyAll = function (data) {
     try {
@@ -29,7 +23,7 @@ const stringifyAll = function (data) {
 
             if (typeof val === 'object' || typeof val === 'function') {
                 if (seen.has(val)) {
-                    return '$selfRef'
+                    return '[$ref]'
                 }
 
                 seen.add(val)
@@ -58,13 +52,9 @@ export const logError = function (props) {
 
         const errorDescr = (function () {
             const descr =
-                typeof props.descr === 'string'
-                    ? props.descr
-                    : 'a part of the app'
+                typeof props.descr === 'string' ? props.descr : defaultDescr
 
-            return descr.length > 80
-                ? `Issue with: ${descr.slice(0, 77)} ...}`
-                : `Issue with: ${descr}`
+            return `Issue with: ${descr}`
         })()
 
         const error =
@@ -120,36 +110,19 @@ export const logError = function (props) {
             })
         }
 
-        // prevent immedeately repeating errors
-        const curTime = Date.now()
+        errorLogger(
+            `\n ${errorDescr}\n`,
+            `Function arguments: ${argsInfo}\n`,
+            error,
+            '\n'
+        )
 
-        if (
-            lastError.errorDescr !== errorDescr ||
-            lastError.argsInfo !== argsInfo ||
-            lastError.errorMsg !== error.message ||
-            curTime - lastError.time > 1000
-        ) {
-            errorLogger(
-                `\n ${errorDescr}\n`,
-                `Function arguments: ${argsInfo}\n`,
-                error,
-                '\n'
-            )
-
-            notify({
-                isFriendlyError,
-                isDevelopment,
-                prodInfo,
-                error,
-                errorDescr
-            })
-        }
-
-        Object.assign(lastError, {
-            errorDescr,
-            argsInfo,
-            errorMsg: error.message,
-            time: curTime
+        notify({
+            isFriendlyError,
+            isDevelopment,
+            prodInfo,
+            error,
+            errorDescr
         })
     } catch (error) {
         errorLogger('\n Issue with: logging errors\n', error, '\n')

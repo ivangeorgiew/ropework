@@ -1,27 +1,102 @@
+import { defaultDescr } from '../options'
 import { logError } from './logging'
+import { parseArgTypes, validateArgs } from './validation'
 
-// TODO different implementation? add clearCache?
-const alreadyHandled = new WeakSet()
-const caches = new WeakMap()
+const handledFuncs = new WeakMap()
 
-// TODO: validate createFunc args with argTypes validation
+const searchCache = function ({ cacheArgs, cacheItem, cacheProps }) {
+    if (!Array.isArray(cacheArgs)) {
+        throw new Error('useCache must return an array')
+    }
+
+    cacheArgs = [this].concat(cacheArgs)
+
+    let i = -1
+
+    while (cacheArgs.length - ++i) {
+        let storageKey =
+            cacheArgs[i] !== null &&
+            ['object', 'function'].includes(typeof cacheArgs[i])
+                ? 'references'
+                : 'primitives'
+
+        if (
+            storageKey in cacheItem &&
+            cacheItem[storageKey].has(cacheArgs[i])
+        ) {
+            cacheItem = cacheItem[storageKey].get(cacheArgs[i])
+        } else {
+            break
+        }
+    }
+
+    Object.assign(cacheProps, {
+        hasHit: i === cacheArgs.length && 'result' in cacheItem,
+        cacheArgs: cacheArgs.slice(i),
+        cacheItem
+    })
+}
+
+const storeResult = function ({ result, cacheProps }) {
+    let { cacheArgs, cacheItem } = cacheProps
+    let i = -1
+
+    while (cacheArgs.length - ++i) {
+        const storageKey =
+            cacheArgs[i] !== null &&
+            ['object', 'function'].includes(typeof cacheArgs[i])
+                ? 'references'
+                : 'primitives'
+
+        if (!(storageKey in cacheItem)) {
+            cacheItem[storageKey] =
+                storageKey === 'references' ? new WeakMap() : new Map()
+        }
+
+        cacheItem = cacheItem[storageKey].has(cacheArgs[i])
+            ? cacheItem[storageKey].get(cacheArgs[i])
+            : cacheItem[storageKey].set(cacheArgs[i], {}).get(cacheArgs[i])
+    }
+
+    cacheItem.result = result
+
+    Object.assign(cacheProps, { hasHit: true, cacheArgs, cacheItem })
+}
+
 export const createFunc = function (props) {
     try {
-        props = Object.assign({}, props)
+        // validate args for createFunc
+        validateArgs({
+            types: parseArgTypes({
+                descr: props?.descr ?? defaultDescr,
+                argTypes: `{
+                    :descr: str,
+                    :argTypes: str | undef,
+                    :onError: () | undef,
+                    :useCache: () | undef,
+                    :data: any
+                }`
+            }),
+            args: [props]
+        })
 
-        // TODO: , argTypes = ''
-        const { descr, data, onError = () => {}, useCache } = props
+        const { descr, data, argTypes = '' } = props
+        const { onError = () => {}, useCache } = props
 
-        if (alreadyHandled.has(data)) {
+        if (handledFuncs.has(data)) {
             return data
         }
 
         let unfinishedCalls = 0
 
-        // TODO: add and validate types
-        // const types = parseArgTypes(argTypes)
+        const types = parseArgTypes({ descr, argTypes })
+        const hasCaching = typeof useCache === 'function'
 
-        const innerCatch = function ({ error, args }) {
+        const innerCatch = function ({ error, args, cacheProps }) {
+            if (hasCaching && cacheProps.hasHit) {
+                delete cacheProps.cacheItem.result
+            }
+
             if (unfinishedCalls > 1) {
                 throw error
             }
@@ -30,108 +105,64 @@ export const createFunc = function (props) {
 
             try {
                 return onError({ descr, args, error })
-            } catch (err) {
+            } catch (error) {
                 logError({
                     descr: `catching errors for ${descr}`,
                     args,
-                    error: err
+                    error
                 })
             }
         }
 
         const innerFunc = function (...args) {
+            const cacheProps = {}
+            let result
+
             try {
                 unfinishedCalls++
 
-                let result, cacheItem, cacheArgs, storageKey, i
-
                 // retrieve result from cache
-                if (typeof useCache === 'function') {
-                    try {
-                        cacheArgs = useCache(args)
-                    } catch (error) {
-                        logError({
-                            descr: `creating a cache key for ${descr}`,
-                            args,
-                            error
-                        })
-                    }
+                if (hasCaching) {
+                    searchCache.call(this, {
+                        cacheArgs: useCache(args),
+                        cacheItem: handledFuncs.get(innerFunc),
+                        cacheProps
+                    })
 
-                    if (Array.isArray(cacheArgs)) {
-                        if (!caches.has(innerFunc)) {
-                            caches.set(innerFunc, {})
-                        }
-
-                        cacheArgs = [this].concat(cacheArgs)
-                        cacheItem = caches.get(innerFunc)
-                        i = -1
-
-                        while (cacheArgs.length - ++i) {
-                            storageKey =
-                                cacheArgs[i] !== null &&
-                                ['object', 'function'].includes(
-                                    typeof cacheArgs[i]
-                                )
-                                    ? 'references'
-                                    : 'primitives'
-
-                            if (
-                                storageKey in cacheItem &&
-                                cacheItem[storageKey].has(cacheArgs[i])
-                            ) {
-                                cacheItem = cacheItem[storageKey].get(
-                                    cacheArgs[i]
-                                )
-                            } else {
-                                break
-                            }
-                        }
-
-                        if (i === cacheArgs.length && 'result' in cacheItem) {
-                            return cacheItem.result
-                        }
-
-                        // save on loop time
-                        cacheArgs.splice(0, i)
+                    if (cacheProps.hasHit) {
+                        return cacheProps.cacheItem.result
                     }
                 }
 
-                // regular function call
+                validateArgs({ types, args })
+
                 if (new.target === undefined) {
                     result = data.apply(this, args)
-                    // creating an object with constructor
                 } else {
-                    result = (function (Constr) {
-                        return Object.create(
-                            innerFunc.prototype,
-                            Object.getOwnPropertyDescriptors(
-                                new Constr(...args)
-                            )
-                        )
-                    })(data)
+                    result = Object.setPrototypeOf(
+                        new data(...args),
+                        innerFunc.prototype
+                    )
                 }
 
                 // handle async, generator and async generator
                 if (result !== null && typeof result === 'object') {
-                    // the function returns an async iterator
                     if (typeof result[Symbol.asyncIterator] === 'function') {
                         result = (async function* (iter) {
                             try {
                                 return yield* iter
                             } catch (error) {
-                                return innerCatch({ error, args })
+                                return innerCatch({ error, args, cacheProps })
                             }
                         })(result)
-                        // the function returns an iterator
                     } else if (typeof result[Symbol.iterator] === 'function') {
                         result = (function* (iter) {
                             try {
                                 return yield* iter
                             } catch (error) {
-                                return innerCatch({ error, args })
+                                return innerCatch({ error, args, cacheProps })
                             }
                         })(result)
-                        // the function returns a promise
                     } else if (
                         typeof result.then === 'function' &&
                         typeof result.catch === 'function'
@@ -140,49 +171,25 @@ export const createFunc = function (props) {
                             try {
                                 return await prom
                             } catch (error) {
-                                return innerCatch({ error, args })
+                                return innerCatch({ error, args, cacheProps })
                             }
                         })(result)
                     }
                 }
 
-                // save the result in cache
-                if (Array.isArray(cacheArgs)) {
-                    i = -1
-
-                    while (cacheArgs.length - ++i) {
-                        storageKey =
-                            cacheArgs[i] !== null &&
-                            ['object', 'function'].includes(typeof cacheArgs[i])
-                                ? 'references'
-                                : 'primitives'
-
-                        if (!(storageKey in cacheItem)) {
-                            cacheItem[storageKey] =
-                                storageKey === 'references'
-                                    ? new WeakMap()
-                                    : new Map()
-                        }
-
-                        cacheItem = cacheItem[storageKey].has(cacheArgs[i])
-                            ? cacheItem[storageKey].get(cacheArgs[i])
-                            : cacheItem[storageKey]
-                                  .set(cacheArgs[i], {})
-                                  .get(cacheArgs[i])
-                    }
-
-                    cacheItem.result = result
+                if (hasCaching) {
+                    storeResult({ result, cacheProps })
                 }
 
                 return result
             } catch (error) {
-                return innerCatch({ error, args })
+                return innerCatch({ error, args, cacheProps })
             } finally {
                 unfinishedCalls--
             }
         }
 
-        alreadyHandled.add(innerFunc)
+        handledFuncs.set(innerFunc, hasCaching ? {} : true)
 
         return innerFunc
     } catch (error) {

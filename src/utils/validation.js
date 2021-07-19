@@ -1,20 +1,6 @@
 import { logError } from './logging'
 
-/* bool
- * null
- * undef
- * any
- * @URIError (for check use window['URIError'])
- * str, str <= 10, str >= 0, str >= 0 <= 10, str = 5
- * num, num <= 10, num >= 0, num >= 0 <= 10, num = 5
- * int, int <= 10, int >= 0, int >= 0 <= 10, int = 5
- * [], [ length: int > 2, someProp: bool ]
- * {}, { a: num >= 5, b: bool }
- * (), ( a: ( b: [] ) )
- * combination of with |
- */
-
-export const parseArgTypes = function (argTypes) {
+export const parseArgTypes = function ({ descr, argTypes }) {
     try {
         argTypes = argTypes.replace(/\n|\t|\r/g, '')
 
@@ -200,13 +186,18 @@ export const parseArgTypes = function (argTypes) {
         return parsedTypes
     } catch (error) {
         logError({
-            descr: 'parsing argTypes string to array',
+            descr: `parsing argTypes for ${descr}`,
             args: [argTypes],
             error
         })
 
         return []
     }
+}
+
+// TODO: implement
+export const validateArgs = function ({ types, args }) {
+    return [types, args]
 }
 
 // const testArgTypes = `
@@ -231,3 +222,17 @@ export const parseArgTypes = function (argTypes) {
 // `
 
 // console.dir(parseArgTypes({ argTypes: testArgTypes }), { depth: null })
+
+/* bool
+ * null
+ * undef
+ * any
+ * @URIError (for check use window['URIError'])
+ * str, str <= 10, str >= 0, str >= 0 <= 10, str = 5
+ * num, num <= 10, num >= 0, num >= 0 <= 10, num = 5
+ * int, int <= 10, int >= 0, int >= 0 <= 10, int = 5
+ * [], [ length: int > 2, someProp: bool ]
+ * {}, { a: num >= 5, b: bool }
+ * (), ( a: ( b: [] ) )
+ * combination of with |
+ */

@@ -1,4 +1,5 @@
 // constants
+export const defaultDescr = 'a part of the app'
 export const isBrowser = typeof window === 'object'
 export const isWorker = typeof importScripts === 'function'
 export const isNodeJS = typeof process?.versions?.node === 'string'

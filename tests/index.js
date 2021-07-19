@@ -44,12 +44,12 @@
 //     ${aType} | undef,
 //     () | undef,
 //     @Error | undef,
-//     [ :length: 2 ] | undef,
+//     [ :length: int = 2 ] | undef,
 //     { :b: int, :a: ${aType} } | undef,
 //     () | undef
 // `
 
-// const fib = tieUp({
+// let fib = tieUp({
 //     descr: 'calculating fibonacci number',
 //     argTypes: fibArgTypes,
 //     useCache: ([n]) => [n],
@@ -64,7 +64,7 @@
 //     }
 // })
 
-// const measureFib = tieUp({
+// let measureFib = tieUp({
 //     descr: 'measuring the time it takes to calculate fibonacci number',
 //     argTypes: fibArgTypes,
 //     onError: () => 'Incorrect fibonacchi calculation',
@@ -130,72 +130,64 @@
 // console.log(e.someMethod({}, [5, 10], () => {}, 5))
 // console.log(e.otherMethod({ a: true }, [], 'supup', 5))
 
-// console.log(measureFib.call(c, 4300, a, b, c, d, B))
-// console.log(measureFib.call(c, 3800, a, b, c, d, B))
-// console.log(measureFib.call(c, 3800, a, b, c, d, B))
+// console.log(measureFib.call(c, 500000, a, b, c, d, B))
+// console.log(measureFib.call(c, 4000, a, b, c, d, B))
+// console.log(measureFib.call(c, 4000, a, b, c, d, B))
 
 // // node --expose-gc
-// let used = process.memoryUsage()
-// for (const objKey in used) {
-//     console.log(
-//         `${objKey}: ${Math.round((used[objKey] / 1024 / 1024) * 100) / 100} MB`
-//     )
+// const showMemory = () => {
+//     const used = process.memoryUsage()
+
+//     for (const objKey in used) {
+//         console.log(
+//             `${objKey}: ${
+//                 Math.round((used[objKey] / 1024 / 1024) * 100) / 100
+//             } MB`
+//         )
+//     }
 // }
-// for (let i = 1; i <= 10000; i++) {
-//     // console.log(measureFib.call(c, i * 4000, a, b, c, d, B))
-//     tieUp({ descr: 'uaoeu', data: function () {} })
+// showMemory()
+// for (let i = 1; i <= 100; i++) {
+//     measureFib.call(c, i * 3000, a, b, c, d, B)
+//     // tieUp({ descr: 'uaoeu', data: function () {} })
 // }
-// used = process.memoryUsage()
-// for (const objKey in used) {
-//     console.log(
-//         `${objKey}: ${Math.round((used[objKey] / 1024 / 1024) * 100) / 100} MB`
-//     )
-// }
-// for (let i = 1; i <= 10000; i++) {
-//     // console.log(measureFib.call(c, i * 4000, a, b, c, d, B))
-//     tieUp({ descr: 'uaoeu', data: function () {} })
-// }
-// used = process.memoryUsage()
-// for (const objKey in used) {
-//     console.log(
-//         `${objKey}: ${Math.round((used[objKey] / 1024 / 1024) * 100) / 100} MB`
-//     )
-// }
+// showMemory()
+// fib = null
+// measureFib = null
 // global.gc()
-// used = process.memoryUsage()
-// for (const objKey in used) {
-//     console.log(
-//         `${objKey}: ${Math.round((used[objKey] / 1024 / 1024) * 100) / 100} MB`
-//     )
-// }
+// showMemory()
 
 // const asyncGen = tieUp({
 //     descr: 'Asynchronous generator function test',
 //     argTypes: 'int',
+//     useCache: args => args,
 //     data: async function* (i) {
-//         yield i
 //         // throw new Error('intended')
+//         yield i
 //         await new Promise(resolve => setTimeout(resolve, 1000))
 //         return i + 10
 //     }
 // })
-// const rag = asyncGen(10)
 
-// rag.next().then(res => {
-//     console.log(res)
-
-//     rag.next().then(res => {
+// asyncGen(10)
+//     .next()
+//     .then(res => {
 //         console.log(res)
+
+//         asyncGen(10)
+//             .next()
+//             .then(res => {
+//                 console.log(res)
+//             })
 //     })
-// })
 
 // const gen = tieUp({
 //     descr: 'Generator function test',
 //     argTypes: 'int',
 //     useCache: args => args,
 //     data: function* (i) {
-//         yield i
 //         // throw new Error('intended')
+//         yield i
 //         return i + 10
 //     }
 // })
