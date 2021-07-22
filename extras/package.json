@@ -9,5 +9,8 @@
     "license": "MIT",
     "peerDependencies": {
         "tied-up": "*"
+    },
+    "devDependencies": {
+        "tied-up": "link:.."
     }
 }
