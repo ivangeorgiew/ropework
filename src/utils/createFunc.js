@@ -1,8 +1,12 @@
-import { defaultDescr, handledFuncs } from '../options'
 import { logError } from './logging'
 import { parseArgTypes, validateArgs } from './validation'
 
-const searchCache = function ({ cacheArgs, cacheItem, cacheProps }) {
+// TODO: add maxAge or maxSize handledFuncs.set(innerFunc, { size: 0 })
+// TODO: maybe add clearCache ?
+const createFuncDescr = 'creating error-handled function'
+const handledFuncs = new WeakMap()
+
+const searchCache = function (cacheArgs, cacheItem, cacheProps) {
     if (!Array.isArray(cacheArgs)) {
         throw new Error('useCache must return an array')
     }
@@ -35,7 +39,7 @@ const searchCache = function ({ cacheArgs, cacheItem, cacheProps }) {
     })
 }
 
-const storeResult = function ({ result, cacheProps }) {
+const storeResult = function (result, cacheProps) {
     let { cacheArgs, cacheItem } = cacheProps
     let i = -1
 
@@ -64,19 +68,19 @@ const storeResult = function ({ result, cacheProps }) {
 export const createFunc = function (props) {
     try {
         // validate args for createFunc
-        validateArgs({
-            types: parseArgTypes({
-                descr: props?.descr ?? defaultDescr,
-                argTypes: `{
+        validateArgs(
+            parseArgTypes(
+                createFuncDescr,
+                `{
                     :descr: str,
                     :argTypes: str | undef,
                     :onError: () | undef,
                     :useCache: () | undef,
                     :data: any
                 }`
-            }),
-            args: [props]
-        })
+            ),
+            [props]
+        )
 
         const { descr, data, argTypes = '' } = props
         const { onError = () => {}, useCache } = props
@@ -87,10 +91,10 @@ export const createFunc = function (props) {
 
         let unfinishedCalls = 0
 
-        const types = parseArgTypes({ descr, argTypes })
+        const types = parseArgTypes(descr, argTypes)
         const hasCaching = typeof useCache === 'function'
 
-        const innerCatch = function ({ error, args, cacheProps }) {
+        const innerCatch = function (error, args, cacheProps) {
             if (hasCaching && cacheProps.hasHit) {
                 delete cacheProps.cacheItem.result
             }
@@ -121,18 +125,19 @@ export const createFunc = function (props) {
 
                 // retrieve result from cache
                 if (hasCaching) {
-                    searchCache.call(this, {
-                        cacheArgs: useCache(args),
-                        cacheItem: handledFuncs.get(innerFunc),
+                    searchCache.call(
+                        this,
+                        useCache(args),
+                        handledFuncs.get(innerFunc),
                         cacheProps
-                    })
+                    )
 
                     if (cacheProps.hasHit) {
                         return cacheProps.cacheItem.result
                     }
                 }
 
-                validateArgs({ types, args })
+                validateArgs(types, args)
 
                 if (new.target === undefined) {
                     result = data.apply(this, args)
@@ -150,7 +155,7 @@ export const createFunc = function (props) {
                             try {
                                 return yield* iter
                             } catch (error) {
-                                return innerCatch({ error, args, cacheProps })
+                                return innerCatch(error, args, cacheProps)
                             }
                         })(result)
                     } else if (typeof result[Symbol.iterator] === 'function') {
@@ -158,7 +163,7 @@ export const createFunc = function (props) {
                             try {
                                 return yield* iter
                             } catch (error) {
-                                return innerCatch({ error, args, cacheProps })
+                                return innerCatch(error, args, cacheProps)
                             }
                         })(result)
                     } else if (
@@ -169,19 +174,19 @@ export const createFunc = function (props) {
                             try {
                                 return await prom
                             } catch (error) {
-                                return innerCatch({ error, args, cacheProps })
+                                return innerCatch(error, args, cacheProps)
                             }
                         })(result)
                     }
                 }
 
                 if (hasCaching) {
-                    storeResult({ result, cacheProps })
+                    storeResult(result, cacheProps)
                 }
 
                 return result
             } catch (error) {
-                return innerCatch({ error, args, cacheProps })
+                return innerCatch(error, args, cacheProps)
             } finally {
                 unfinishedCalls--
             }
@@ -192,7 +197,7 @@ export const createFunc = function (props) {
         return innerFunc
     } catch (error) {
         logError({
-            descr: 'creating error-handled function',
+            descr: createFuncDescr,
             error,
             args: [props]
         })

@@ -1,6 +1,6 @@
 import { logError } from './logging'
 
-export const parseArgTypes = function ({ descr, argTypes }) {
+export const parseArgTypes = function (descr, argTypes) {
     try {
         argTypes = argTypes.replace(/\n|\t|\r/g, '')
 
@@ -196,7 +196,7 @@ export const parseArgTypes = function ({ descr, argTypes }) {
 }
 
 // TODO: implement
-export const validateArgs = function ({ types, args }) {
+export const validateArgs = function (types, args) {
     return [types, args]
 }
 

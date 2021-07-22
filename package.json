@@ -1,26 +1,41 @@
 {
-    "name": "tied-pants",
-    "version": "10.0.0",
+    "name": "tied-up",
+    "version": "1.0.0",
     "description": "Error-handling and other function utilities",
-    "main": "dist/index.js",
-    "module": "dist/index.esm.js",
-    "exports": {
-        "require": "dist/index.js",
-        "import": "dist/index.esm.js"
-    },
+    "private": true,
+    "main": "./dist/cjs/index.js",
+    "module": "./dist/esm/index.js",
+    "unpkg": "./dist/index.umd.js",
     "sideEffects": [
-        "src/globalHandling.js"
+        "**/globalHandling.js"
     ],
+    "exports": {
+        ".": {
+            "require": "./dist/cjs/index.js",
+            "import": "./dist/esm/index.js",
+            "umd": "./dist/index.umd.js"
+        },
+        "./extras": {
+            "require": "./extras/dist/cjs/index.js",
+            "import": "./extras/dist/esm/index.js",
+            "umd": "./extras/dist/index.umd.js"
+        },
+        "./package.json": "./package.json"
+    },
     "files": [
-        "dist"
+        "dist",
+        "extras/dist",
+        "extras/package.json"
     ],
     "scripts": {
         "prepare": "husky install",
         "preinstall": "npx only-allow pnpm",
         "preversion": "pnpm i && pnpm build && git add -A",
         "postversion": "git push && pnpm publish",
-        "build": "rm -fr dist && rollup -c",
-        "bump": "pnpm version patch"
+        "clean": "rm -fr ./dist ./extras/dist",
+        "build": "pnpm clean && rollup -c",
+        "bump": "pnpm version patch",
+        "bigbump": "pnpm version minor"
     },
     "lint-staged": {
         "*.js": [
@@ -47,10 +62,6 @@
         "proseWrap": "always",
         "endOfLine": "lf"
     },
-    "eslintIgnore": [
-        "node_modules",
-        "dist"
-    ],
     "eslintConfig": {
         "parserOptions": {
             "ecmaVersion": "latest",
@@ -88,9 +99,9 @@
     ],
     "author": "Ivan Georgiev <ivan_georgiew@yahoo.com>",
     "license": "MIT",
-    "repository": "ivangeorgiew/tied-pants",
-    "bugs": "https://github.com/ivangeorgiew/tied-pants/issues",
-    "homepage": "https://github.com/ivangeorgiew/tied-pants#readme",
+    "repository": "github:ivangeorgiew/tied-up",
+    "bugs": "https://github.com/ivangeorgiew/tied-up/issues",
+    "homepage": "https://github.com/ivangeorgiew/tied-up#readme",
     "devDependencies": {
         "@babel/core": "^7.14.6",
         "@babel/preset-env": "^7.14.7",

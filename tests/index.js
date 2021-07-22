@@ -34,12 +34,7 @@
 //     )
 // }
 
-// const {
-//     changeOptions,
-//     clearCache,
-//     tieUp,
-//     tieUpPartial
-// } = require('../dist/index')
+// const { changeOptions, clearCache, tieUp, tieUpPartial } = require('tied-up')
 
 // changeOptions({ isDevelopment: true })
 
@@ -159,7 +154,6 @@
 // showMemory()
 // // fib = null
 // // measureFib = null
-// clearCache(fib)
 // global.gc()
 // showMemory()
 
@@ -253,6 +247,7 @@
 //     descr: 'adding two numbers',
 //     argTypesOuter: 'int | string',
 //     useCacheOuter: args => args,
+//     useCache: args => args,
 //     argTypes: 'int | string',
 //     data: a => {
 //         console.log('ran outer')
@@ -261,8 +256,9 @@
 //             throw new Error('Outer error - please pass number')
 //         }
 
-//         // return []
 //         return b => {
+//             console.log('ran inner')
+
 //             if (typeof b === 'string') {
 //                 throw new Error('Inner error - please pass number')
 //             }
@@ -278,5 +274,5 @@
 // const addTenTo = addNumbers(10)
 // const copyOfAddTenTo = addNumbers(10)
 // console.log(addTenTo(5))
-// console.log(copyOfAddTenTo(6))
+// console.log(copyOfAddTenTo(5))
 // console.log(copyOfAddTenTo('bla'))

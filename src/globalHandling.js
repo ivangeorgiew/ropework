@@ -1,11 +1,11 @@
+import { tieUp } from './tieUp'
 import {
-    browserEventNames,
+    browserErrorEvents,
     isBrowser,
     isNodeJS,
     isWorker,
-    nodeEventNames
-} from './options'
-import { tieUp } from './tieUp'
+    nodeErrorEvents
+} from './utils/constants'
 import { logError } from './utils/logging'
 
 const uncaughtErrorListener = tieUp({
@@ -56,8 +56,12 @@ const uncaughtErrorListener = tieUp({
 if ((isBrowser || isWorker) && !self.tp_areUnhandledCaught) {
     let i = -1
 
-    while (browserEventNames.length - ++i) {
-        self.addEventListener(browserEventNames[i], uncaughtErrorListener, true)
+    while (browserErrorEvents.length - ++i) {
+        self.addEventListener(
+            browserErrorEvents[i],
+            uncaughtErrorListener,
+            true
+        )
     }
 
     Object.defineProperty(self, 'tp_areUnhandledCaught', {
@@ -69,8 +73,8 @@ if ((isBrowser || isWorker) && !self.tp_areUnhandledCaught) {
 if (isNodeJS && !global.tp_areUnhandledCaught) {
     let i = -1
 
-    while (nodeEventNames.length - ++i) {
-        process.on(nodeEventNames[i], uncaughtErrorListener)
+    while (nodeErrorEvents.length - ++i) {
+        process.on(nodeErrorEvents[i], uncaughtErrorListener)
     }
 
     Object.defineProperty(global, 'tp_areUnhandledCaught', {

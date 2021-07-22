@@ -1,23 +1,23 @@
-# Tied Pants
+# Tied-Up
 
-Error handling utilities for better user and developer experience.
+Error-handling and other function utilities for better user and developer
+experience.
 
 In programming most errors could have been caught by developers, but they were
-lazy or negligent. This is me trying (pun intended) to semi-automate the process
-of catching errors so your app only crashes when it really should. All done with
-useful and friendly logging. Oh, also extremely powerful caching is included.
-
-Be a good developer, tie your pants!
+lazy or negligent. This is me trying to semi-automate the process of catching
+errors so your app only crashes when it really should. All done with useful and
+friendly logging. Also extremely powerful caching is included and runtime
+validation of function arguments.
 
 ## Usage
 
-To start using this package you need to first install locally:
-`npm i tied-pants` or `pnpm add tied-pants` or `yarn add tied-pants`
+To start using this package you need to first install locally: `npm i tied-up`
+or `pnpm add tied-up` or `yarn add tied-up`
 
 ## Front-end Example:
 
 ```
-import { tieUp, FriendlyError, changeOptions } from 'tied-pants'
+import { tieUp, FriendlyError, changeOptions } from 'tied-up'
 
 changeOptions({
     notify: ({ isDevelopment, isFriendlyError, errorDescr, prodInfo }) => {
@@ -112,7 +112,7 @@ setTimeout(() => { uncaughtSyncFunc() }, 500)
 ```
 const http = require('http')
 const express = require('express')
-const { getHandledServer, getRoutingCreator } = require('tied-pants')
+const { getHandledServer, getRoutingCreator } = require('tied-up')
 
 const app = express()
 const createRoute = getRoutingCreator(app)
@@ -143,18 +143,18 @@ server.listen(port, () => {
 -   `isDevelopment`
 
     -   type: `boolean`
-    -   definition: Boolean parameter that was parsed from `tiedPants`
+    -   definition: Boolean parameter that was parsed from `tied-up`
 
 -   `errorLogger`
 
     -   type: `errMsg` -> ?
-    -   definition: Function parameter that was parsed from `tiedPants`
+    -   definition: Function parameter that was parsed from `tied-up`
 
 -   `notify`
 
     -   type:
         `({ isDevelopment, isFriendlyError, error, errorDescr, prodInfo })` -> ?
-    -   definition: Function parameter that was parsed from `tiedPants`
+    -   definition: Function parameter that was parsed from `tied-up`
 
 -   `FriendlyError`
 

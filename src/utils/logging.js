@@ -1,13 +1,5 @@
-import {
-    FriendlyError,
-    defaultDescr,
-    errorLogger,
-    isBrowser,
-    isDevelopment,
-    isNodeJS,
-    isWorker,
-    notify
-} from '../options'
+import { FriendlyError, isBrowser, isNodeJS, isWorker } from './constants'
+import { errorLogger, isDevelopment, notify } from './options'
 
 const stringifyAll = function (data) {
     try {
@@ -52,7 +44,9 @@ export const logError = function (props) {
 
         const errorDescr = (function () {
             const descr =
-                typeof props.descr === 'string' ? props.descr : defaultDescr
+                typeof props.descr === 'string'
+                    ? props.descr
+                    : 'a part of the app'
 
             return `Issue with: ${descr}`
         })()
