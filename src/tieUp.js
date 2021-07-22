@@ -121,7 +121,7 @@ export const tieUp = createFunc({
 
             if (
                 typeof handledData === 'function' &&
-                ['anonymous', ''].includes(handledData.name)
+                typeof handledData.name === 'string'
             ) {
                 Object.defineProperty(handledData, 'name', {
                     value: descr,
