@@ -1,5 +1,5 @@
-import { FriendlyError, isBrowser, isNodeJS, isWorker } from './constants'
-import { errorLogger, isDevelopment, notify } from './options'
+import { FriendlyError, isBrowser, isNodeJS, isWorker } from '../constants'
+import { errorLogger, isDevelopment, notify } from '../options'
 
 const stringifyAll = function (data) {
     try {

@@ -24,8 +24,7 @@ export const tieUp = createFunc({
         let [result, isFirstCall] = [undefined, true]
 
         while (stack.length) {
-            const curr = stack.pop()
-            const { props, target, targetKey, targetDescriptor } = curr
+            const { props, target, targetKey, targetDescriptor } = stack.pop()
             const { descr, data } = props
 
             if (refs.has(data)) {

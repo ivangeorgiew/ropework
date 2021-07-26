@@ -1,4 +1,4 @@
-import { tieUp } from './tieUp'
+import { tieUp } from 'tied-up'
 
 export const tieUpPartial = tieUp({
     descr: 'tying up a partial function',

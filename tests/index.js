@@ -1,39 +1,3 @@
-// const commonFib = function (n) {
-//     try {
-//         if (typeof n !== 'number' || n < 0) {
-//             throw new Error('Please pass a positive integer')
-//         } else if (n > 1e7) {
-//             return Infinity
-//         } else if (n < 2) {
-//             return n
-//         }
-
-//         let [res, pre1, pre2] = [0, 0, 1]
-
-//         while (--n) {
-//             res = pre1 + pre2
-//             pre1 = pre2
-//             pre2 = res
-//         }
-
-//         return res
-//     } catch (err) {
-//         console.error(err)
-
-//         return NaN
-//     }
-// }
-
-// const t = Date.now()
-// console.log(commonFib(1e7))
-// console.log(`exec in ${Date.now() - t}ms`)
-// const used = process.memoryUsage()
-// for (const objKey in used) {
-//     console.log(
-//         `${objKey}: ${Math.round((used[objKey] / 1024 / 1024) * 100) / 100} MB`
-//     )
-// }
-
 // const { changeOptions, tieUp, tieUpPartial } = require('tied-up')
 // const { getRoutingCreator, getHandledServer } = require('tied-up/extras')
 

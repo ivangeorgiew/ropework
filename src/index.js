@@ -1,6 +1,5 @@
 import './globalHandling'
 
-export * from './utils/constants'
-export * from './utils/options'
+export * from './constants'
+export * from './options'
 export * from './tieUp'
-export * from './tieUpPartial'

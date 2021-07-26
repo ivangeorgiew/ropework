@@ -1,11 +1,11 @@
-import { tieUp } from './tieUp'
 import {
     browserErrorEvents,
     isBrowser,
     isNodeJS,
     isWorker,
     nodeErrorEvents
-} from './utils/constants'
+} from './constants'
+import { tieUp } from './tieUp'
 import { logError } from './utils/logging'
 
 const uncaughtErrorListener = tieUp({
