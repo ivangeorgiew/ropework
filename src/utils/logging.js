@@ -46,7 +46,7 @@ export const logError = function (props) {
             const descr =
                 typeof props.descr === 'string'
                     ? props.descr
-                    : 'a part of the app'
+                    : 'part of the app'
 
             return `Issue with: ${descr}`
         })()
@@ -104,19 +104,21 @@ export const logError = function (props) {
             })
         }
 
-        errorLogger(
-            `\n ${errorDescr}\n`,
-            `Function arguments: ${argsInfo}\n`,
-            error,
-            '\n'
-        )
+        if (isDevelopment) {
+            errorLogger(
+                `\n ${errorDescr}\n`,
+                `Function arguments: ${argsInfo}\n`,
+                error,
+                '\n'
+            )
+        }
 
         notify({
-            isFriendlyError,
-            isDevelopment,
-            prodInfo,
+            errorDescr,
+            argsInfo,
             error,
-            errorDescr
+            isFriendlyError,
+            prodInfo
         })
     } catch (error) {
         errorLogger('\n Issue with: logging errors\n', error, '\n')

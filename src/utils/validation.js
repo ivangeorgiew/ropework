@@ -197,8 +197,64 @@ export const parseArgTypes = function (descr, argTypes) {
 
 // TODO: implement
 export const validateArgs = function (types, args) {
-    return [types, args]
+    try {
+        return Array.isArray(types) && Array.isArray(args)
+    } catch (error) {
+        logError({
+            descr: 'validating args types',
+            args: [types, args],
+            error
+        })
+
+        return false
+    }
 }
+
+// TODO: implement
+export const parseCacheDef = function (descr, cacheDescr) {
+    try {
+        cacheDescr = cacheDescr
+            .replace(/\n|\t|\r/g, '')
+            .replace(/,*\s*\d*\s*n\s*$/g, '')
+
+        let parsedCacheDescr = []
+
+        while (cacheDescr.length) {
+            cacheDescr = cacheDescr.slice(50)
+        }
+
+        return parsedCacheDescr
+    } catch (error) {
+        logError({
+            descr: `parsing cacheDescr for ${descr}`,
+            args: [cacheDescr],
+            error
+        })
+
+        return []
+    }
+}
+
+// const cacheDescr = `
+//     y,
+//     2n,
+//     {
+//         :someProp: { :a: [y, n, y] },
+//         :other:,
+//         :bla: [n, y, 2n]
+//     },
+//     3n
+// `
+// const result = [
+//     true,
+//     false,
+//     false,
+//     {
+//         someProp: { a: [true, false, true] },
+//         other: true,
+//         bla: [false, true]
+//     }
+// ]
 
 // const testArgTypes = `
 //     str >= 10 <= 20 | [],
@@ -221,7 +277,7 @@ export const validateArgs = function (types, args) {
 //     int > 5 <= 10
 // `
 
-// console.dir(parseArgTypes({ argTypes: testArgTypes }), { depth: null })
+// console.dir(parseArgTypes('test', testArgTypes), { depth: null })
 
 /* bool
  * null

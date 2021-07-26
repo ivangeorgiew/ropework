@@ -1,7 +1,5 @@
-// const { changeOptions, tieUp, tieUpPartial } = require('tied-up')
-// const { getRoutingCreator, getHandledServer } = require('tied-up/extras')
-
-// changeOptions({ isDevelopment: true })
+// const { tieUp } = require('tied-up')
+// const { tieUpPartial } = require('tied-up/extras')
 
 // const aType = '()'
 // const fibArgTypes = `
@@ -117,8 +115,8 @@
 //     // tieUp({ descr: 'uaoeu', data: function () {} })
 // }
 // showMemory()
-// // fib = null
-// // measureFib = null
+// fib = null
+// measureFib = null
 // global.gc()
 // showMemory()
 
@@ -212,8 +210,8 @@
 //     descr: 'adding two numbers',
 //     argTypesOuter: 'int | string',
 //     useCacheOuter: args => args,
-//     useCache: args => args,
 //     argTypes: 'int | string',
+//     useCache: args => args,
 //     data: a => {
 //         console.log('ran outer')
 
@@ -233,8 +231,8 @@
 //     }
 // })
 
-// const addTenTo = addNumbers('sup')
-// console.log(addTenTo('sup'))
+// // const addTenTo = addNumbers('sup')
+// // console.log(addTenTo('sup'))
 
 // const addTenTo = addNumbers(10)
 // const copyOfAddTenTo = addNumbers(10)

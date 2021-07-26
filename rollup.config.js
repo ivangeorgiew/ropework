@@ -52,7 +52,7 @@ export default entries.map(([root, name]) => ({
             babelHelpers: 'bundled',
             babelrc: false,
             configFile: false,
-            include: 'node_modules/**',
+            exclude: 'node_modules/**',
             presets: ['@babel/preset-env']
         })
     ],

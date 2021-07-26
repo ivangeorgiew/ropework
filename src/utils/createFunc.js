@@ -3,7 +3,9 @@ import { parseArgTypes, validateArgs } from './validation'
 
 // TODO: add maxAge or maxSize handledFuncs.set(innerFunc, { size: 0 })
 // TODO: maybe add clearCache ?
-const createFuncDescr = 'creating error-handled function'
+// TODO: change useCache with a string like argTypes as shown in ./validation.js
+// and rename it to cacheDescr
+const createFuncDescr = 'creating an error-handled function'
 const handledFuncs = new WeakMap()
 
 const searchCache = function (cacheArgs, cacheItem, cacheProps) {
@@ -67,8 +69,7 @@ const storeResult = function (result, cacheProps) {
 
 export const createFunc = function (props) {
     try {
-        // validate args for createFunc
-        validateArgs(
+        const areArgsValid = validateArgs(
             parseArgTypes(
                 createFuncDescr,
                 `{
@@ -76,11 +77,15 @@ export const createFunc = function (props) {
                     :argTypes: str | undef,
                     :onError: () | undef,
                     :useCache: () | undef,
-                    :data: any
+                    :data: ()
                 }`
             ),
             [props]
         )
+
+        if (!areArgsValid) {
+            throw new Error('Wrong arguments for createFunc')
+        }
 
         const { descr, data, argTypes = '' } = props
         const { onError = () => {}, useCache } = props
@@ -91,7 +96,7 @@ export const createFunc = function (props) {
 
         let unfinishedCalls = 0
 
-        const types = parseArgTypes(descr, argTypes)
+        const parsedArgTypes = parseArgTypes(descr, argTypes)
         const hasCaching = typeof useCache === 'function'
 
         const innerCatch = function (error, args, cacheProps) {
@@ -137,7 +142,9 @@ export const createFunc = function (props) {
                     }
                 }
 
-                validateArgs(types, args)
+                if (!validateArgs(parsedArgTypes, args)) {
+                    throw new Error(`Wrong arguments for ${descr}`)
+                }
 
                 if (new.target === undefined) {
                     result = data.apply(this, args)

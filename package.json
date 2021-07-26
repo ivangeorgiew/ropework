@@ -35,7 +35,8 @@
         "clean": "rm -fr ./dist ./extras/dist",
         "build": "pnpm clean && rollup -c",
         "bump": "pnpm version patch",
-        "bigbump": "pnpm version minor"
+        "bigbump": "pnpm version minor",
+        "test": "NODE_ENV=dev node --expose-gc ./tests/index.js"
     },
     "lint-staged": {
         "*.js": [
