@@ -1,70 +1,56 @@
 import { logError } from './logging'
 import { parseArgTypes, validateArgs } from './validation'
 
-// TODO: add maxAge or maxSize handledFuncs.set(innerFunc, { size: 0 })
-// TODO: maybe add clearCache ?
-// TODO: change useCache with a string like argTypes as shown in ./validation.js
-// and rename it to cacheDescr
+// TODO: add validation, it is currently slow during caching
+// TODO: unfinishedCalls is not working for async/gen functions? (try async recursion)
 const createFuncDescr = 'creating an error-handled function'
-const handledFuncs = new WeakMap()
 
-const searchCache = function (cacheArgs, cacheItem, cacheProps) {
-    if (!Array.isArray(cacheArgs)) {
-        throw new Error('useCache must return an array')
-    }
+const handledFuncs = new WeakSet()
 
-    cacheArgs = [this].concat(cacheArgs)
-
-    let i = -1
-
-    while (cacheArgs.length - ++i) {
-        let storageKey =
-            cacheArgs[i] !== null &&
-            ['object', 'function'].includes(typeof cacheArgs[i])
-                ? 'references'
-                : 'primitives'
-
-        if (
-            storageKey in cacheItem &&
-            cacheItem[storageKey].has(cacheArgs[i])
-        ) {
-            cacheItem = cacheItem[storageKey].get(cacheArgs[i])
-        } else {
-            break
-        }
-    }
-
-    Object.assign(cacheProps, {
-        hasHit: i === cacheArgs.length && 'result' in cacheItem,
-        cacheArgs: cacheArgs.slice(i),
-        cacheItem
-    })
+const isEqual = function (a, b) {
+    return a === b || (a !== a && b !== b)
 }
 
-const storeResult = function (result, cacheProps) {
-    let { cacheArgs, cacheItem } = cacheProps
-    let i = -1
+const getCacheIdx = function (that, args, cacheKeys) {
+    const cacheKeysLen = cacheKeys.length
 
-    while (cacheArgs.length - ++i) {
-        const storageKey =
-            cacheArgs[i] !== null &&
-            ['object', 'function'].includes(typeof cacheArgs[i])
-                ? 'references'
-                : 'primitives'
-
-        if (!(storageKey in cacheItem)) {
-            cacheItem[storageKey] =
-                storageKey === 'references' ? new WeakMap() : new Map()
-        }
-
-        cacheItem = cacheItem[storageKey].has(cacheArgs[i])
-            ? cacheItem[storageKey].get(cacheArgs[i])
-            : cacheItem[storageKey].set(cacheArgs[i], {}).get(cacheArgs[i])
+    if (cacheKeysLen === 0) {
+        return -1
     }
 
-    cacheItem.result = result
+    const argsLen = args.length
+    const lastArgsIdx = argsLen - 1
 
-    Object.assign(cacheProps, { hasHit: true, cacheArgs, cacheItem })
+    for (let i = 0; i < cacheKeysLen; i++) {
+        const cacheKey = cacheKeys[i]
+
+        if (argsLen !== cacheKey.length || that !== cacheKey.that) {
+            continue
+        }
+
+        switch (argsLen) {
+            case 0: {
+                return i
+            }
+            case 1: {
+                if (isEqual(cacheKey[0], args[0])) {
+                    return i
+                }
+                break
+            }
+            default: {
+                for (
+                    let m = 0;
+                    m < argsLen && isEqual(cacheKey[m], args[m]);
+                    m++
+                ) {
+                    if (m === lastArgsIdx) return i
+                }
+            }
+        }
+    }
+
+    return -1
 }
 
 export const createFunc = function (props) {
@@ -75,9 +61,9 @@ export const createFunc = function (props) {
                 `{
                     :descr: str,
                     :argTypes: str | undef,
-                    :onError: () | undef,
                     :useCache: () | undef,
-                    :data: ()
+                    :onError: () | undef,
+                    :func: ()
                 }`
             ),
             [props]
@@ -87,82 +73,134 @@ export const createFunc = function (props) {
             throw new Error('Wrong arguments for createFunc')
         }
 
-        const { descr, data, argTypes = '' } = props
-        const { onError = () => {}, useCache } = props
+        const { descr, func, argTypes } = props
+        const { onError, useCache } = props
 
-        if (handledFuncs.has(data)) {
-            return data
+        if (handledFuncs.has(func)) {
+            return func
         }
+
+        const hasValidation = false // typeof argTypes === 'string'
+        const hasCaching = typeof useCache === 'function'
+        const hasOnError = typeof onError === 'function'
+
+        const parsedArgTypes = hasValidation
+            ? parseArgTypes(descr, argTypes)
+            : []
+
+        if (hasCaching && !Array.isArray(useCache([]))) {
+            throw new Error('useCache must return an array')
+        }
+
+        const cacheKeys = []
+        const cacheValues = []
 
         let unfinishedCalls = 0
 
-        const parsedArgTypes = parseArgTypes(descr, argTypes)
-        const hasCaching = typeof useCache === 'function'
+        const storeOrReorder = function (that, key, value, idxToReorder) {
+            if (idxToReorder) {
+                cacheKeys.splice(idxToReorder, 1)
+                cacheValues.splice(idxToReorder, 1)
+            } else {
+                key.that = that
 
-        const innerCatch = function (error, args, cacheProps) {
-            if (hasCaching && cacheProps.hasHit) {
-                delete cacheProps.cacheItem.result
+                if (cacheKeys.length === 5) {
+                    cacheKeys.pop()
+                    cacheValues.pop()
+                }
             }
+
+            cacheKeys.unshift(key)
+            cacheValues.unshift(value)
+        }
+
+        const innerCatch = function (error, args) {
+            unfinishedCalls = unfinishedCalls + 1
 
             if (unfinishedCalls > 1) {
+                cacheKeys.length = cacheValues.length = 0
                 throw error
             }
+
+            args = Array.from(args)
 
             logError({ descr, error, args })
 
             try {
-                return onError({ descr, args, error })
+                if (hasCaching) {
+                    const cacheIdx = getCacheIdx(
+                        this,
+                        useCache(args),
+                        cacheKeys
+                    )
+
+                    if (cacheIdx !== -1) {
+                        cacheKeys.splice(cacheIdx, 1)
+                        cacheValues.splice(cacheIdx, 1)
+                    }
+                }
+
+                if (hasOnError) {
+                    return onError.call(this, { descr, args, error })
+                }
             } catch (error) {
                 logError({
                     descr: `catching errors for ${descr}`,
                     args,
                     error
                 })
+            } finally {
+                unfinishedCalls = unfinishedCalls - 1
             }
         }
 
-        const innerFunc = function (...args) {
-            const cacheProps = {}
-            let result
+        const innerFunc = function () {
+            let result, argsToCache, cacheIdx
 
             try {
-                unfinishedCalls++
-
-                // retrieve result from cache
                 if (hasCaching) {
-                    searchCache.call(
-                        this,
-                        useCache(args),
-                        handledFuncs.get(innerFunc),
-                        cacheProps
-                    )
+                    argsToCache = useCache(arguments)
+                    cacheIdx = getCacheIdx(this, argsToCache, cacheKeys)
 
-                    if (cacheProps.hasHit) {
-                        return cacheProps.cacheItem.result
+                    if (cacheIdx !== -1) {
+                        if (cacheIdx !== 0) {
+                            storeOrReorder(
+                                this,
+                                cacheKeys[cacheIdx],
+                                cacheValues[cacheIdx],
+                                cacheIdx
+                            )
+                        }
+
+                        return cacheValues[0]
                     }
                 }
 
-                if (!validateArgs(parsedArgTypes, args)) {
-                    throw new Error(`Wrong arguments for ${descr}`)
+                if (hasValidation) {
+                    if (!validateArgs(parsedArgTypes, arguments)) {
+                        throw new Error(`Wrong arguments for ${descr}`)
+                    }
                 }
 
                 if (new.target === undefined) {
-                    result = data.apply(this, args)
+                    result = func.apply(this, arguments)
                 } else {
                     result = Object.setPrototypeOf(
-                        new data(...args),
+                        new func(...arguments),
                         innerFunc.prototype
                     )
                 }
 
                 // handle async, generator and async generator
-                if (result !== null && typeof result === 'object') {
+                if (typeof result === 'object' && result !== null) {
+                    const args = arguments
+
                     if (typeof result[Symbol.asyncIterator] === 'function') {
                         result = (async function* (iter) {
                             try {
                                 return yield* iter
                             } catch (error) {
-                                return innerCatch(error, args, cacheProps)
+                                return innerCatch.call(this, error, args)
                             }
                         })(result)
                     } else if (typeof result[Symbol.iterator] === 'function') {
@@ -170,7 +208,7 @@ export const createFunc = function (props) {
                             try {
                                 return yield* iter
                             } catch (error) {
-                                return innerCatch(error, args, cacheProps)
+                                return innerCatch.call(this, error, args)
                             }
                         })(result)
                     } else if (
@@ -181,25 +219,23 @@ export const createFunc = function (props) {
                             try {
                                 return await prom
                             } catch (error) {
-                                return innerCatch(error, args, cacheProps)
+                                return innerCatch.call(this, error, args)
                             }
                         })(result)
                     }
                 }
 
                 if (hasCaching) {
-                    storeResult(result, cacheProps)
+                    storeOrReorder(this, Array.from(argsToCache), result)
                 }
 
                 return result
             } catch (error) {
-                return innerCatch(error, args, cacheProps)
-            } finally {
-                unfinishedCalls--
+                return innerCatch.call(this, error, arguments)
             }
         }
 
-        handledFuncs.set(innerFunc, hasCaching ? {} : true)
+        handledFuncs.add(innerFunc)
 
         return innerFunc
     } catch (error) {

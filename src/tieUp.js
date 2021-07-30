@@ -11,7 +11,7 @@ export const tieUp = createFunc({
         :data: any
     }`,
     onError: ({ args: [props] }) => props?.data,
-    data: function (props) {
+    func: function (props) {
         if (
             props.data === null ||
             !['object', 'function'].includes(typeof props.data)
@@ -41,7 +41,13 @@ export const tieUp = createFunc({
             let handledData
 
             if (typeof data === 'function') {
-                handledData = createFunc(props)
+                handledData = createFunc({
+                    descr,
+                    argTypes: props.argTypes,
+                    useCache: props.useCache,
+                    onError: props.onError,
+                    func: data
+                })
             } else if (data instanceof RegExp) {
                 const regExpText = String(data)
                 const lastSlashIdx = regExpText.lastIndexOf('/')
@@ -95,9 +101,9 @@ export const tieUp = createFunc({
                             targetDescriptor: descriptors[key],
                             props: {
                                 descr: `${descr}["${key}"]`,
-                                onError: data[`${key}OnError`],
-                                useCache: data[`${key}UseCache`],
                                 argTypes: data[`${key}ArgTypes`],
+                                useCache: data[`${key}UseCache`],
+                                onError: data[`${key}OnError`],
                                 data: value
                             }
                         })
