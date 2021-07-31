@@ -14,7 +14,7 @@ export const tieUp = createFunc({
     func: function (props) {
         if (
             props.data === null ||
-            !['object', 'function'].includes(typeof props.data)
+            (typeof props.data !== 'object' && typeof props.data !== 'function')
         ) {
             return props.data
         }
@@ -90,8 +90,9 @@ export const tieUp = createFunc({
 
                     if (
                         value !== null &&
-                        ['object', 'function'].includes(typeof value) &&
-                        !/.+(OnError|UseCache)$/.test(key)
+                        (typeof value === 'object' ||
+                            typeof value === 'function') &&
+                        !/.(OnError|UseCache)$/.test(key)
                     ) {
                         stack.push({
                             target: handledData,
@@ -120,16 +121,6 @@ export const tieUp = createFunc({
                         args: [data, handledData]
                     })
                 }
-            }
-
-            if (
-                typeof handledData === 'function' &&
-                typeof handledData.name === 'string'
-            ) {
-                Object.defineProperty(handledData, 'name', {
-                    value: descr,
-                    configurable: true
-                })
             }
 
             if (isFirstCall) {

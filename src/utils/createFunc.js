@@ -51,7 +51,7 @@ export const createFunc = function (props) {
 
         let unfinishedCalls = 0
 
-        const innerCatch = function (that, error, args) {
+        const innerCatch = function (that, args, error) {
             unfinishedCalls = unfinishedCalls + 1
 
             if (unfinishedCalls > 1) {
@@ -63,38 +63,34 @@ export const createFunc = function (props) {
 
             logError({ descr, error, args })
 
-            try {
-                if (hasCaching) {
-                    const cacheIdx = getCacheIdx(
-                        that,
-                        useCache(args),
-                        cacheKeys
-                    )
+            if (hasCaching) {
+                const cacheIdx = getCacheIdx(that, useCache(args), cacheKeys)
 
-                    if (cacheIdx !== -1) {
-                        cacheKeys.splice(cacheIdx, 1)
-                        cacheValues.splice(cacheIdx, 1)
-                    }
+                if (cacheIdx !== -1) {
+                    cacheKeys.splice(cacheIdx, 1)
+                    cacheValues.splice(cacheIdx, 1)
                 }
-
-                if (hasOnError) {
-                    return onError.call(that, { descr, args, error })
-                }
-            } catch (error) {
-                logError({
-                    descr: `catching errors for ${descr}`,
-                    args,
-                    error
-                })
-            } finally {
-                unfinishedCalls = unfinishedCalls - 1
             }
+
+            if (hasOnError) {
+                try {
+                    return onError.call(that, { descr, args, error })
+                } catch (error) {
+                    logError({
+                        descr: `catching errors for ${descr}`,
+                        args,
+                        error
+                    })
+                }
+            }
+
+            unfinishedCalls = unfinishedCalls - 1
         }
 
         const innerFunc = function () {
-            let result, argsToCache, cacheIdx
-
             try {
+                let argsToCache, cacheIdx
+
                 if (hasCaching) {
                     argsToCache = useCache(arguments)
                     cacheIdx = getCacheIdx(this, argsToCache, cacheKeys)
@@ -114,6 +110,8 @@ export const createFunc = function (props) {
                     }
                 }
 
+                let result
+
                 if (new.target === undefined) {
                     result = func.apply(this, arguments)
                 } else {
@@ -125,36 +123,33 @@ export const createFunc = function (props) {
 
                 // handle async, generator and async generator
                 if (typeof result === 'object' && result !== null) {
-                    const that = this
-                    const args = arguments
-
                     if (typeof result[Symbol.asyncIterator] === 'function') {
-                        result = (async function* (iter) {
+                        result = (async function* (that, args, iter) {
                             try {
                                 return yield* iter
                             } catch (error) {
-                                return innerCatch(that, error, args)
+                                return innerCatch(that, args, error)
                             }
-                        })(result)
+                        })(this, arguments, result)
                     } else if (typeof result[Symbol.iterator] === 'function') {
-                        result = (function* (iter) {
+                        result = (function* (that, args, iter) {
                             try {
                                 return yield* iter
                             } catch (error) {
-                                return innerCatch(that, error, args)
+                                return innerCatch(that, args, error)
                             }
-                        })(result)
+                        })(this, arguments, result)
                     } else if (
                         typeof result.then === 'function' &&
                         typeof result.catch === 'function'
                     ) {
-                        result = (async function (prom) {
+                        result = (async function (that, args, prom) {
                             try {
                                 return await prom
                             } catch (error) {
-                                return innerCatch(that, error, args)
+                                return innerCatch(that, args, error)
                             }
-                        })(result)
+                        })(this, arguments, result)
                     }
                 }
 
@@ -170,7 +165,7 @@ export const createFunc = function (props) {
 
                 return result
             } catch (error) {
-                return innerCatch(this, error, arguments)
+                return innerCatch(this, arguments, error)
             }
         }
 

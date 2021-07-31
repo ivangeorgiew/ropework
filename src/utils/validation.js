@@ -4,7 +4,7 @@ export const parseArgTypes = function (descr, argTypes) {
     try {
         argTypes = argTypes.replace(/\n|\t|\r/g, '')
 
-        const keyReg = /^\s*:.+:\s*/
+        const keyReg = /^\s*:[^:]+:\s*/
         const simpleTypeReg = new RegExp(
             '^\\s*(:([^:]+):\\s*)?(\\{\\s*\\}|\\[\\s*\\]|\\(\\s*\\)|' +
                 '@\\w+|\\w+\\s*(=\\s*\\d+|>\\s*\\d+|>=\\s*\\d+)?\\s*' +

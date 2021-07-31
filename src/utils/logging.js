@@ -1,4 +1,4 @@
-import { FriendlyError, isBrowser, isNodeJS, isWorker } from '../constants'
+import { FriendlyError, isNodeJS, isWeb } from '../constants'
 import { errorLogger, isDevelopment, notify } from '../options'
 
 const stringifyAll = function (data) {
@@ -28,13 +28,13 @@ const stringifyAll = function (data) {
             return val
         }
 
-        return JSON.stringify(data, parser)
+        return JSON.stringify(data, parser, 0)
     } catch (error) {
         if (isDevelopment) {
             errorLogger('\n Issue with: stringifying data\n', error, '\n')
         }
 
-        return JSON.stringify(`[unparsed ${typeof data}]`)
+        return JSON.stringify(`[unparsed data]`)
     }
 }
 
@@ -42,52 +42,27 @@ export const logError = function (props) {
     try {
         props = Object.assign({}, props)
 
-        const errorDescr = (function () {
-            const descr =
-                typeof props.descr === 'string'
-                    ? props.descr
-                    : 'part of the app'
-
-            return `Issue with: ${descr}`
-        })()
+        const errorDescr =
+            'Issue with: ' +
+            (typeof props.descr === 'string' ? props.descr : 'part of the app')
 
         const error =
             props.error instanceof Error
                 ? props.error
                 : new Error('Unknown error')
 
-        const argsInfo = (function () {
-            let result = ''
-
-            if (!Array.isArray(props.args)) {
-                return result
-            }
-
-            for (let i = 0; i < props.args.length; i++) {
-                let arg = props.args[i]
-
-                if (typeof arg === 'function') {
-                    arg = '()'
-                } else {
-                    arg = stringifyAll(arg).replace(/\n|\t|\r/g, '')
-                }
-
-                result += i === 0 ? arg : ` , ${arg}`
-            }
-
-            return result.length > 80 ? result.slice(0, 77) + '...' : result
-        })()
+        const args = Array.isArray(props.args) ? props.args : []
 
         const isFriendlyError = error instanceof FriendlyError
 
         const prodInfo = {
             errorDescription: errorDescr,
-            arguments: argsInfo,
+            arguments: args,
             date: new Date().toUTCString(),
             error
         }
 
-        if (isBrowser || isWorker) {
+        if (isWeb) {
             Object.assign(prodInfo, {
                 localUrl: self.location.href,
                 browserInfo: self.navigator.userAgent,
@@ -104,7 +79,45 @@ export const logError = function (props) {
             })
         }
 
+        notify({
+            errorDescr,
+            args,
+            error,
+            isFriendlyError,
+            prodInfo
+        })
+
         if (isDevelopment) {
+            const argsInfo = (function () {
+                let acc = ''
+
+                for (let i = 0; i < args.length; i++) {
+                    const arg = args[i]
+                    let parsedArg
+
+                    if (typeof arg === 'function') {
+                        parsedArg = '()'
+                    } else {
+                        parsedArg = stringifyAll(arg)
+
+                        if (parsedArg.length > 100) {
+                            parsedArg = Array.isArray(arg)
+                                ? '[large array]'
+                                : '[large object]'
+                        } else {
+                            parsedArg = parsedArg.replace(
+                                /"(Infinity|NaN|null|undefined|\(\)|\[\$ref\])"/g,
+                                '$1'
+                            )
+                        }
+                    }
+
+                    acc = i === 0 ? parsedArg : `${acc} , ${parsedArg}`
+                }
+
+                return acc
+            })()
+
             errorLogger(
                 `\n ${errorDescr}\n`,
                 `Function arguments: ${argsInfo}\n`,
@@ -112,14 +125,6 @@ export const logError = function (props) {
                 '\n'
             )
         }
-
-        notify({
-            errorDescr,
-            argsInfo,
-            error,
-            isFriendlyError,
-            prodInfo
-        })
     } catch (error) {
         errorLogger('\n Issue with: logging errors\n', error, '\n')
     }

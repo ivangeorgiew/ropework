@@ -1,5 +1,4 @@
-export const isBrowser = typeof window === 'object'
-export const isWorker = typeof importScripts === 'function'
+export const isWeb = typeof self === 'object'
 export const isNodeJS = typeof process?.versions?.node === 'string'
 export const FriendlyError = class extends Error {
     constructor(...args) {

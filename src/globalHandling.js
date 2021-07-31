@@ -1,8 +1,7 @@
 import {
     browserErrorEvents,
-    isBrowser,
     isNodeJS,
-    isWorker,
+    isWeb,
     nodeErrorEvents
 } from './constants'
 import { tieUp } from './tieUp'
@@ -12,7 +11,7 @@ const uncaughtErrorListener = tieUp({
     descr: 'listening for uncaught errors',
     argTypes: '@Event | @Error | undef',
     data: function (eventOrError) {
-        if (isBrowser || isWorker) {
+        if (isWeb) {
             let error
 
             if (eventOrError instanceof Event) {
@@ -28,11 +27,6 @@ const uncaughtErrorListener = tieUp({
             }
 
             logError({ descr: 'unhandled error', error })
-
-            // prevent user from interacting with the page
-            if (isBrowser) {
-                window.document.body.style['pointer-events'] = 'none'
-            }
         }
 
         if (isNodeJS) {
@@ -53,7 +47,7 @@ const uncaughtErrorListener = tieUp({
     }
 })
 
-if ((isBrowser || isWorker) && !self.tp_areUnhandledCaught) {
+if (isWeb && !self.tp_areUnhandledCaught) {
     for (let i = 0; i < browserErrorEvents.length; i++) {
         self.addEventListener(
             browserErrorEvents[i],
