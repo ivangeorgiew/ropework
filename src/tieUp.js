@@ -72,9 +72,7 @@ export const tieUp = createFunc({
                 descriptors
             ).concat(Object.getOwnPropertySymbols(descriptors))
 
-            let i = -1
-
-            while (descriptorKeys.length - ++i) {
+            for (let i = 0; i < descriptorKeys.length; i++) {
                 // key can be a Symbol
                 const key = String(descriptorKeys[i])
 

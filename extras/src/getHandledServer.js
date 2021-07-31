@@ -26,9 +26,7 @@ export const getHandledServer = tieUp({
             })
         )
 
-        let i = -1
-
-        while (nodeErrorEvents.length - ++i) {
+        for (let i = 0; i < nodeErrorEvents.length; i++) {
             process.prependListener(
                 nodeErrorEvents[i],
                 tieUp({

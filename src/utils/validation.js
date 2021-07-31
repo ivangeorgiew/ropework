@@ -23,15 +23,10 @@ export const parseArgTypes = function (descr, argTypes) {
         const openSymHistory = []
 
         while (argTypes.length) {
-            const currStore = (function () {
-                let [acc, i] = [parsedTypes, -1]
-
-                while (pathToStore.length - ++i) {
-                    acc = acc[pathToStore[i]]
-                }
-
-                return acc
-            })()
+            const currStore = pathToStore.reduce(
+                (acc, key) => acc[key],
+                parsedTypes
+            )
 
             if (simpleTypeReg.test(argTypes)) {
                 const workingPart = simpleTypeReg.exec(argTypes)[0]

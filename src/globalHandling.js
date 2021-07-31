@@ -54,9 +54,7 @@ const uncaughtErrorListener = tieUp({
 })
 
 if ((isBrowser || isWorker) && !self.tp_areUnhandledCaught) {
-    let i = -1
-
-    while (browserErrorEvents.length - ++i) {
+    for (let i = 0; i < browserErrorEvents.length; i++) {
         self.addEventListener(
             browserErrorEvents[i],
             uncaughtErrorListener,
@@ -71,9 +69,7 @@ if ((isBrowser || isWorker) && !self.tp_areUnhandledCaught) {
 }
 
 if (isNodeJS && !global.tp_areUnhandledCaught) {
-    let i = -1
-
-    while (nodeErrorEvents.length - ++i) {
+    for (let i = 0; i < nodeErrorEvents.length; i++) {
         process.on(nodeErrorEvents[i], uncaughtErrorListener)
     }
 

@@ -1,57 +1,11 @@
+import { getCacheIdx, reorderCacheItem, storeCacheItem } from './caching'
 import { logError } from './logging'
 import { parseArgTypes, validateArgs } from './validation'
 
 // TODO: add validation, it is currently slow during caching
 // TODO: unfinishedCalls is not working for async/gen functions? (try async recursion)
 const createFuncDescr = 'creating an error-handled function'
-
 const handledFuncs = new WeakSet()
-
-const isEqual = function (a, b) {
-    return a === b || (a !== a && b !== b)
-}
-
-const getCacheIdx = function (that, args, cacheKeys) {
-    const cacheKeysLen = cacheKeys.length
-
-    if (cacheKeysLen === 0) {
-        return -1
-    }
-
-    const argsLen = args.length
-    const lastArgsIdx = argsLen - 1
-
-    for (let i = 0; i < cacheKeysLen; i++) {
-        const cacheKey = cacheKeys[i]
-
-        if (argsLen !== cacheKey.length || that !== cacheKey.that) {
-            continue
-        }
-
-        switch (argsLen) {
-            case 0: {
-                return i
-            }
-            case 1: {
-                if (isEqual(cacheKey[0], args[0])) {
-                    return i
-                }
-                break
-            }
-            default: {
-                for (
-                    let m = 0;
-                    m < argsLen && isEqual(cacheKey[m], args[m]);
-                    m++
-                ) {
-                    if (m === lastArgsIdx) return i
-                }
-            }
-        }
-    }
-
-    return -1
-}
 
 export const createFunc = function (props) {
     try {
@@ -97,24 +51,7 @@ export const createFunc = function (props) {
 
         let unfinishedCalls = 0
 
-        const storeOrReorder = function (that, key, value, idxToReorder) {
-            if (idxToReorder) {
-                cacheKeys.splice(idxToReorder, 1)
-                cacheValues.splice(idxToReorder, 1)
-            } else {
-                key.that = that
-
-                if (cacheKeys.length === 5) {
-                    cacheKeys.pop()
-                    cacheValues.pop()
-                }
-            }
-
-            cacheKeys.unshift(key)
-            cacheValues.unshift(value)
-        }
-
-        const innerCatch = function (error, args) {
+        const innerCatch = function (that, error, args) {
             unfinishedCalls = unfinishedCalls + 1
 
             if (unfinishedCalls > 1) {
@@ -129,7 +66,7 @@ export const createFunc = function (props) {
             try {
                 if (hasCaching) {
                     const cacheIdx = getCacheIdx(
-                        this,
+                        that,
                         useCache(args),
                         cacheKeys
                     )
@@ -141,7 +78,7 @@ export const createFunc = function (props) {
                 }
 
                 if (hasOnError) {
-                    return onError.call(this, { descr, args, error })
+                    return onError.call(that, { descr, args, error })
                 }
             } catch (error) {
                 logError({
@@ -164,12 +101,7 @@ export const createFunc = function (props) {
 
                     if (cacheIdx !== -1) {
                         if (cacheIdx !== 0) {
-                            storeOrReorder(
-                                this,
-                                cacheKeys[cacheIdx],
-                                cacheValues[cacheIdx],
-                                cacheIdx
-                            )
+                            reorderCacheItem(cacheIdx, cacheKeys, cacheValues)
                         }
 
                         return cacheValues[0]
@@ -193,6 +125,7 @@ export const createFunc = function (props) {
 
                 // handle async, generator and async generator
                 if (typeof result === 'object' && result !== null) {
+                    const that = this
                     const args = arguments
 
                     if (typeof result[Symbol.asyncIterator] === 'function') {
@@ -200,7 +133,7 @@ export const createFunc = function (props) {
                             try {
                                 return yield* iter
                             } catch (error) {
-                                return innerCatch.call(this, error, args)
+                                return innerCatch(that, error, args)
                             }
                         })(result)
                     } else if (typeof result[Symbol.iterator] === 'function') {
@@ -208,7 +141,7 @@ export const createFunc = function (props) {
                             try {
                                 return yield* iter
                             } catch (error) {
-                                return innerCatch.call(this, error, args)
+                                return innerCatch(that, error, args)
                             }
                         })(result)
                     } else if (
@@ -219,19 +152,25 @@ export const createFunc = function (props) {
                             try {
                                 return await prom
                             } catch (error) {
-                                return innerCatch.call(this, error, args)
+                                return innerCatch(that, error, args)
                             }
                         })(result)
                     }
                 }
 
                 if (hasCaching) {
-                    storeOrReorder(this, Array.from(argsToCache), result)
+                    storeCacheItem(
+                        this,
+                        Array.from(argsToCache),
+                        result,
+                        cacheKeys,
+                        cacheValues
+                    )
                 }
 
                 return result
             } catch (error) {
-                return innerCatch.call(this, error, arguments)
+                return innerCatch(this, error, arguments)
             }
         }
 

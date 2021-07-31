@@ -57,13 +57,13 @@ export const logError = function (props) {
                 : new Error('Unknown error')
 
         const argsInfo = (function () {
+            let result = ''
+
             if (!Array.isArray(props.args)) {
-                return ''
+                return result
             }
 
-            let [result, i] = ['', -1]
-
-            while (props.args.length - ++i) {
+            for (let i = 0; i < props.args.length; i++) {
                 let arg = props.args[i]
 
                 if (typeof arg === 'function') {
