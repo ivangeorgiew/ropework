@@ -47,9 +47,7 @@ export const logError = function (props) {
             (typeof props.descr === 'string' ? props.descr : 'part of the app')
 
         const error =
-            props.error instanceof Error
-                ? props.error
-                : new Error('Unknown error')
+            props.error instanceof Error ? props.error : new Error('Unknown error')
 
         const args = Array.isArray(props.args) ? props.args : []
 
@@ -93,23 +91,18 @@ export const logError = function (props) {
 
                 for (let i = 0; i < args.length; i++) {
                     const arg = args[i]
-                    let parsedArg
+                    let parsedArg =
+                        typeof arg === 'function' ? '()' : stringifyAll(arg)
 
-                    if (typeof arg === 'function') {
-                        parsedArg = '()'
+                    if (parsedArg.length > 100) {
+                        parsedArg = Array.isArray(arg)
+                            ? '[large array]'
+                            : '[large object]'
                     } else {
-                        parsedArg = stringifyAll(arg)
-
-                        if (parsedArg.length > 100) {
-                            parsedArg = Array.isArray(arg)
-                                ? '[large array]'
-                                : '[large object]'
-                        } else {
-                            parsedArg = parsedArg.replace(
-                                /"(Infinity|NaN|null|undefined|\(\)|\[\$ref\])"/g,
-                                '$1'
-                            )
-                        }
+                        parsedArg = parsedArg.replace(
+                            /"(Infinity|NaN|null|undefined|\(\)|\[\$ref\])"/g,
+                            '$1'
+                        )
                     }
 
                     acc = i === 0 ? parsedArg : `${acc} , ${parsedArg}`

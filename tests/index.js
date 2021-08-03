@@ -15,8 +15,8 @@
 // let fib = tieUp({
 //     descr: 'calculating fibonacci number',
 //     argTypes: fibArgTypes,
-//     useCache: ([n]) => [n],
-//     onError: () => NaN,
+//     useCache: true,
+//     onError: () => 'Not a number',
 //     data: function (n, a, b, c, d, e) {
 //         if (n <= 1) return n
 
@@ -24,21 +24,6 @@
 //         const prepre = fib.call(this, n - 1, a, b, c, d, e)
 
 //         return pre + prepre
-//     }
-// })
-
-// let measureFib = tieUp({
-//     descr: 'measuring the time it takes to calculate fibonacci number',
-//     argTypes: fibArgTypes,
-//     onError: () => 'Incorrect fibonacchi calculation',
-//     data: function (n, a, b, c, d, e) {
-//         const startTime = Date.now()
-
-//         try {
-//             return fib.call(this, n, a, b, c, d, e)
-//         } finally {
-//             console.log(`execution time ${Date.now() - startTime}ms`)
-//         }
 //     }
 // })
 
@@ -89,13 +74,18 @@
 //     }
 // })
 
+// console.log(fib.call(c, 500000, a, b, c, d, B))
+// console.log(fib.call(c, 500000, a, b, c, d, B))
+// console.log(fib.call(c, 4000, a, b, c, d, B))
+// console.log(fib.call(c, 4000, a, b, c, d, B))
+
+// console.time('fib')
+// fib.call(c, 4000, a, b, c, d, B)
+// console.timeEnd('fib')
+
 // const e = new B({ a: 123, b: 5 })
 // console.log(e.someMethod({}, [5, 10], () => {}, 5))
 // console.log(e.otherMethod({ a: true }, [], 'supup', 5))
-
-// console.log(measureFib.call(c, 500000, a, b, c, d, B))
-// console.log(measureFib.call(c, 4000, a, b, c, d, B))
-// console.log(measureFib.call(c, 4000, a, b, c, d, B))
 
 // // node --expose-gc
 // const showMemory = () => {
@@ -116,38 +106,30 @@
 // }
 // showMemory()
 // fib = null
-// measureFib = null
 // global.gc()
 // showMemory()
 
 // const asyncGen = tieUp({
 //     descr: 'Asynchronous generator function test',
 //     argTypes: 'int',
-//     useCache: args => args,
+//     useCache: true,
 //     data: async function* (i) {
 //         // throw new Error('intended')
 //         yield i
-//         await new Promise(resolve => setTimeout(resolve, 1000))
+//         await new Promise(resolve => setTimeout(resolve, 2000))
 //         return i + 10
 //     }
 // })
 
-// asyncGen(10)
-//     .next()
-//     .then(res => {
-//         console.log(res)
-
-//         asyncGen(10)
-//             .next()
-//             .then(res => {
-//                 console.log(res)
-//             })
-//     })
+// ;(async () => {
+//     console.log(await asyncGen(10).next())
+//     console.log(await asyncGen(10).next())
+// })()
 
 // const gen = tieUp({
 //     descr: 'Generator function test',
 //     argTypes: 'int',
-//     useCache: args => args,
+//     useCache: true,
 //     data: function* (i) {
 //         // throw new Error('intended')
 //         yield i
@@ -161,25 +143,25 @@
 // const asyncF = tieUp({
 //     descr: 'Asynchronous function test',
 //     argTypes: 'int',
-//     useCache: args => args,
+//     useCache: true,
+//     onError: async () => 'error val',
 //     data: async function (i) {
-//         await new Promise(resolve => setTimeout(resolve, 1000))
 //         // throw new Error('intended')
+//         // await asyncF(i + 1)
+//         await new Promise(resolve => setTimeout(resolve, 1000))
 //         return i
 //     }
 // })
 
-// asyncF(10).then(res => {
-//     console.log(res)
-//     asyncF(10).then(res => {
-//         console.log(res)
-//     })
-// })
+// ;(async () => {
+//     console.log(await asyncF(10))
+//     console.log(await asyncF(10))
+// })()
 
 // const loopAsync = tieUp({
 //     descr: 'cached loop async function',
 //     argTypes: '(), int',
-//     useCache: args => args,
+//     useCache: true,
 //     onError: () => new Promise(),
 //     data: (fn, n) =>
 //         new Promise(resolve => {
@@ -209,9 +191,9 @@
 // const addNumbers = tieUpPartial({
 //     descr: 'adding two numbers',
 //     argTypesOuter: 'int | string',
-//     useCacheOuter: args => args,
+//     useCacheOuter: true,
 //     argTypes: 'int | string',
-//     useCache: args => args,
+//     useCache: true,
 //     data: a => {
 //         console.log('ran outer')
 

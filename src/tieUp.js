@@ -1,3 +1,4 @@
+import { isDevelopment } from './options'
 import { createFunc } from './utils/createFunc'
 import { logError } from './utils/logging'
 
@@ -68,9 +69,9 @@ export const tieUp = createFunc({
             Object.setPrototypeOf(handledData, Object.getPrototypeOf(data))
 
             const descriptors = Object.getOwnPropertyDescriptors(data)
-            const descriptorKeys = Object.getOwnPropertyNames(
-                descriptors
-            ).concat(Object.getOwnPropertySymbols(descriptors))
+            const descriptorKeys = Object.getOwnPropertyNames(descriptors).concat(
+                Object.getOwnPropertySymbols(descriptors)
+            )
 
             for (let i = 0; i < descriptorKeys.length; i++) {
                 // key can be a Symbol
@@ -80,18 +81,13 @@ export const tieUp = createFunc({
                     const value = descriptors[key].value
 
                     if (!('value' in descriptors[key])) {
-                        Object.defineProperty(
-                            handledData,
-                            key,
-                            descriptors[key]
-                        )
+                        Object.defineProperty(handledData, key, descriptors[key])
                         continue
                     }
 
                     if (
                         value !== null &&
-                        (typeof value === 'object' ||
-                            typeof value === 'function') &&
+                        (typeof value === 'object' || typeof value === 'function') &&
                         !/.(OnError|UseCache)$/.test(key)
                     ) {
                         stack.push({
@@ -121,6 +117,17 @@ export const tieUp = createFunc({
                         args: [data, handledData]
                     })
                 }
+            }
+
+            if (
+                isDevelopment &&
+                typeof handledData === 'function' &&
+                typeof handledData.name === 'string'
+            ) {
+                Object.defineProperty(handledData, 'name', {
+                    value: `[${descr}]`,
+                    configurable: true
+                })
             }
 
             if (isFirstCall) {

@@ -6,7 +6,7 @@ const isEqual = function (a, b) {
     } catch (error) {
         logError({
             descr: 'comparing 2 values for caching',
-            args: Array.from(arguments),
+            args: [a, b],
             error
         })
 
@@ -17,11 +17,6 @@ const isEqual = function (a, b) {
 export const getCacheIdx = function (that, args, cacheKeys) {
     try {
         const cacheKeysLen = cacheKeys.length
-
-        if (cacheKeysLen === 0) {
-            return -1
-        }
-
         const argsLen = args.length
         const lastArgsIdx = argsLen - 1
 
@@ -32,24 +27,15 @@ export const getCacheIdx = function (that, args, cacheKeys) {
                 continue
             }
 
-            switch (argsLen) {
-                case 0: {
+            if (argsLen === 0) {
+                return i
+            } else if (argsLen === 1) {
+                if (isEqual(cacheKey[0], args[0])) {
                     return i
                 }
-                case 1: {
-                    if (isEqual(cacheKey[0], args[0])) {
-                        return i
-                    }
-                    break
-                }
-                default: {
-                    for (
-                        let m = 0;
-                        m < argsLen && isEqual(cacheKey[m], args[m]);
-                        m++
-                    ) {
-                        if (m === lastArgsIdx) return i
-                    }
+            } else {
+                for (let m = 0; m < argsLen && isEqual(cacheKey[m], args[m]); m++) {
+                    if (m === lastArgsIdx) return i
                 }
             }
         }
@@ -58,7 +44,7 @@ export const getCacheIdx = function (that, args, cacheKeys) {
     } catch (error) {
         logError({
             descr: 'searching for existing cache item',
-            args: Array.from(arguments),
+            args: [that, args, cacheKeys],
             error
         })
 
@@ -66,39 +52,23 @@ export const getCacheIdx = function (that, args, cacheKeys) {
     }
 }
 
-export const reorderCacheItem = function (cacheIdx, cacheKeys, cacheValues) {
+export const manageCache = function (i, key, value, cacheKeys, cacheValues) {
     try {
-        cacheKeys.unshift(cacheKeys[cacheIdx])
-        cacheValues.unshift(cacheValues[cacheIdx])
-
-        cacheKeys.splice(cacheIdx + 1, 1)
-        cacheValues.splice(cacheIdx + 1, 1)
-    } catch (error) {
-        logError({
-            descr: 'reordering cache item to the front',
-            args: Array.from(arguments),
-            error
-        })
-    }
-}
-
-export const storeCacheItem = function () {
-    try {
-        const [that, key, value, cacheKeys, cacheValues] = arguments
-
-        key.that = that
-
-        cacheKeys.unshift(key)
-        cacheValues.unshift(value)
-
-        if (cacheKeys.length === 5) {
-            cacheKeys.pop()
-            cacheValues.pop()
+        if (i > 5) {
+            i = 5
         }
+
+        while (i--) {
+            cacheKeys[i + 1] = cacheKeys[i]
+            cacheValues[i + 1] = cacheValues[i]
+        }
+
+        cacheKeys[0] = key
+        cacheValues[0] = value
     } catch (error) {
         logError({
             descr: 'storing key and value in cache',
-            args: Array.from(arguments),
+            args: [i, key, value, cacheKeys, cacheValues],
             error
         })
     }

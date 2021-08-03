@@ -1,5 +1,4 @@
-const defaultLogger =
-    typeof console?.error === 'function' ? console.error : () => {}
+const defaultLogger = typeof console?.error === 'function' ? console.error : () => {}
 
 let errorLoggerUnhandled = defaultLogger
 
