@@ -113,6 +113,7 @@
 //     descr: 'Asynchronous generator function test',
 //     argTypes: 'int',
 //     useCache: true,
+//     onError: () => 123,
 //     data: async function* (i) {
 //         // throw new Error('intended')
 //         yield i
@@ -130,6 +131,7 @@
 //     descr: 'Generator function test',
 //     argTypes: 'int',
 //     useCache: true,
+//     onError: () => 123,
 //     data: function* (i) {
 //         // throw new Error('intended')
 //         yield i
@@ -158,42 +160,13 @@
 //     console.log(await asyncF(10))
 // })()
 
-// const loopAsync = tieUp({
-//     descr: 'cached loop async function',
-//     argTypes: '(), int',
-//     useCache: true,
-//     onError: () => new Promise(),
-//     data: (fn, n) =>
-//         new Promise(resolve => {
-//             let v
-
-//             for (let i = 0; i < n; i++) {
-//                 v = fn(i)
-//             }
-
-//             resolve(v)
-//         })
-// })
-
-// let startTime = Date.now()
-
-// loopAsync(Math.sqrt, 1e9).then(result => {
-//     console.log(`executed in ${Date.now() - startTime}ms`)
-//     console.log(result)
-//     startTime = Date.now()
-
-//     loopAsync(Math.sqrt, 1e9).then(result => {
-//         console.log(`executed in ${Date.now() - startTime}ms`)
-//         console.log(result)
-//     })
-// })
-
 // const addNumbers = tieUpPartial({
 //     descr: 'adding two numbers',
 //     argTypesOuter: 'int | string',
 //     useCacheOuter: true,
 //     argTypes: 'int | string',
 //     useCache: true,
+//     onError: () => 'There was an error',
 //     data: a => {
 //         console.log('ran outer')
 

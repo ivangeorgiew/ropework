@@ -70,6 +70,7 @@ export const logError = function (props) {
 
         if (isNodeJS) {
             Object.assign(prodInfo, {
+                pid: process.pid,
                 localUrl: process.cwd(),
                 cpuArch: process.arch,
                 osType: process.platform,

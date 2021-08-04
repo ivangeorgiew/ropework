@@ -1,9 +1,4 @@
-import {
-    browserErrorEvents,
-    isNodeJS,
-    isWeb,
-    nodeErrorEvents
-} from './constants'
+import { browserErrorEvents, isNodeJS, isWeb, nodeErrorEvents } from './constants'
 import { tieUp } from './tieUp'
 import { logError } from './utils/logging'
 
@@ -47,28 +42,38 @@ const uncaughtErrorListener = tieUp({
     }
 })
 
-if (isWeb && !self.tp_areUnhandledCaught) {
-    for (let i = 0; i < browserErrorEvents.length; i++) {
-        self.addEventListener(
-            browserErrorEvents[i],
-            uncaughtErrorListener,
-            true
-        )
+export const handleUncaughtErrors = tieUp({
+    descr: 'adding event listeners for uncaught errors',
+    argTypes: 'bool | undef',
+    data: function (shouldAdd = true) {
+        if (isWeb) {
+            for (let i = 0; i < browserErrorEvents.length; i++) {
+                self.removeEventListener(
+                    browserErrorEvents[i],
+                    uncaughtErrorListener,
+                    true
+                )
+
+                if (shouldAdd) {
+                    self.addEventListener(
+                        browserErrorEvents[i],
+                        uncaughtErrorListener,
+                        true
+                    )
+                }
+            }
+        }
+
+        if (isNodeJS) {
+            for (let i = 0; i < nodeErrorEvents.length; i++) {
+                process.removeListener(nodeErrorEvents[i], uncaughtErrorListener)
+
+                if (shouldAdd) {
+                    process.on(nodeErrorEvents[i], uncaughtErrorListener)
+                }
+            }
+        }
     }
+})
 
-    Object.defineProperty(self, 'tp_areUnhandledCaught', {
-        value: true,
-        configurable: true
-    })
-}
-
-if (isNodeJS && !global.tp_areUnhandledCaught) {
-    for (let i = 0; i < nodeErrorEvents.length; i++) {
-        process.on(nodeErrorEvents[i], uncaughtErrorListener)
-    }
-
-    Object.defineProperty(global, 'tp_areUnhandledCaught', {
-        value: true,
-        configurable: true
-    })
-}
+handleUncaughtErrors(true)
