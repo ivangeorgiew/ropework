@@ -5,6 +5,7 @@
     "private": true,
     "main": "./dist/cjs/index.js",
     "module": "./dist/esm/index.js",
+    "browser": "./dist/index.min.js",
     "unpkg": "./dist/index.umd.js",
     "license": "MIT",
     "peerDependencies": {

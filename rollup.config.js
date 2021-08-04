@@ -12,6 +12,14 @@ const commonOutOpts = {
     freeze: false,
     exports: 'named'
 }
+const terserOpts = {
+    ecma: 6,
+    compress: {
+        keep_infinity: true,
+        pure_getters: true,
+        passes: 5
+    }
+}
 
 export default entries.map(([root, name]) => ({
     input: `${root}/src/index.js`,
@@ -31,21 +39,25 @@ export default entries.map(([root, name]) => ({
         },
         {
             ...commonOutOpts,
+            format: 'esm',
+            file: `${root}/dist/index.min.js`,
+            sourcemap: true,
+            plugins: [
+                terser({
+                    ...terserOpts,
+                    module: true,
+                    toplevel: true
+                })
+            ]
+        },
+        {
+            ...commonOutOpts,
             format: 'umd',
             file: `${root}/dist/index.umd.js`,
             name,
             globals,
             sourcemap: true,
-            plugins: [
-                terser({
-                    ecma: 6,
-                    compress: {
-                        keep_infinity: true,
-                        pure_getters: true,
-                        passes: 5
-                    }
-                })
-            ]
+            plugins: [terser(terserOpts)]
         }
     ],
     plugins: [

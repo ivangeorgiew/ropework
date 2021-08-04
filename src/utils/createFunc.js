@@ -47,7 +47,6 @@ export const createFunc = function (props) {
         let isNextCallFirst = true
 
         const innerCatch = function (that, args, error, isFirstCall) {
-            // TODO: not working for async/gen functions (try async recursion)
             // performance check for undefined or false
             if (!isFirstCall) {
                 cacheKeys.length = cacheValues.length = 0

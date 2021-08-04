@@ -5,6 +5,7 @@
     "private": true,
     "main": "./dist/cjs/index.js",
     "module": "./dist/esm/index.js",
+    "browser": "./dist/index.min.js",
     "unpkg": "./dist/index.umd.js",
     "sideEffects": [
         "**/globalHandling.js"
@@ -13,12 +14,14 @@
         ".": {
             "require": "./dist/cjs/index.js",
             "import": "./dist/esm/index.js",
-            "umd": "./dist/index.umd.js"
+            "umd": "./dist/index.umd.js",
+            "browser": "./dist/index.min.js"
         },
         "./extras": {
             "require": "./extras/dist/cjs/index.js",
             "import": "./extras/dist/esm/index.js",
-            "umd": "./extras/dist/index.umd.js"
+            "umd": "./extras/dist/index.umd.js",
+            "browser": "./extras/dist/index.min.js"
         },
         "./package.json": "./package.json"
     },
