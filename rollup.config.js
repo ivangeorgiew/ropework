@@ -63,8 +63,6 @@ export default entries.map(([root, name]) => ({
     plugins: [
         babel({
             babelHelpers: 'bundled',
-            babelrc: false,
-            configFile: false,
             exclude: 'node_modules/**',
             presets: ['@babel/preset-env']
         }),

@@ -46,7 +46,7 @@
             "prettier --write",
             "eslint --fix"
         ],
-        "*.md": [
+        "*.{md,json}": [
             "prettier --write"
         ]
     },
@@ -67,11 +67,17 @@
         "endOfLine": "lf"
     },
     "eslintConfig": {
+        "parser": "@babel/eslint-parser",
         "parserOptions": {
-            "ecmaVersion": "latest",
+            "requireConfigFile": false,
             "sourceType": "module",
             "ecmaFeatures": {
                 "impliedStrict": true
+            },
+            "babelOptions": {
+                "presets": [
+                    "@babel/preset-env"
+                ]
             }
         },
         "env": {
@@ -91,15 +97,10 @@
         "maintained node versions"
     ],
     "keywords": [
-        "exception",
-        "error",
         "error-handling",
-        "caching",
-        "cache",
+        "exception-handling",
         "memoization",
-        "memoize",
-        "runtime",
-        "validation"
+        "memoize"
     ],
     "author": "Ivan Georgiev <ivan_georgiew@yahoo.com>",
     "license": "MIT",
@@ -108,6 +109,7 @@
     "homepage": "https://github.com/ivangeorgiew/tied-up#readme",
     "devDependencies": {
         "@babel/core": "^7.14.6",
+        "@babel/eslint-parser": "^7.14.9",
         "@babel/preset-env": "^7.14.7",
         "@rollup/plugin-babel": "^5.3.0",
         "eslint": "^7.30.0",

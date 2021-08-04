@@ -2,6 +2,7 @@ lockfileVersion: 5.3
 
 specifiers:
   '@babel/core': ^7.14.6
+  '@babel/eslint-parser': ^7.14.9
   '@babel/preset-env': ^7.14.7
   '@rollup/plugin-babel': ^5.3.0
   eslint: ^7.30.0
@@ -15,6 +16,7 @@ specifiers:
 
 devDependencies:
   '@babel/core': 7.14.6
+  '@babel/eslint-parser': 7.14.9_@babel+core@7.14.6+eslint@7.30.0
   '@babel/preset-env': 7.14.7_@babel+core@7.14.6
   '@rollup/plugin-babel': 5.3.0_@babel+core@7.14.6+rollup@2.53.2
   eslint: 7.30.0
@@ -67,6 +69,20 @@ packages:
       source-map: 0.5.7
     transitivePeerDependencies:
       - supports-color
+    dev: true
+
+  /@babel/eslint-parser/7.14.9_@babel+core@7.14.6+eslint@7.30.0:
+    resolution: {integrity: sha512-W3En2CT6iOZJ+jEujLlwL2h/Jraj6S/IHrh63nV+TfX83DYe9pI4pcu0Luj6/hJ2kIr/3hOttxzaEsSQnUKx+w==}
+    engines: {node: ^10.13.0 || ^12.13.0 || >=14.0.0}
+    peerDependencies:
+      '@babel/core': '>=7.11.0'
+      eslint: '>=7.5.0'
+    dependencies:
+      '@babel/core': 7.14.6
+      eslint: 7.30.0
+      eslint-scope: 5.1.1
+      eslint-visitor-keys: 2.1.0
+      semver: 6.3.0
     dev: true
 
   /@babel/generator/7.14.5:
@@ -1624,6 +1640,11 @@ packages:
 
   /eslint-visitor-keys/2.0.0:
     resolution: {integrity: sha512-QudtT6av5WXels9WjIM7qz1XD1cWGvX4gGXvp/zBn9nXG02D0utdU3Em2m/QjTnrsk6bBjmCygl3rmj118msQQ==}
+    engines: {node: '>=10'}
+    dev: true
+
+  /eslint-visitor-keys/2.1.0:
+    resolution: {integrity: sha512-0rSmRBzXgDzIsD6mGdJgevzgezI534Cer5L/vyMX0kHzT/jiB43jRhd9YUlMGYLQy2zprNmoT8qasCGtY+QaKw==}
     engines: {node: '>=10'}
     dev: true
 
