@@ -72,8 +72,6 @@ export const handleUncaughtErrors = tieUp({
                     process.on(nodeErrorEvents[i], uncaughtErrorListener)
                 }
             }
-            // TODO: try to remove stdout/stderr messages on overflow in promise
-            // check if process.stdout.isTTY
         }
     }
 })

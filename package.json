@@ -23,10 +23,13 @@
             "umd": "./extras/dist/index.umd.js",
             "browser": "./extras/dist/index.min.js"
         },
-        "./package.json": "./package.json"
+        "./package.json": "./package.json",
+        "./": "./"
     },
     "files": [
+        "src",
         "dist",
+        "extras/src",
         "extras/dist",
         "extras/package.json"
     ],
