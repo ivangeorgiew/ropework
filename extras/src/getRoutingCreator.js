@@ -11,15 +11,24 @@ export const getRoutingCreator = tieUp({
         }
 
         if (onError === undefined) {
-            onError = function ({ args, error }) {
+            onError = function ({ descr, args, error }) {
                 const res = args[1]
+                let message, stack
+
+                if (error instanceof Error) {
+                    message = error.message
+                    stack = error.stack
+                } else {
+                    message = error
+                    stack = ''
+                }
 
                 if (!res.headersSent) {
                     res.status(500).json({
                         error: {
-                            name: 'Internal server error',
-                            message: error?.message ?? error,
-                            stack: error?.stack ?? ''
+                            name: `Server issue with: ${descr}`,
+                            message,
+                            stack
                         }
                     })
                 }

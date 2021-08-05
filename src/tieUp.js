@@ -11,7 +11,7 @@ export const tieUp = createFunc({
         :useCache: () | undef,
         :data: any
     }`,
-    onError: ({ args: [props] }) => props?.data,
+    onError: ({ args: [props] }) => Object.assign({}, props).data,
     func: function (props) {
         if (
             props.data === null ||

@@ -1,5 +1,7 @@
-export const isWeb = typeof self === 'object'
-export const isNodeJS = typeof process?.versions?.node === 'string'
+export const isWeb =
+    typeof self === 'object' && typeof self.addEventListener === 'function'
+export const isNodeJS =
+    typeof global === 'object' && typeof global.process === 'object'
 export const FriendlyError = class extends Error {
     constructor(...args) {
         super(...args)

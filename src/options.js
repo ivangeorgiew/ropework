@@ -1,11 +1,16 @@
-const defaultLogger = typeof console?.error === 'function' ? console.error : () => {}
+const defaultLogger =
+    typeof console === 'object' && typeof console.error === 'function'
+        ? console.error
+        : () => {}
 
 let errorLoggerUnhandled = defaultLogger
 
 let notifyUnhandled = () => {}
 
 export let isDevelopment =
-    typeof process?.env?.NODE_ENV === 'string'
+    typeof process === 'object' &&
+    typeof process.env === 'object' &&
+    typeof process.env.NODE_ENV === 'string'
         ? process.env.NODE_ENV !== 'production'
         : false
 
