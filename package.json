@@ -6,7 +6,7 @@
     "main": "./dist/cjs/index.js",
     "module": "./dist/esm/index.js",
     "browser": "./dist/index.min.js",
-    "unpkg": "./dist/index.umd.js",
+    "unpkg": "./dist/index.min.js",
     "sideEffects": [
         "**/globalHandling.js"
     ],

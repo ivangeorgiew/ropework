@@ -1,5 +1,4 @@
 // const { tieUp } = require('tied-up')
-// const { tieUpPartial } = require('tied-up/extras')
 
 // const aType = '()'
 // const fibArgTypes = `
@@ -160,13 +159,9 @@
 //     console.log(await asyncF(10))
 // })()
 
-// const addNumbers = tieUpPartial({
-//     descr: 'adding two numbers',
-//     argTypesOuter: 'int | string',
-//     useCacheOuter: true,
-//     argTypes: 'int | string',
+// const addNumbers = tieUp({
+//     descr: 'create function to add numbers',
 //     useCache: true,
-//     onError: () => 'There was an error',
 //     data: a => {
 //         console.log('ran outer')
 
@@ -174,15 +169,20 @@
 //             throw new Error('Outer error - please pass number')
 //         }
 
-//         return b => {
-//             console.log('ran inner')
+//         return tieUp({
+//             descr: 'adding two number',
+//             useCache: true,
+//             onError: () => 'There was an error',
+//             data: b => {
+//                 console.log('ran inner')
 
-//             if (typeof b === 'string') {
-//                 throw new Error('Inner error - please pass number')
+//                 if (typeof b === 'string') {
+//                     throw new Error('Inner error - please pass number')
+//                 }
+
+//                 return a + b
 //             }
-
-//             return a + b
-//         }
+//         })
 //     }
 // })
 

@@ -1,18 +1,17 @@
 # Tied-Up
 
-Error-handling and other function utilities for better user and developer
-experience.
+Error-handling and other function utilities for better user and developer experience.
 
-In programming most errors could have been caught by developers, but they were
-lazy or negligent. This is me trying to semi-automate the process of catching
-errors so your app only crashes when it really should. All done with useful and
-friendly logging. Also extremely powerful caching is included and runtime
-validation of function arguments.
+In programming most errors could have been caught by developers, but they were lazy
+or negligent. This is me trying to semi-automate the process of catching errors so
+your app only crashes when it really should. All done with useful and friendly
+logging. Also extremely powerful caching is included and runtime validation of
+function arguments.
 
 ## Usage
 
-To start using this package you need to first install locally: `npm i tied-up`
-or `pnpm add tied-up` or `yarn add tied-up`
+To start using this package you need to first install locally: `npm i tied-up` or
+`pnpm add tied-up` or `yarn add tied-up`
 
 ## Front-end Example:
 
@@ -152,51 +151,49 @@ server.listen(port, () => {
 
 -   `notify`
 
-    -   type:
-        `({ isDevelopment, isFriendlyError, error, errorDescr, prodInfo })` -> ?
+    -   type: `({ isDevelopment, isFriendlyError, error, errorDescr, prodInfo })` ->
+        ?
     -   definition: Function parameter that was parsed from `tied-up`
 
 -   `FriendlyError`
 
     -   type: `constructor`
-    -   definition: Constructor that extends `Error`. Use it in functions
-        created with `tieUp` to signify that the error was thrown intentionally
-        and that the message is user friendly
+    -   definition: Constructor that extends `Error`. Use it in functions created
+        with `tieUp` to signify that the error was thrown intentionally and that the
+        message is user friendly
 
 -   `tieUp`
 
     -   type: `({ descr, data, argTypes, onError, useCache })` ->
         `error handled data`
-    -   definition: Function that error handles any type of data that you give
-        it.
-    -   `descr`: String that describes the data. Can be ommited. It is used to
-        name functions and for better description in errors.
-    -   `data`: Any data which we error handle deeply. Arrays, functions and
-        their arguments, objects and their methods, etc.
-    -   `onError`: Function that executes after the internal catch logic. Can be
-        used to return a default value on error. Accepts arguments
+    -   definition: Function that error handles any type of data that you give it.
+    -   `descr`: String that describes the data. Can be ommited. It is used to name
+        functions and for better description in errors.
+    -   `data`: Any data which we error handle deeply. Arrays, functions and their
+        arguments, objects and their methods, etc.
+    -   `onError`: Function that executes after the internal catch logic. Can be used
+        to return a default value on error. Accepts arguments
         `({ descr, args, error })`. Additionaly, a method with name
         `someMethodOnError` is considered the same as this function, but for
         `someMethod`.
-    -   `useCache`: Function that if given enables extremely fast, memory
-        efficient caching. Example: `(args) => [args[1]]`. Where `args` are the
-        function arguments. The function must return an array which be will used
-        for creating a cache key. `this` is automatically used every time for
-        the creating of the cache key. Additionaly, a method with the name
-        `someMethodUseCache` is considered the same as this function, but for
-        `someMethod`.
+    -   `useCache`: Function that if given enables extremely fast, memory efficient
+        caching. Example: `(args) => [args[1]]`. Where `args` are the function
+        arguments. The function must return an array which be will used for creating
+        a cache key. `this` is automatically used every time for the creating of the
+        cache key. Additionaly, a method with the name `someMethodUseCache` is
+        considered the same as this function, but for `someMethod`.
     -   `argTypes`: String which is used for checking function arguments types.
-        Supports simple types which start with the following wording `bool`,
-        `null`, `undef`, `any`, but `booleanSomeOtherChars` would also work.
-        Type for checking if an instance of is `@URIError` - must start with `@`
-        immediately followed by the constructor. Also supports the following
-        types: `str`, `num`, `int`. This is valid: `int > 10 <= 123`,
-        `str = 44`. Must start with `int (=|>|>=) 1234` and optionally followed
-        by `(<|<=) 4321`. Objects - `{}`, arrays - `[]`, functions - `()` can be
-        so defined or can contain property keys to be checked with the syntax -
-        `[ :my Specialy,% key: int, :length: 4, :a: { :b: bool } ]`. The key
-        must be between the starting and ending `:`. Finally - any of those
-        types can be followed by `|` which indicates OR some other type -
+        Supports simple types which start with the following wording `bool`, `null`,
+        `undef`, `any`, but `booleanSomeOtherChars` would also work. Type for
+        checking if an instance of is `@URIError` - must start with `@` immediately
+        followed by the constructor. Also supports the following types: `str`, `num`,
+        `int`. This is valid: `int > 10 <= 123`, `str = 44`. Must start with
+        `int (=|>|>=) 1234` and optionally followed by `(<|<=) 4321`. Objects - `{}`,
+        arrays - `[]`, functions - `()` can be so defined or can contain property
+        keys to be checked with the syntax -
+        `[ :my Specialy,% key: int, :length: 4, :a: { :b: bool } ]`. The key must be
+        between the starting and ending `:`. Finally - any of those types can be
+        followed by `|` which indicates OR some other type -
         `null | { :a: @Error | {} | undef }`. Full example:
         ```
          const argTypes = `
@@ -213,47 +210,29 @@ server.listen(port, () => {
         `
         ```
 
--   `tieUpPartial`
-
-    -   type:
-        `({ descr, data, argTypesOuter, argTypes, onErrorOuter, onError, useCacheOuter, useCache })`
-        -> `error handled function`
-    -   definition: Function that error handles a function that returns another
-        function.
-    -   `descr`: String used for `descr` of the inner function.
-    -   `data`: Function that returns another function. Example:
-        `() => () => {}`.
-    -   `onErrorOuter`: Same as above for the outer function. Defaults to
-        `() => () => {}`.
-    -   `onError`: Same as above for the inner function.
-    -   `useCacheOuter`: Same as above for the outer function.
-    -   `useCache`: Same as above for the inner function.
-    -   `argTypesOuter`: Same as above for the outer function.
-    -   `argTypes`: Same as above for the inner function.
-
 -   `getHandledServer`
 
     -   type: `(server, sockets)` -> `handledServer`
-    -   definition: Returns a server that is error handled and closed on
-        uncaught errors
+    -   definition: Returns a server that is error handled and closed on uncaught
+        errors
     -   `server`: Object that is the back-end server (ex:
         http.createServer(expressApp))
-    -   `sockets`: Optional `Set` of sockets, if not provided an empty `Set` is
-        used insted.
+    -   `sockets`: Optional `Set` of sockets, if not provided an empty `Set` is used
+        insted.
 
 -   `getRoutingCreator`
 
     -   type: `(app, onError)` -> `createRoute`
     -   definition: Creates a function that can be used with different server
-        frameworks. Returns a function that takes `(method, path, onTry)` and
-        creates a route. An example:
+        frameworks. Returns a function that takes `(method, path, onTry)` and creates
+        a route. An example:
         `getRoutingCreator(app)('get', '/api', (req, res) => {})` is equal to
-        `app.get('/api', (req, res) => {})`, but applies the same `onError` to
-        all routes
+        `app.get('/api', (req, res) => {})`, but applies the same `onError` to all
+        routes
     -   `app`: Function/object that is generated from the server framework (ex:
         Express)
-    -   `onError`: Function to be executed on error for any route. Default
-        `onError` is provided if you haven't specified it yourself.
+    -   `onError`: Function to be executed on error for any route. Default `onError`
+        is provided if you haven't specified it yourself.
 
 -   `changeOptions`
     -   type: `({ isDevelopment, errorLogger, notify })` -> ?
@@ -272,20 +251,19 @@ server.listen(port, () => {
     -   type: `errMsg` -> ?
     -   default: `console.error`
     -   definition: Function for logging developer errors
-    -   `errMsg`:
-        ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`, `err`
+    -   `errMsg`: ` Issue with: ${descr}\n Function arguments: ${stringOfArgs}\n`,
+        `err`
 
 -   `notify`
-    -   type:
-        `({ isDevelopment, isFriendlyError, errorDescr, prodInfo, error })` -> ?
+    -   type: `({ isDevelopment, isFriendlyError, errorDescr, prodInfo, error })` ->
+        ?
     -   default: `() => {}`
-    -   definition: Function for notifying the user with friendly error messages
-        and logging in production.
-    -   `isDevelopment`: Boolean that indicates if the environment is not in
-        prod
+    -   definition: Function for notifying the user with friendly error messages and
+        logging in production.
+    -   `isDevelopment`: Boolean that indicates if the environment is not in prod
     -   `isFriendlyError`: Boolean that indicates whether `error.message` is for
         regular users
-    -   `errorDescr`: String that describes what the functionality was supposed
-        to be doing
+    -   `errorDescr`: String that describes what the functionality was supposed to be
+        doing
     -   `prodInfo`: Object that consists of useful info for production logging
     -   `error`: Error object that was thrown
