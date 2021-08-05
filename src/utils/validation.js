@@ -23,10 +23,7 @@ export const parseArgTypes = function (descr, argTypes) {
         const openSymHistory = []
 
         while (argTypes.length) {
-            const currStore = pathToStore.reduce(
-                (acc, key) => acc[key],
-                parsedTypes
-            )
+            const currStore = pathToStore.reduce((acc, key) => acc[key], parsedTypes)
 
             if (simpleTypeReg.test(argTypes)) {
                 const workingPart = simpleTypeReg.exec(argTypes)[0]
@@ -156,9 +153,7 @@ export const parseArgTypes = function (descr, argTypes) {
 
                 // open symbols history must not be empty
                 if (openSymHistory.length < 1) {
-                    throw new Error(
-                        'There are more closing symbols than opening'
-                    )
+                    throw new Error('There are more closing symbols than opening')
                 }
 
                 // remove last opened sym, already handled

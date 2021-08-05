@@ -42,7 +42,10 @@
         "build": "pnpm clean && rollup -c",
         "bump": "pnpm version patch",
         "bigbump": "pnpm version minor",
-        "test": "NODE_ENV=dev node --expose-gc ./tests/index.js"
+        "test": "NODE_ENV=dev node --expose-gc ./tests/index.js",
+        "lint:prettier": "prettier --write --loglevel warn \"{src,extras/src}/**/*.js\"",
+        "lint:eslint": "eslint --fix \"{src,extras/src}/**/*.js\"",
+        "lint": "pnpm lint:prettier && pnpm lint:eslint"
     },
     "lint-staged": {
         "*.js": [
@@ -72,15 +75,11 @@
     "eslintConfig": {
         "parser": "@babel/eslint-parser",
         "parserOptions": {
+            "ecmaVersion": 2021,
             "requireConfigFile": false,
             "sourceType": "module",
             "ecmaFeatures": {
                 "impliedStrict": true
-            },
-            "babelOptions": {
-                "presets": [
-                    "@babel/preset-env"
-                ]
             }
         },
         "env": {

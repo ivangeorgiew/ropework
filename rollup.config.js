@@ -2,11 +2,14 @@ import babel from '@rollup/plugin-babel'
 import { terser } from 'rollup-plugin-terser'
 import cleanup from 'rollup-plugin-cleanup'
 
-const globals = { 'tied-up': 'TiedUp' }
 const entries = [
     ['.', 'TiedUp'],
     ['./extras', 'TiedUpExtras']
 ]
+const globals = {
+    'tied-up': 'TiedUp',
+    'tied-up/extras': 'TiedUpExtras'
+}
 const commonOutOpts = {
     esModule: false,
     freeze: false,
@@ -64,6 +67,8 @@ export default entries.map(([root, name]) => ({
         babel({
             babelHelpers: 'bundled',
             exclude: 'node_modules/**',
+            babelrc: false,
+            configFile: false,
             presets: ['@babel/preset-env']
         }),
         cleanup({ maxEmptyLines: 1 })
