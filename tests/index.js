@@ -14,7 +14,7 @@
 // let fib = tieUp({
 //     descr: 'calculating fibonacci number',
 //     argTypes: fibArgTypes,
-//     useCache: true,
+//     useCache: args => args,
 //     onError: () => 'Not a number',
 //     data: function (n, a, b, c, d, e) {
 //         if (n <= 1) return n
@@ -42,15 +42,6 @@
 //             this.a = a
 //             this.b = 6
 //         }
-
-//         someMethod() {
-//             throw new Error('intentional error')
-//             // return 'sup'
-//         }
-
-//         someMethodOnError() {
-//             return 5
-//         }
 //     }
 // })
 
@@ -60,15 +51,6 @@
 //         constructor({ a, b }) {
 //             super({ a })
 //             this.c = b
-//         }
-
-//         otherMethod() {
-//             throw new Error('other error')
-//             // return 'bla'
-//         }
-
-//         otherMethodOnError() {
-//             return 10
 //         }
 //     }
 // })
@@ -81,10 +63,6 @@
 // console.time('fib')
 // fib.call(c, 4000, a, b, c, d, B)
 // console.timeEnd('fib')
-
-// const e = new B({ a: 123, b: 5 })
-// console.log(e.someMethod({}, [5, 10], () => {}, 5))
-// console.log(e.otherMethod({ a: true }, [], 'supup', 5))
 
 // // node --expose-gc
 // const showMemory = () => {
@@ -111,7 +89,7 @@
 // const asyncGen = tieUp({
 //     descr: 'Asynchronous generator function test',
 //     argTypes: 'int',
-//     useCache: true,
+//     useCache: args => args,
 //     onError: () => 123,
 //     data: async function* (i) {
 //         // throw new Error('intended')
@@ -129,7 +107,7 @@
 // const gen = tieUp({
 //     descr: 'Generator function test',
 //     argTypes: 'int',
-//     useCache: true,
+//     useCache: args => args,
 //     onError: () => 123,
 //     data: function* (i) {
 //         // throw new Error('intended')
@@ -144,7 +122,7 @@
 // const asyncF = tieUp({
 //     descr: 'Asynchronous function test',
 //     argTypes: 'int',
-//     useCache: true,
+//     useCache: args => args,
 //     onError: async () => 'error val',
 //     data: async function (i) {
 //         // throw new Error('intended')
@@ -161,7 +139,7 @@
 
 // const addNumbers = tieUp({
 //     descr: 'create function to add numbers',
-//     useCache: true,
+//     useCache: args => args,
 //     data: a => {
 //         console.log('ran outer')
 
@@ -171,7 +149,7 @@
 
 //         return tieUp({
 //             descr: 'adding two number',
-//             useCache: true,
+//             useCache: args => args,
 //             onError: () => 'There was an error',
 //             data: b => {
 //                 console.log('ran inner')

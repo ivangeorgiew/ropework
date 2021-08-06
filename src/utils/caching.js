@@ -17,6 +17,11 @@ const isEqual = function (a, b) {
 export const getCacheIdx = function (that, args, cacheKeys) {
     try {
         const cacheKeysLen = cacheKeys.length
+
+        if (!cacheKeysLen) {
+            return -1
+        }
+
         const argsLen = args.length
         const lastArgsIdx = argsLen - 1
 

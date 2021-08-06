@@ -90,7 +90,8 @@
     "browserslist": [
         "defaults",
         "maintained node versions",
-        "not IE 11"
+        "not IE 11",
+        "not op_mini all"
     ],
     "keywords": [
         "error-handling",
