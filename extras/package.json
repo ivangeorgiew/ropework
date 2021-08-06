@@ -3,10 +3,11 @@
     "version": "1.0.0",
     "description": "Error-handling and other function utilities",
     "private": true,
-    "main": "./dist/cjs/index.js",
-    "module": "./dist/esm/index.js",
-    "browser": "./dist/index.min.js",
-    "unpkg": "./dist/index.umd.js",
+    "main": "dist/index.cjs.js",
+    "module": "dist/index.esm.js",
+    "browser": "dist/index.modern.js",
+    "umd": "dist/index.umd.js",
+    "unpkg": "dist/index.min.js",
     "license": "MIT",
     "peerDependencies": {
         "tied-up": "*"

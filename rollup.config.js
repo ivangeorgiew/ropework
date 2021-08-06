@@ -1,6 +1,6 @@
-import babel from '@rollup/plugin-babel'
 import { terser } from 'rollup-plugin-terser'
 import cleanup from 'rollup-plugin-cleanup'
+import pkg from './package.json'
 
 const entries = [
     ['.', 'TiedUp'],
@@ -13,10 +13,16 @@ const globals = {
 const commonOutOpts = {
     esModule: false,
     freeze: false,
-    exports: 'named'
+    exports: 'named',
+    sourcemap: true
 }
 const terserOpts = {
     ecma: 6,
+    format: {
+        preserve_annotations: true,
+        wrap_iife: true,
+        wrap_func_args: true
+    },
     compress: {
         keep_infinity: true,
         pure_getters: true,
@@ -31,48 +37,36 @@ export default entries.map(([root, name]) => ({
         {
             ...commonOutOpts,
             format: 'cjs',
-            dir: `${root}/dist/cjs`,
-            preserveModules: true
+            file: `${root}/${pkg.main}`
         },
         {
             ...commonOutOpts,
             format: 'esm',
-            dir: `${root}/dist/esm`,
-            preserveModules: true
+            file: `${root}/${pkg.module}`
         },
         {
             ...commonOutOpts,
             format: 'esm',
-            file: `${root}/dist/index.min.js`,
-            sourcemap: true,
-            plugins: [
-                terser({
-                    ...terserOpts,
-                    module: true,
-                    toplevel: true
-                })
-            ]
+            file: `${root}/${pkg.browser}`,
+            plugins: [terser({ ...terserOpts, module: true })]
         },
         {
             ...commonOutOpts,
             format: 'umd',
-            file: `${root}/dist/index.umd.js`,
+            file: `${root}/${pkg.umd}`,
+            name,
+            globals
+        },
+        {
+            ...commonOutOpts,
+            format: 'umd',
+            file: `${root}/${pkg.unpkg}`,
             name,
             globals,
-            sourcemap: true,
             plugins: [terser(terserOpts)]
         }
     ],
-    plugins: [
-        babel({
-            babelHelpers: 'bundled',
-            exclude: 'node_modules/**',
-            babelrc: false,
-            configFile: false,
-            presets: ['@babel/preset-env']
-        }),
-        cleanup({ maxEmptyLines: 1 })
-    ],
+    plugins: [cleanup({ maxEmptyLines: 1 })],
     treeshake: {
         propertyReadSideEffects: false,
         tryCatchDeoptimization: false
