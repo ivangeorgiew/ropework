@@ -14,7 +14,7 @@ const isEqual = function (a, b) {
     }
 }
 
-export const getCacheIdx = function (that, args, cacheKeys) {
+export const getCacheIdx = function (args, cacheKeys) {
     try {
         const cacheKeysLen = cacheKeys.length
 
@@ -28,7 +28,7 @@ export const getCacheIdx = function (that, args, cacheKeys) {
         for (let i = 0; i < cacheKeysLen; i++) {
             const cacheKey = cacheKeys[i]
 
-            if (argsLen !== cacheKey.length || that !== cacheKey.that) {
+            if (argsLen !== cacheKey.length) {
                 continue
             }
 
@@ -49,7 +49,7 @@ export const getCacheIdx = function (that, args, cacheKeys) {
     } catch (error) {
         logError({
             descr: 'searching for existing cache item',
-            args: [that, args, cacheKeys],
+            args: [args, cacheKeys],
             error
         })
 

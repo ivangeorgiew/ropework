@@ -1,5 +1,5 @@
 import { FriendlyError, isNodeJS, isWeb } from '../constants'
-import { errorLogger, isDevelopment, notify } from '../options'
+import { errorLogger, notify } from '../options'
 
 const stringifyAll = function (data) {
     try {
@@ -30,9 +30,7 @@ const stringifyAll = function (data) {
 
         return JSON.stringify(data, parser, 0)
     } catch (error) {
-        if (isDevelopment) {
-            errorLogger('\n Issue with: stringifying data\n', error, '\n')
-        }
+        errorLogger('\n Issue with: stringifying data\n', error, '\n')
 
         return JSON.stringify(`[unparsed data]`)
     }
@@ -86,39 +84,36 @@ export const logError = function (props) {
             prodInfo
         })
 
-        if (isDevelopment) {
-            const argsInfo = (function () {
-                let acc = ''
+        const argsInfo = (function () {
+            let acc = ''
 
-                for (let i = 0; i < args.length; i++) {
-                    const arg = args[i]
-                    let parsedArg =
-                        typeof arg === 'function' ? '()' : stringifyAll(arg)
+            for (let i = 0; i < args.length; i++) {
+                const arg = args[i]
+                let parsedArg = typeof arg === 'function' ? '()' : stringifyAll(arg)
 
-                    if (parsedArg.length > 100) {
-                        parsedArg = Array.isArray(arg)
-                            ? '[large array]'
-                            : '[large object]'
-                    } else {
-                        parsedArg = parsedArg.replace(
-                            /"(Infinity|NaN|null|undefined|\(\)|\[\$ref\])"/g,
-                            '$1'
-                        )
-                    }
-
-                    acc = i === 0 ? parsedArg : `${acc} , ${parsedArg}`
+                if (parsedArg.length > 100) {
+                    parsedArg = Array.isArray(arg)
+                        ? '[large array]'
+                        : '[large object]'
+                } else {
+                    parsedArg = parsedArg.replace(
+                        /"(Infinity|NaN|null|undefined|\(\)|\[\$ref\])"/g,
+                        '$1'
+                    )
                 }
 
-                return acc
-            })()
+                acc = i === 0 ? parsedArg : `${acc} , ${parsedArg}`
+            }
 
-            errorLogger(
-                `\n ${errorDescr}\n`,
-                `Function arguments: ${argsInfo}\n`,
-                error,
-                '\n'
-            )
-        }
+            return acc
+        })()
+
+        errorLogger(
+            `\n ${errorDescr}\n`,
+            `Function arguments: ${argsInfo}\n`,
+            error,
+            '\n'
+        )
     } catch (error) {
         errorLogger('\n Issue with: logging errors\n', error, '\n')
     }

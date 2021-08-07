@@ -42,7 +42,7 @@ export const createFunc = function (props) {
 
         let isNextCallFirst = true
 
-        const innerCatch = function (that, args, error, isFirstCall) {
+        const innerCatch = function (args, error, isFirstCall) {
             if (!isFirstCall) {
                 cacheKeys.length = cacheValues.length = 0
                 throw error
@@ -53,7 +53,7 @@ export const createFunc = function (props) {
             if (hasCaching) {
                 try {
                     const argsToCache = useCache(args)
-                    const cacheIdx = getCacheIdx(that, argsToCache, cacheKeys)
+                    const cacheIdx = getCacheIdx(argsToCache, cacheKeys)
 
                     if (cacheIdx !== -1) {
                         cacheKeys.splice(cacheIdx, 1)
@@ -66,7 +66,7 @@ export const createFunc = function (props) {
 
             if (typeof onError === 'function') {
                 try {
-                    return onError.call(that, { descr, args, error })
+                    return onError({ descr, args, error })
                 } catch (error) {
                     logError({ descr: `catching errors for ${descr}`, args, error })
                 }
@@ -82,7 +82,7 @@ export const createFunc = function (props) {
                 if (hasCaching) {
                     argsToCache = useCache(args)
 
-                    const cacheIdx = getCacheIdx(this, argsToCache, cacheKeys)
+                    const cacheIdx = getCacheIdx(argsToCache, cacheKeys)
 
                     if (cacheIdx !== -1) {
                         if (cacheIdx !== 0) {
@@ -111,35 +111,33 @@ export const createFunc = function (props) {
                 // handle async, generator and async generator
                 if (typeof result === 'object' && result !== null) {
                     if (typeof result[Symbol.asyncIterator] === 'function') {
-                        result = (async function* (that, ifc, iter) {
+                        result = (async function* (ifc, iter) {
                             try {
                                 return yield* iter
                             } catch (error) {
-                                return innerCatch(that, args, error, ifc)
+                                return innerCatch(args, error, ifc)
                             }
-                        })(this, isFirstCall, result)
+                        })(isFirstCall, result)
                     } else if (typeof result[Symbol.iterator] === 'function') {
-                        result = (function* (that, ifc, iter) {
+                        result = (function* (ifc, iter) {
                             try {
                                 return yield* iter
                             } catch (error) {
-                                return innerCatch(that, args, error, ifc)
+                                return innerCatch(args, error, ifc)
                             }
-                        })(this, isFirstCall, result)
+                        })(isFirstCall, result)
                     } else if (typeof result.then === 'function') {
-                        result = (async function (that, ifc, prom) {
+                        result = (async function (ifc, prom) {
                             try {
                                 return await prom
                             } catch (error) {
-                                return innerCatch(that, args, error, ifc)
+                                return innerCatch(args, error, ifc)
                             }
-                        })(this, isFirstCall, result)
+                        })(isFirstCall, result)
                     }
                 }
 
                 if (hasCaching) {
-                    argsToCache.that = this
-
                     manageCache(
                         cacheKeys.length,
                         argsToCache,
@@ -149,7 +147,7 @@ export const createFunc = function (props) {
                     )
                 }
             } catch (error) {
-                result = innerCatch(this, args, error, isFirstCall)
+                result = innerCatch(args, error, isFirstCall)
             }
 
             if (isFirstCall) {
