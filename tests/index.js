@@ -1,22 +1,10 @@
-// const { tieUp } = require('tied-up')
+// const { tieUp, tieUpMemo } = require('tied-up')
 
-// const aType = '()'
-// const fibArgTypes = `
-//     int >= 0,
-//     ${aType} | undef,
-//     () | undef,
-//     @Error | undef,
-//     [ :length: int = 2 ] | undef,
-//     { :b: int, :a: ${aType} } | undef,
-//     () | undef
-// `
-
-// let fib = tieUp({
-//     descr: 'calculating fibonacci number',
-//     argTypes: fibArgTypes,
-//     useCache: args => args,
-//     onError: () => 'Not a number',
-//     data: function (n, a, b, c, d, e) {
+// const fib = tieUpMemo(
+//     'calculating fibonacci number',
+//     args => args,
+//     () => 'Not a number',
+//     function (n, a, b, c, d, e) {
 //         if (n <= 1) return n
 
 //         const pre = fib.call(this, n - 2, a, b, c, d, e)
@@ -24,7 +12,7 @@
 
 //         return pre + prepre
 //     }
-// })
+// )
 
 // const a = () => {
 //     throw new Error('sup')
@@ -35,25 +23,27 @@
 
 // d.myself = d
 
-// const A = tieUp({
-//     descr: 'class A',
-//     data: class {
+// const A = tieUp(
+//     'class A',
+//     () => ({}),
+//     class {
 //         constructor({ a }) {
 //             this.a = a
 //             this.b = 6
 //         }
 //     }
-// })
+// )
 
-// const B = tieUp({
-//     descr: 'class B',
-//     data: class extends A {
+// const B = tieUp(
+//     'class B',
+//     () => ({}),
+//     class extends A {
 //         constructor({ a, b }) {
 //             super({ a })
 //             this.c = b
 //         }
 //     }
-// })
+// )
 
 // console.log(fib.call(c, 500000, a, b, c, d, B))
 // console.log(fib.call(c, 500000, a, b, c, d, B))
@@ -70,88 +60,82 @@
 
 //     for (const objKey in used) {
 //         console.log(
-//             `${objKey}: ${
-//                 Math.round((used[objKey] / 1024 / 1024) * 100) / 100
-//             } MB`
+//             `${objKey}: ${Math.round((used[objKey] / 1024 / 1024) * 100) / 100} MB`
 //         )
 //     }
 // }
 // showMemory()
-// for (let i = 1; i <= 100; i++) {
-//     fib.call(c, i * 3000, a, b, c, d, B)
-//     // tieUp({ descr: 'uaoeu', data: function () {} })
+// for (let i = 1; i <= 1000; i++) {
+//     fib.call(c, i * 4000, a, b, c, d, B)
 // }
 // showMemory()
-// fib = null
 // global.gc()
 // showMemory()
 
-// const asyncGen = tieUp({
-//     descr: 'Asynchronous generator function test',
-//     argTypes: 'int',
-//     useCache: args => args,
-//     onError: () => 123,
-//     data: async function* (i) {
+// const asyncGen = tieUpMemo(
+//     'asynchronous generator function test',
+//     args => args,
+//     () => 123,
+//     async function* (i) {
 //         // throw new Error('intended')
 //         yield i
 //         await new Promise(resolve => setTimeout(resolve, 2000))
 //         return i + 10
 //     }
-// })
+// )
 
 // ;(async () => {
 //     console.log(await asyncGen(10).next())
 //     console.log(await asyncGen(10).next())
 // })()
 
-// const gen = tieUp({
-//     descr: 'Generator function test',
-//     argTypes: 'int',
-//     useCache: args => args,
-//     onError: () => 123,
-//     data: function* (i) {
+// const gen = tieUpMemo(
+//     'generator function test',
+//     args => args,
+//     () => 123,
+//     function* (i) {
 //         // throw new Error('intended')
 //         yield i
 //         return i + 10
 //     }
-// })
+// )
 
 // console.log(gen(10).next())
 // console.log(gen(10).next())
 
-// const asyncF = tieUp({
-//     descr: 'Asynchronous function test',
-//     argTypes: 'int',
-//     useCache: args => args,
-//     onError: async () => 'error val',
-//     data: async function (i) {
+// const asyncF = tieUpMemo(
+//     'asynchronous function test',
+//     args => args,
+//     () => 'error val',
+//     async function (i) {
 //         // throw new Error('intended')
 //         // await asyncF(i + 1)
 //         await new Promise(resolve => setTimeout(resolve, 1000))
 //         return i
 //     }
-// })
+// )
 
 // ;(async () => {
 //     console.log(await asyncF(10))
 //     console.log(await asyncF(10))
 // })()
 
-// const addNumbers = tieUp({
-//     descr: 'create function to add numbers',
-//     useCache: args => args,
-//     data: a => {
+// const addNumbers = tieUpMemo(
+//     'create function to add numbers',
+//     args => args,
+//     () => () => {},
+//     a => {
 //         console.log('ran outer')
 
 //         if (typeof a === 'string') {
 //             throw new Error('Outer error - please pass number')
 //         }
 
-//         return tieUp({
-//             descr: 'adding two number',
-//             useCache: args => args,
-//             onError: () => 'There was an error',
-//             data: b => {
+//         return tieUpMemo(
+//             'adding two number',
+//             args => args,
+//             () => 'There was an error',
+//             b => {
 //                 console.log('ran inner')
 
 //                 if (typeof b === 'string') {
@@ -160,9 +144,9 @@
 
 //                 return a + b
 //             }
-//         })
+//         )
 //     }
-// })
+// )
 
 // // const addTenTo = addNumbers('sup')
 // // console.log(addTenTo('sup'))

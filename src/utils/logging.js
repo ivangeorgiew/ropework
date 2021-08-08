@@ -1,11 +1,9 @@
 import { FriendlyError, isNodeJS, isWeb } from '../constants'
 import { errorLogger, notify } from '../options'
-import { createArgsInfo } from './loggingHelpers'
+import { createArgsInfo } from './helpers'
 
 export const logError = function (props) {
     try {
-        props = Object.assign({}, props)
-
         const errorDescr =
             'Issue with: ' +
             (typeof props.descr === 'string' ? props.descr : 'part of the app')

@@ -1,43 +1,15 @@
-import { handledFuncs } from '../constants'
 import { getCacheIdx, manageCache } from './caching'
 import { logError } from './logging'
-import { parseArgTypes, validateArgs } from './validation'
 
 // TODO: add validation, it is currently slow during caching
-const createFuncDescr = 'creating an error-handled function'
-
 export const createFunc = function (props) {
     try {
-        const areArgsValid = validateArgs(
-            parseArgTypes(
-                createFuncDescr,
-                `{
-                    :descr: str,
-                    :argTypes: str | undef,
-                    :useCache: () | undef,
-                    :onError: () | undef,
-                    :func: ()
-                }`
-            ),
-            [props]
-        )
-
-        if (!areArgsValid) {
-            throw new Error('Wrong arguments for createFunc')
-        }
-
-        const { descr, func } = props
-        const { onError, useCache } = props
-
-        if (handledFuncs.has(func)) {
-            return func
-        }
-
+        const { descr, useCache, func, onError } = props
         const hasCaching = typeof useCache === 'function'
         const [cacheKeys, cacheValues] = [[], []]
 
         if (typeof useCache === 'function' && !Array.isArray(useCache([]))) {
-            throw new Error('useCache must return an array')
+            throw new TypeError('useCache must return an array')
         }
 
         let isNextCallFirst = true
@@ -59,21 +31,19 @@ export const createFunc = function (props) {
                         cacheKeys.splice(cacheIdx, 1)
                         cacheValues.splice(cacheIdx, 1)
                     }
-                } catch (err) {
+                } catch (error) {
                     cacheKeys.length = cacheValues.length = 0
                 }
             }
 
-            if (typeof onError === 'function') {
-                try {
-                    return onError({ descr, args, error })
-                } catch (error) {
-                    logError({ descr: `catching errors for ${descr}`, args, error })
-                }
+            try {
+                return onError({ descr, args, error })
+            } catch (error) {
+                logError({ descr: `catching errors for ${descr}`, args, error })
             }
         }
 
-        const innerFunc = function (...args) {
+        return function (...args) {
             let isFirstCall, result
 
             try {
@@ -156,12 +126,12 @@ export const createFunc = function (props) {
 
             return result
         }
-
-        handledFuncs.add(innerFunc)
-
-        return innerFunc
     } catch (error) {
-        logError({ descr: createFuncDescr, error, args: [props] })
+        logError({
+            descr: 'creating an error-handled function',
+            error,
+            args: [props]
+        })
 
         return () => {}
     }

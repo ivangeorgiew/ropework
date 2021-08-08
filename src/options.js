@@ -1,4 +1,4 @@
-import { createArgsInfo } from './utils/loggingHelpers'
+import { createArgsInfo } from './utils/helpers'
 
 const defaultLogger =
     typeof console === 'object' && typeof console.error === 'function'
@@ -55,9 +55,10 @@ export const changeOptions = function (props) {
         props = Object.assign({}, props)
 
         const allowedKeys = ['isDevelopment', 'errorLogger', 'notify']
+        const keys = Object.keys(props)
 
-        if (Object.keys(props).some(key => allowedKeys.indexOf(key) === -1)) {
-            throw new Error(
+        if (keys.length < 1 || keys.some(key => allowedKeys.indexOf(key) === -1)) {
+            throw new TypeError(
                 'Incorrect props, expected object in accordance with the API'
             )
         }
