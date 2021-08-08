@@ -1,10 +1,10 @@
+import { handledFuncs } from '../constants'
 import { getCacheIdx, manageCache } from './caching'
 import { logError } from './logging'
 import { parseArgTypes, validateArgs } from './validation'
 
 // TODO: add validation, it is currently slow during caching
 const createFuncDescr = 'creating an error-handled function'
-const handledFuncs = new WeakSet()
 
 export const createFunc = function (props) {
     try {
