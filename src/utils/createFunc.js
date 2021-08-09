@@ -1,12 +1,13 @@
 import { getCacheIdx, manageCache } from './caching'
 import { logError } from './logging'
 
-// TODO: add validation, it is currently slow during caching
 export const createFunc = function (props) {
     try {
         const { descr, useCache, func, onError } = props
+
         const hasCaching = typeof useCache === 'function'
-        const [cacheKeys, cacheValues] = [[], []]
+        const cacheKeys = []
+        const cacheValues = []
 
         if (typeof useCache === 'function' && !Array.isArray(useCache([]))) {
             throw new TypeError('useCache must return an array')

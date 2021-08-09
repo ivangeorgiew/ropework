@@ -37,11 +37,7 @@ const createHandledCopy = createFunc({
             }
         }
 
-        if (
-            isDevelopment &&
-            typeof handledFunc === 'function' &&
-            typeof handledFunc.name === 'string'
-        ) {
+        if (isDevelopment && typeof handledFunc.name === 'string') {
             Object.defineProperty(handledFunc, 'name', {
                 value: `[${descr}]`,
                 configurable: true
@@ -78,7 +74,7 @@ export const tieUp = createFunc({
             )
         }
 
-        return createHandledCopy({ descr, func, onError })
+        return createHandledCopy({ descr, onError, func })
     }
 })
 
@@ -106,6 +102,6 @@ export const tieUpMemo = createFunc({
             throw new TypeError('Fourth argument must be the main function')
         }
 
-        return createHandledCopy({ descr, useCache, func, onError })
+        return createHandledCopy({ descr, useCache, onError, func })
     }
 })

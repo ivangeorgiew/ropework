@@ -37,13 +37,17 @@ export default entries.map(([root, name]) => ({
         {
             ...commonOutOpts,
             format: 'cjs',
-            file: `${root}/${pkg.main}`,
-            plugins: [terser(terserOpts)]
+            file: `${root}/${pkg.main}`
         },
         {
             ...commonOutOpts,
             format: 'esm',
-            file: `${root}/${pkg.module}`,
+            file: `${root}/${pkg.module}`
+        },
+        {
+            ...commonOutOpts,
+            format: 'esm',
+            file: `${root}/${pkg.browser}`,
             plugins: [terser({ ...terserOpts, module: true })]
         },
         {
