@@ -6,8 +6,8 @@ export const createFunc = function (props) {
         const { descr, useCache, func, onError } = props
 
         const hasCaching = typeof useCache === 'function'
-        const cacheKeys = []
-        const cacheValues = []
+        const cacheKeys = hasCaching ? [] : undefined
+        const cacheValues = hasCaching ? [] : undefined
 
         if (typeof useCache === 'function' && !Array.isArray(useCache([]))) {
             throw new TypeError('useCache must return an array')
@@ -15,32 +15,17 @@ export const createFunc = function (props) {
 
         let isNextCallFirst = true
 
-        const innerCatch = function (args, error, isFirstCall) {
-            if (!isFirstCall) {
-                cacheKeys.length = cacheValues.length = 0
-                throw error
-            }
-
-            logError({ descr, error, args })
-
-            if (hasCaching) {
-                try {
-                    const argsToCache = useCache(args)
-                    const cacheIdx = getCacheIdx(argsToCache, cacheKeys)
-
-                    if (cacheIdx !== -1) {
-                        cacheKeys.splice(cacheIdx, 1)
-                        cacheValues.splice(cacheIdx, 1)
-                    }
-                } catch (error) {
-                    cacheKeys.length = cacheValues.length = 0
-                }
-            }
-
+        const innerCatch = function (args, error) {
             try {
-                return onError({ descr, args, error })
+                logError({ descr, error, args })
+
+                try {
+                    return onError({ descr, args, error })
+                } catch (error) {
+                    logError({ descr: `catching errors for ${descr}`, args, error })
+                }
             } catch (error) {
-                logError({ descr: `catching errors for ${descr}`, args, error })
+                // in case any call throws
             }
         }
 
@@ -82,29 +67,35 @@ export const createFunc = function (props) {
                 // handle async, generator and async generator
                 if (typeof result === 'object' && result !== null) {
                     if (typeof result[Symbol.asyncIterator] === 'function') {
-                        result = (async function* (ifc, iter) {
+                        result = (async function* (iter) {
                             try {
                                 return yield* iter
                             } catch (error) {
-                                return innerCatch(args, error, ifc)
+                                cacheKeys.length = cacheValues.length = 0
+                                if (!isFirstCall) throw error
+                                return innerCatch(args, error)
                             }
-                        })(isFirstCall, result)
+                        })(result)
                     } else if (typeof result[Symbol.iterator] === 'function') {
-                        result = (function* (ifc, iter) {
+                        result = (function* (iter) {
                             try {
                                 return yield* iter
                             } catch (error) {
-                                return innerCatch(args, error, ifc)
+                                cacheKeys.length = cacheValues.length = 0
+                                if (!isFirstCall) throw error
+                                return innerCatch(args, error)
                             }
-                        })(isFirstCall, result)
+                        })(result)
                     } else if (typeof result.then === 'function') {
-                        result = (async function (ifc, prom) {
+                        result = (async function (prom) {
                             try {
                                 return await prom
                             } catch (error) {
-                                return innerCatch(args, error, ifc)
+                                cacheKeys.length = cacheValues.length = 0
+                                if (!isFirstCall) throw error
+                                return innerCatch(args, error)
                             }
-                        })(isFirstCall, result)
+                        })(result)
                     }
                 }
 
@@ -118,7 +109,8 @@ export const createFunc = function (props) {
                     )
                 }
             } catch (error) {
-                result = innerCatch(args, error, isFirstCall)
+                if (!isFirstCall) throw error
+                result = innerCatch(args, error)
             }
 
             if (isFirstCall) {
