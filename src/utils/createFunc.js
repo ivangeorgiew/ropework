@@ -1,4 +1,4 @@
-import { getCacheIdx, manageCache } from './caching'
+import { getCacheIdx } from './caching'
 import { logError } from './logging'
 
 export const createFunc = function (props) {
@@ -15,17 +15,35 @@ export const createFunc = function (props) {
 
         let isNextCallFirst = true
 
-        const innerCatch = function (args, error) {
+        const manageCache = function (i, key, value) {
             try {
-                logError({ descr, error, args })
-
-                try {
-                    return onError({ descr, args, error })
-                } catch (error) {
-                    logError({ descr: `catching errors for ${descr}`, args, error })
+                if (i > 5) {
+                    i = 5
                 }
+
+                while (i--) {
+                    cacheKeys[i + 1] = cacheKeys[i]
+                    cacheValues[i + 1] = cacheValues[i]
+                }
+
+                cacheKeys[0] = key
+                cacheValues[0] = value
             } catch (error) {
-                // in case any call throws
+                logError({
+                    descr: 'storing key and value in cache',
+                    args: [i, key, value, cacheKeys, cacheValues],
+                    error
+                })
+            }
+        }
+
+        const innerCatch = function (args, error) {
+            logError({ descr, error, args })
+
+            try {
+                return onError({ descr, args, error })
+            } catch (error) {
+                logError({ descr: `catching errors for ${descr}`, args, error })
             }
         }
 
@@ -45,9 +63,7 @@ export const createFunc = function (props) {
                             manageCache(
                                 cacheIdx,
                                 cacheKeys[cacheIdx],
-                                cacheValues[cacheIdx],
-                                cacheKeys,
-                                cacheValues
+                                cacheValues[cacheIdx]
                             )
                         }
 
@@ -64,53 +80,75 @@ export const createFunc = function (props) {
                     result = new func(...args)
                 }
 
+                let shouldStore = true
+
                 // handle async, generator and async generator
                 if (typeof result === 'object' && result !== null) {
                     if (typeof result[Symbol.asyncIterator] === 'function') {
+                        shouldStore = false
                         result = (async function* (iter) {
                             try {
-                                return yield* iter
+                                const res = yield* iter
+                                manageCache(cacheKeys.length, argsToCache, res)
+                                return res
                             } catch (error) {
-                                cacheKeys.length = cacheValues.length = 0
                                 if (!isFirstCall) throw error
-                                return innerCatch(args, error)
+
+                                try {
+                                    return innerCatch(args, error)
+                                } catch (err) {
+                                    // in case any call throws
+                                }
                             }
                         })(result)
                     } else if (typeof result[Symbol.iterator] === 'function') {
+                        shouldStore = false
                         result = (function* (iter) {
                             try {
-                                return yield* iter
+                                const res = yield* iter
+                                manageCache(cacheKeys.length, argsToCache, res)
+                                return res
                             } catch (error) {
-                                cacheKeys.length = cacheValues.length = 0
                                 if (!isFirstCall) throw error
-                                return innerCatch(args, error)
+
+                                try {
+                                    return innerCatch(args, error)
+                                } catch (err) {
+                                    // in case any call throws
+                                }
                             }
                         })(result)
                     } else if (typeof result.then === 'function') {
+                        shouldStore = false
                         result = (async function (prom) {
                             try {
-                                return await prom
+                                const res = await prom
+                                manageCache(cacheKeys.length, argsToCache, res)
+                                return res
                             } catch (error) {
-                                cacheKeys.length = cacheValues.length = 0
                                 if (!isFirstCall) throw error
-                                return innerCatch(args, error)
+
+                                try {
+                                    return innerCatch(args, error)
+                                } catch (err) {
+                                    // in case any call throws
+                                }
                             }
                         })(result)
                     }
                 }
 
-                if (hasCaching) {
-                    manageCache(
-                        cacheKeys.length,
-                        argsToCache,
-                        result,
-                        cacheKeys,
-                        cacheValues
-                    )
+                if (hasCaching && shouldStore) {
+                    manageCache(cacheKeys.length, argsToCache, result)
                 }
             } catch (error) {
                 if (!isFirstCall) throw error
-                result = innerCatch(args, error)
+
+                try {
+                    result = innerCatch(args, error)
+                } catch (err) {
+                    // in case any call throws
+                }
             }
 
             if (isFirstCall) {

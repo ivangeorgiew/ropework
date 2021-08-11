@@ -56,25 +56,3 @@ export const getCacheIdx = function (args, cacheKeys) {
         return -1
     }
 }
-
-export const manageCache = function (i, key, value, cacheKeys, cacheValues) {
-    try {
-        if (i > 5) {
-            i = 5
-        }
-
-        while (i--) {
-            cacheKeys[i + 1] = cacheKeys[i]
-            cacheValues[i + 1] = cacheValues[i]
-        }
-
-        cacheKeys[0] = key
-        cacheValues[0] = value
-    } catch (error) {
-        logError({
-            descr: 'storing key and value in cache',
-            args: [i, key, value, cacheKeys, cacheValues],
-            error
-        })
-    }
-}
