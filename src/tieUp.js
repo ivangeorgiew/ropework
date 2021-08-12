@@ -1,5 +1,4 @@
-import { handledFuncs } from './constants'
-import { isDevelopment } from './options'
+import { handledFuncs, isDevelopment } from './constants'
 import { createFunc } from './utils/createFunc'
 import { logError } from './utils/logging'
 
