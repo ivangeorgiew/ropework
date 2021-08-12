@@ -97,7 +97,7 @@ const handleServerErrors = tieUp(
 export const handleUncaughtErrors = tieUp(
     'handling listeners for uncaught errors',
     () => {},
-    (shouldAdd = true) => {
+    shouldAdd => {
         if (typeof shouldAdd !== 'boolean') {
             throw new TypeError('First argument needs to be boolean')
         }

@@ -4,16 +4,14 @@ import { logError } from './logging'
 export const createFunc = function (props) {
     try {
         const { descr, useCache, func, onError } = props
-
         const hasCaching = typeof useCache === 'function'
         const cacheKeys = hasCaching ? [] : undefined
         const cacheValues = hasCaching ? [] : undefined
+        let isNextCallFirst = true
 
-        if (typeof useCache === 'function' && !Array.isArray(useCache([]))) {
+        if (hasCaching && !Array.isArray(useCache([]))) {
             throw new TypeError('useCache must return an array')
         }
-
-        let isNextCallFirst = true
 
         const manageCache = function (i, key, value) {
             try {
