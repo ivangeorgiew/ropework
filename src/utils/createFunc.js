@@ -1,4 +1,4 @@
-import { getCacheIdx } from './caching'
+import { getCacheIdx } from './helpers'
 import { logError } from './logging'
 
 export const createFunc = function (props) {
@@ -29,28 +29,30 @@ export const createFunc = function (props) {
             } catch (error) {
                 logError({
                     descr: 'storing key and value in cache',
-                    args: [i, key, value, cacheKeys, cacheValues],
+                    args: [i, key, value],
                     error
                 })
             }
         }
 
         const innerCatch = function (args, error) {
-            logError({ descr, error, args })
-
             try {
-                return onError({ descr, args, error })
+                logError({ descr, error, args })
+
+                try {
+                    return onError({ descr, args, error })
+                } catch (error) {
+                    logError({ descr: `catching errors for ${descr}`, args, error })
+                }
             } catch (error) {
-                logError({ descr: `catching errors for ${descr}`, args, error })
+                // cant log
             }
         }
 
         return function (...args) {
-            let isFirstCall, result
+            let isFirstCall, argsToCache, result
 
             try {
-                let argsToCache
-
                 if (hasCaching) {
                     argsToCache = useCache(args)
 
@@ -87,7 +89,11 @@ export const createFunc = function (props) {
                         result = (async function* (iter) {
                             try {
                                 const res = yield* iter
-                                manageCache(cacheKeys.length, argsToCache, res)
+
+                                if (hasCaching) {
+                                    manageCache(cacheKeys.length, argsToCache, res)
+                                }
+
                                 return res
                             } catch (error) {
                                 if (!isFirstCall) throw error
@@ -99,7 +105,11 @@ export const createFunc = function (props) {
                         result = (function* (iter) {
                             try {
                                 const res = yield* iter
-                                manageCache(cacheKeys.length, argsToCache, res)
+
+                                if (hasCaching) {
+                                    manageCache(cacheKeys.length, argsToCache, res)
+                                }
+
                                 return res
                             } catch (error) {
                                 if (!isFirstCall) throw error
@@ -111,7 +121,11 @@ export const createFunc = function (props) {
                         result = (async function (prom) {
                             try {
                                 const res = await prom
-                                manageCache(cacheKeys.length, argsToCache, res)
+
+                                if (hasCaching) {
+                                    manageCache(cacheKeys.length, argsToCache, res)
+                                }
+
                                 return res
                             } catch (error) {
                                 if (!isFirstCall) throw error

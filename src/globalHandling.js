@@ -17,7 +17,7 @@ const webListener = tieUp(
                     ? eventOrError.reason
                     : eventOrError.error instanceof Error
                     ? eventOrError.error
-                    : new Error('Uncaught error')
+                    : undefined
         }
 
         logError({ descr: 'unhandled error', error })

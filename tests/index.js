@@ -54,7 +54,6 @@
 // fib.call(c, 4000, a, b, c, d, B)
 // console.timeEnd('fib')
 
-// // node --expose-gc
 // const showMemory = () => {
 //     const used = process.memoryUsage()
 
@@ -64,13 +63,17 @@
 //         )
 //     }
 // }
-// showMemory()
-// for (let i = 1; i <= 1000; i++) {
-//     fib.call(c, i * 4000, a, b, c, d, B)
+// const testFunc = function (a, b, c, d, e, f) {
+//     return [a, b, c, d, e, f]
 // }
 // showMemory()
-// global.gc()
+// for (let i = 1; i <= 1000; i++) {
+//     fib.call(c, 1000, a, b, c, d, B)
+//     testFunc.call(c, 5, a, b, c, d, B)
+// }
 // showMemory()
+// // global.gc()
+// // showMemory()
 
 // const asyncGen = tieUpMemo(
 //     'asynchronous generator function test',
