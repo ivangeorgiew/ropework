@@ -91,12 +91,7 @@ export const createFunc = function (props) {
                                 return res
                             } catch (error) {
                                 if (!isFirstCall) throw error
-
-                                try {
-                                    return innerCatch(args, error)
-                                } catch (err) {
-                                    // in case any call throws
-                                }
+                                return innerCatch(args, error)
                             }
                         })(result)
                     } else if (typeof result[Symbol.iterator] === 'function') {
@@ -108,12 +103,7 @@ export const createFunc = function (props) {
                                 return res
                             } catch (error) {
                                 if (!isFirstCall) throw error
-
-                                try {
-                                    return innerCatch(args, error)
-                                } catch (err) {
-                                    // in case any call throws
-                                }
+                                return innerCatch(args, error)
                             }
                         })(result)
                     } else if (typeof result.then === 'function') {
@@ -125,12 +115,7 @@ export const createFunc = function (props) {
                                 return res
                             } catch (error) {
                                 if (!isFirstCall) throw error
-
-                                try {
-                                    return innerCatch(args, error)
-                                } catch (err) {
-                                    // in case any call throws
-                                }
+                                return innerCatch(args, error)
                             }
                         })(result)
                     }
@@ -141,12 +126,7 @@ export const createFunc = function (props) {
                 }
             } catch (error) {
                 if (!isFirstCall) throw error
-
-                try {
-                    result = innerCatch(args, error)
-                } catch (err) {
-                    // in case any call throws
-                }
+                result = innerCatch(args, error)
             }
 
             if (isFirstCall) {
