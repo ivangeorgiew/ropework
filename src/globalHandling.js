@@ -1,8 +1,8 @@
-import { browserErrorEvents, isNodeJS, isWeb, nodeErrorEvents } from './constants'
-import { tieUp } from './tieUp'
+import { browserErrorEvents, isServer, isWeb, nodeErrorEvents } from './constants'
+import { tieUpEff } from './tieUp'
 import { logError } from './utils/logging'
 
-const webListener = tieUp(
+const webListener = tieUpEff(
     'listening for web errors',
     () => {},
     eventOrError => {
@@ -24,7 +24,7 @@ const webListener = tieUp(
     }
 )
 
-const serverListener = tieUp(
+const serverListener = tieUpEff(
     'listening for server errors',
     () => {},
     eventOrError => {
@@ -44,7 +44,7 @@ const serverListener = tieUp(
     }
 )
 
-const uncaughtErrorListener = tieUp(
+const uncaughtErrorListener = tieUpEff(
     'listening for uncaught errors',
     () => {},
     eventOrError => {
@@ -52,13 +52,13 @@ const uncaughtErrorListener = tieUp(
             webListener(eventOrError)
         }
 
-        if (isNodeJS) {
+        if (isServer) {
             serverListener(eventOrError)
         }
     }
 )
 
-const handleWebErrors = tieUp(
+const handleWebErrors = tieUpEff(
     'handling web errors',
     () => {},
     shouldAdd => {
@@ -80,7 +80,7 @@ const handleWebErrors = tieUp(
     }
 )
 
-const handleServerErrors = tieUp(
+const handleServerErrors = tieUpEff(
     'handling server errors',
     () => {},
     shouldAdd => {
@@ -94,7 +94,7 @@ const handleServerErrors = tieUp(
     }
 )
 
-export const handleUncaughtErrors = tieUp(
+export const globalHandleErrors = tieUpEff(
     'handling listeners for uncaught errors',
     () => {},
     shouldAdd => {
@@ -106,10 +106,8 @@ export const handleUncaughtErrors = tieUp(
             handleWebErrors(shouldAdd)
         }
 
-        if (isNodeJS) {
+        if (isServer) {
             handleServerErrors(shouldAdd)
         }
     }
 )
-
-handleUncaughtErrors(true)

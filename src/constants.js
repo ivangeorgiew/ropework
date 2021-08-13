@@ -1,13 +1,11 @@
 export const isWeb =
     typeof self === 'object' && typeof self.addEventListener === 'function'
 
-export const isNodeJS =
+export const isServer =
     typeof global === 'object' && typeof global.process === 'object'
 
 export const isDevelopment =
-    typeof process === 'object' &&
-    typeof process.env === 'object' &&
-    typeof process.env.NODE_ENV === 'string'
+    typeof process === 'object' && typeof process.env?.NODE_ENV === 'string'
         ? process.env.NODE_ENV !== 'production'
         : false
 

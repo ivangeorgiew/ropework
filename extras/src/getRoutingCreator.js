@@ -1,6 +1,6 @@
-import { tieUp, tieUpMemo, isNodeJS } from 'tied-up'
+import { tieUpEff, tieUp, isServer } from 'tied-up'
 
-const defaultOnError = tieUp(
+const defaultOnError = tieUpEff(
     'catching errors for ',
     () => {},
     ({ descr, args, error }) => {
@@ -20,13 +20,12 @@ const defaultOnError = tieUp(
     }
 )
 
-export const getRoutingCreator = tieUpMemo(
+export const getRoutingCreator = tieUp(
     'creating function for routing',
-    ([app]) => [app],
     () => () => {},
     (app, onError) => {
-        if (!isNodeJS) {
-            throw new Error('This function is meant for NodeJS')
+        if (!isServer) {
+            throw new Error('This function is meant for server use')
         }
 
         if (typeof app !== 'function') {
@@ -37,27 +36,25 @@ export const getRoutingCreator = tieUpMemo(
             onError = defaultOnError
         }
 
-        return tieUp(
+        return tieUpEff(
             'creating route for the server',
             () => {},
             (method, path, callback) => {
                 if (typeof method !== 'string') {
-                    throw new TypeError('First argument must be the method key')
+                    throw new TypeError('First argument must be the method key.')
                 }
 
                 if (typeof path !== 'string') {
-                    throw new TypeError('Second argument must be the routing path')
+                    throw new TypeError('Second argument must be the routing path.')
                 }
 
                 if (typeof callback !== 'function') {
-                    throw new TypeError(
-                        'Third argument must be the callback function'
-                    )
+                    throw new TypeError('Third argument must be the callback.')
                 }
 
                 app[method](
                     path,
-                    tieUp(`${method.toUpperCase()} ${path}`, onError, callback)
+                    tieUpEff(`${method.toUpperCase()} ${path}`, onError, callback)
                 )
             }
         )

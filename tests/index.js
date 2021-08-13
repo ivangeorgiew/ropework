@@ -1,8 +1,8 @@
-// const { tieUp, tieUpMemo } = require('tied-up')
+// const { tieUpEff, tieUp, globalHandleErrors } = require('tied-up')
+// globalHandleErrors(true)
 
-// const fib = tieUpMemo(
+// const fib = tieUp(
 //     'calculating fibonacci number',
-//     args => args,
 //     () => 'Not a number',
 //     function (n, a, b, c, d, e) {
 //         if (n <= 1) return n
@@ -63,21 +63,18 @@
 //         )
 //     }
 // }
-// const testFunc = function (a, b, c, d, e, f) {
-//     return [a, b, c, d, e, f]
-// }
+// // const testFunc = function (a, b, c, d, e, f) {
+// //     return [a, b, c, d, e, f]
+// // }
 // showMemory()
 // for (let i = 1; i <= 1000; i++) {
 //     fib.call(c, 1000, a, b, c, d, B)
-//     testFunc.call(c, 5, a, b, c, d, B)
+//     // testFunc.call(c, 5, a, b, c, d, B)
 // }
 // showMemory()
-// // global.gc()
-// // showMemory()
 
-// const asyncGen = tieUpMemo(
+// const asyncGen = tieUp(
 //     'asynchronous generator function test',
-//     args => args,
 //     () => 123,
 //     async function* (i) {
 //         // throw new Error('intended')
@@ -92,9 +89,8 @@
 //     console.log(await asyncGen(10).next())
 // })()
 
-// const gen = tieUpMemo(
+// const gen = tieUp(
 //     'generator function test',
-//     args => args,
 //     () => 123,
 //     function* (i) {
 //         // throw new Error('intended')
@@ -106,9 +102,8 @@
 // console.log(gen(10).next())
 // console.log(gen(10).next())
 
-// const asyncF = tieUpMemo(
+// const asyncF = tieUp(
 //     'asynchronous function test',
-//     args => args,
 //     () => 'error val',
 //     async function (i) {
 //         // throw new Error('intended')
@@ -123,10 +118,9 @@
 //     console.log(await asyncF(10))
 // })()
 
-// const addNumbers = tieUpMemo(
+// const addNumbers = tieUp(
 //     'create function to add numbers',
-//     args => args,
-//     () => () => {},
+//     () => () => 'There was an error',
 //     a => {
 //         console.log('ran outer')
 
@@ -134,9 +128,8 @@
 //             throw new Error('Outer error - please pass number')
 //         }
 
-//         return tieUpMemo(
+//         return tieUp(
 //             'adding two number',
-//             args => args,
 //             () => 'There was an error',
 //             b => {
 //                 console.log('ran inner')
@@ -151,8 +144,8 @@
 //     }
 // )
 
-// // const addTenTo = addNumbers('sup')
-// // console.log(addTenTo('sup'))
+// const addTenTo = addNumbers('sup')
+// console.log(addTenTo('sup'))
 
 // const addTenTo = addNumbers(10)
 // const copyOfAddTenTo = addNumbers(10)

@@ -1,29 +1,22 @@
-import { tieUp, tieUpMemo, isNodeJS, nodeErrorEvents } from 'tied-up'
+import { tieUpEff, tieUp, isServer, nodeErrorEvents } from 'tied-up'
 
-export const getHandledServer = tieUpMemo(
+export const getHandledServer = tieUp(
     'initializing error handling for server',
-    ([server]) => [server],
-    ({ args: [server] }) => {
-        if (typeof server === 'object' && server !== null) {
-            return server
-        }
-
-        return {}
-    },
+    ({ args: [server] }) => Object.assign({}, server),
     (server, sockets = new Set()) => {
-        if (!isNodeJS) {
-            throw new Error('This function is meant for NodeJS')
+        if (!isServer) {
+            throw new Error('This function is meant for server use')
         }
 
         if (typeof server !== 'object' || server === null) {
-            throw new TypeError('First argument must be the server object')
+            throw new TypeError('First argument must be the server object.')
         }
 
         if (sockets !== undefined && !(sockets instanceof Set)) {
-            throw new TypeError('Second argument must be the sockets Set')
+            throw new TypeError('Second argument must be the sockets Set.')
         }
 
-        const onConnection = tieUp(
+        const onConnection = tieUpEff(
             'adding sockets to server',
             () => {},
             socket => {
@@ -36,7 +29,7 @@ export const getHandledServer = tieUpMemo(
 
         server.on('connection', onConnection)
 
-        const onClose = tieUp(
+        const onClose = tieUpEff(
             'handling server closing',
             () => {},
             () => {

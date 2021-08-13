@@ -1,17 +1,17 @@
+import { handledFuncs, isDevelopment } from '../constants'
 import { getCacheIdx } from './helpers'
 import { logError } from './logging'
 
-export const createFunc = function (props) {
+export const createFunc = function (descr, onError, func, shouldCache) {
     try {
-        const { descr, useCache, func, onError } = props
-        const hasCaching = typeof useCache === 'function'
-        const cacheKeys = hasCaching ? [] : undefined
-        const cacheValues = hasCaching ? [] : undefined
-        let isNextCallFirst = true
-
-        if (hasCaching && !Array.isArray(useCache([]))) {
-            throw new TypeError('useCache must return an array')
+        if (handledFuncs.has(func)) {
+            return func
         }
+
+        const cacheKeys = shouldCache ? [] : undefined
+        const cacheValues = shouldCache ? [] : undefined
+
+        let isNextCallFirst = true
 
         const manageCache = function (i, key, value) {
             try {
@@ -42,21 +42,23 @@ export const createFunc = function (props) {
                 try {
                     return onError({ descr, args, error })
                 } catch (error) {
-                    logError({ descr: `catching errors for ${descr}`, args, error })
+                    logError({
+                        descr: `catching errors for [${descr}]`,
+                        args,
+                        error
+                    })
                 }
             } catch (error) {
                 // cant log
             }
         }
 
-        return function (...args) {
-            let isFirstCall, argsToCache, result
+        const innerFunc = function (...args) {
+            let isFirstCall, result
 
             try {
-                if (hasCaching) {
-                    argsToCache = useCache(args)
-
-                    const cacheIdx = getCacheIdx(argsToCache, cacheKeys)
+                if (shouldCache) {
+                    const cacheIdx = getCacheIdx(args, cacheKeys)
 
                     if (cacheIdx !== -1) {
                         if (cacheIdx !== 0) {
@@ -90,8 +92,8 @@ export const createFunc = function (props) {
                             try {
                                 const res = yield* iter
 
-                                if (hasCaching) {
-                                    manageCache(cacheKeys.length, argsToCache, res)
+                                if (shouldCache) {
+                                    manageCache(cacheKeys.length, args, res)
                                 }
 
                                 return res
@@ -106,8 +108,8 @@ export const createFunc = function (props) {
                             try {
                                 const res = yield* iter
 
-                                if (hasCaching) {
-                                    manageCache(cacheKeys.length, argsToCache, res)
+                                if (shouldCache) {
+                                    manageCache(cacheKeys.length, args, res)
                                 }
 
                                 return res
@@ -122,8 +124,8 @@ export const createFunc = function (props) {
                             try {
                                 const res = await prom
 
-                                if (hasCaching) {
-                                    manageCache(cacheKeys.length, argsToCache, res)
+                                if (shouldCache) {
+                                    manageCache(cacheKeys.length, args, res)
                                 }
 
                                 return res
@@ -135,8 +137,8 @@ export const createFunc = function (props) {
                     }
                 }
 
-                if (hasCaching && shouldStore) {
-                    manageCache(cacheKeys.length, argsToCache, result)
+                if (shouldCache && shouldStore) {
+                    manageCache(cacheKeys.length, args, result)
                 }
             } catch (error) {
                 if (!isFirstCall) throw error
@@ -149,11 +151,22 @@ export const createFunc = function (props) {
 
             return result
         }
+
+        if (isDevelopment && typeof innerFunc.name === 'string') {
+            Object.defineProperty(innerFunc, 'name', {
+                value: `[${descr}]`,
+                configurable: true
+            })
+        }
+
+        handledFuncs.add(innerFunc)
+
+        return innerFunc
     } catch (error) {
         logError({
             descr: 'creating an error-handled function',
             error,
-            args: [props]
+            args: [descr, onError, func, shouldCache]
         })
 
         return () => {}

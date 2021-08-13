@@ -1,4 +1,4 @@
-import { FriendlyError, isNodeJS, isWeb } from '../constants'
+import { FriendlyError, isServer, isWeb } from '../constants'
 import { errorLogger, notify } from '../options'
 import { createArgsInfo } from './helpers'
 
@@ -24,18 +24,18 @@ export const logError = function (props) {
 
         if (isWeb) {
             Object.assign(prodInfo, {
-                localUrl: self.location.href,
+                url: self.location.href,
                 browserInfo: self.navigator.userAgent,
-                osType: self.navigator.platform
+                clientOS: self.navigator.platform
             })
         }
 
-        if (isNodeJS) {
+        if (isServer) {
             Object.assign(prodInfo, {
                 pid: process.pid,
-                localUrl: process.cwd(),
+                filepath: process.cwd(),
                 cpuArch: process.arch,
-                osType: process.platform,
+                serverOS: process.platform,
                 depVersions: process.versions
             })
         }

@@ -11,12 +11,10 @@ let errorLoggerUnhandled = defaultLogger
 let notifyUnhandled = () => {}
 
 export const errorLogger = function (...args) {
-    try {
-        if (isDevelopment) {
+    if (isDevelopment) {
+        try {
             errorLoggerUnhandled.apply(null, args)
-        }
-    } catch (error) {
-        if (isDevelopment) {
+        } catch (error) {
             const argsInfo = createArgsInfo(args)
 
             defaultLogger(
@@ -48,12 +46,20 @@ export const changeOptions = function (props) {
     try {
         props = Object.assign({}, props)
 
+        let hasMadeChanges = false
+
         if (typeof props.errorLogger === 'function') {
             errorLoggerUnhandled = props.errorLogger
-        } else if (typeof props.notify === 'function') {
+            hasMadeChanges = true
+        }
+
+        if (typeof props.notify === 'function') {
             notifyUnhandled = props.notify
-        } else {
-            throw new TypeError('First arg was incorrect, look at the API docs')
+            hasMadeChanges = true
+        }
+
+        if (!hasMadeChanges) {
+            throw new TypeError('Pass correct options object please')
         }
     } catch (error) {
         const argsInfo = createArgsInfo([props])

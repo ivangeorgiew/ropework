@@ -7,6 +7,7 @@
     "module": "dist/index.esm.js",
     "unpkg": "dist/index.umd.js",
     "browser": "dist/index.browser.js",
+    "sideEffects": false,
     "exports": {
         ".": {
             "require": "./dist/index.cjs.js",
@@ -38,7 +39,7 @@
         "build": "pnpm clean && rollup -c",
         "bump": "pnpm version patch",
         "bigbump": "pnpm version minor",
-        "test": "NODE_ENV=dev node --expose-gc ./tests/index.js",
+        "test": "NODE_ENV=dev node ./tests/index.js",
         "lint:prettier": "prettier --write --loglevel warn \"{src,extras/src}/**/*.js\"",
         "lint:eslint": "eslint --fix \"{src,extras/src}/**/*.js\"",
         "lint": "pnpm lint:prettier && pnpm lint:eslint"
@@ -80,7 +81,7 @@
         },
         "env": {
             "browser": true,
-            "es6": true,
+            "es2021": true,
             "node": true,
             "worker": true
         },
