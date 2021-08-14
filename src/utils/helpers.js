@@ -50,16 +50,21 @@ export const createArgsInfo = function (args) {
     }
 }
 
-const toKeys = Object.keys
+const toKeys = a => [
+    ...Object.getOwnPropertyNames(a),
+    ...Object.getOwnPropertySymbols(a)
+]
 
 const isSVZ = (a, b) => a === b || (a !== a && b !== b)
 
 const isEqual = function (a, b) {
     try {
+        let ctr
+
         if (a === b) {
             return true
-        } else if (a && b && a.constructor === b.constructor) {
-            if (typeof a !== 'object') {
+        } else if (a && b && (ctr = a.constructor) === b.constructor) {
+            if (ctr !== Object && ctr !== Array) {
                 return false
             } else {
                 const objKeys = toKeys(a)
