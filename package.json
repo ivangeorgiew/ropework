@@ -44,15 +44,6 @@
         "lint:eslint": "eslint --fix \"{src,extras/src}/**/*.js\"",
         "lint": "pnpm lint:prettier && pnpm lint:eslint"
     },
-    "lint-staged": {
-        "*.js": [
-            "prettier --write",
-            "eslint --fix"
-        ],
-        "*.{md,json}": [
-            "prettier --write"
-        ]
-    },
     "prettier": {
         "printWidth": 85,
         "tabWidth": 4,
@@ -114,7 +105,6 @@
         "eslint": "^7.30.0",
         "eslint-config-prettier": "^8.3.0",
         "husky": "^7.0.0",
-        "lint-staged": "^11.0.1",
         "prettier": "^2.3.2",
         "rollup": "^2.56.0",
         "rollup-plugin-terser": "^7.0.2"
