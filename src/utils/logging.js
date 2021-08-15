@@ -28,9 +28,7 @@ export const logError = function (props) {
                 browserInfo: self.navigator.userAgent,
                 clientOS: self.navigator.platform
             })
-        }
-
-        if (isServer) {
+        } else if (isServer) {
             Object.assign(prodInfo, {
                 pid: process.pid,
                 filepath: process.cwd(),

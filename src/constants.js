@@ -1,13 +1,11 @@
-export const isWeb =
-    typeof self === 'object' && typeof self.addEventListener === 'function'
+export const isWeb = typeof self === 'object' && globalThis === self
 
-export const isServer =
-    typeof global === 'object' && typeof global.process === 'object'
+export const isServer = typeof global === 'object' && globalThis === global
 
 export const isDevelopment =
     typeof process === 'object' && typeof process.env?.NODE_ENV === 'string'
         ? process.env.NODE_ENV !== 'production'
-        : false
+        : true
 
 export const FriendlyError = class extends Error {
     constructor(...args) {
@@ -25,5 +23,3 @@ export const nodeErrorEvents = [
     'SIGINT',
     'SIGHUP'
 ]
-
-export const handledFuncs = new WeakSet()

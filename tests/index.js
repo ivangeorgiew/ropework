@@ -1,4 +1,4 @@
-// const { tieUpEff, tieUp, globalHandleErrors } = require('tied-up')
+// const { tieUp, globalHandleErrors } = require('tied-up')
 // globalHandleErrors(true)
 
 // const fib = tieUp(
@@ -77,38 +77,53 @@
 //     'asynchronous generator function test',
 //     () => 123,
 //     async function* (i) {
-//         // throw new Error('intended')
 //         yield i
-//         await new Promise(resolve => setTimeout(resolve, 2000))
-//         return i + 10
+//         await new Promise(resolve => setTimeout(resolve, 1000))
+//         // throw new Error('intended')
+//         yield i + 10
+//         return 5
 //     }
 // )
 
 // ;(async () => {
-//     console.log(await asyncGen(10).next())
-//     console.log(await asyncGen(10).next())
+//     const g1 = asyncGen(10)
+//     for await (const x of g1) {
+//         console.log(x)
+//     }
+
+//     const g2 = asyncGen(10)
+//     for await (const x of g2) {
+//         console.log(x)
+//     }
 // })()
 
 // const gen = tieUp(
 //     'generator function test',
 //     () => 123,
 //     function* (i) {
-//         // throw new Error('intended')
 //         yield i
+//         throw new Error('intended')
 //         return i + 10
 //     }
 // )
 
-// console.log(gen(10).next())
-// console.log(gen(10).next())
+// const g1 = gen(10)
+// for (let x of g1) {
+//     console.log(x)
+// }
+
+// const g2 = gen(10)
+// for (let x of g2) {
+//     console.log(x)
+// }
 
 // const asyncF = tieUp(
 //     'asynchronous function test',
 //     () => 'error val',
 //     async function (i) {
-//         // throw new Error('intended')
 //         // await asyncF(i + 1)
 //         await new Promise(resolve => setTimeout(resolve, 1000))
+//         // throw new Error('intended')
 //         return i
 //     }
 // )

@@ -1,9 +1,11 @@
-import { handledFuncs, isDevelopment } from '../constants'
-import { getCacheIdx } from './helpers'
+import { isDevelopment } from '../constants'
+import { getCacheIdx, handledFuncs } from './helpers'
 import { logError } from './logging'
 
-export const createFunc = function (descr, onError, func, shouldCache) {
+export const createFunc = function (...mainArgs) {
     try {
+        const [descr, onError, func, shouldCache] = mainArgs
+
         if (handledFuncs.has(func)) {
             return func
         }
@@ -13,25 +15,21 @@ export const createFunc = function (descr, onError, func, shouldCache) {
 
         let isNextCallFirst = true
 
-        const manageCache = function (i, key, value) {
+        const manageCache = function (idx, key, value) {
             try {
-                if (i > 5) {
-                    i = 5
+                if (idx > 5) {
+                    idx = 5
                 }
 
-                while (i--) {
-                    cacheKeys[i + 1] = cacheKeys[i]
-                    cacheValues[i + 1] = cacheValues[i]
+                while (idx--) {
+                    cacheKeys[idx + 1] = cacheKeys[idx]
+                    cacheValues[idx + 1] = cacheValues[idx]
                 }
 
                 cacheKeys[0] = key
                 cacheValues[0] = value
             } catch (error) {
-                logError({
-                    descr: 'storing key and value in cache',
-                    args: [i, key, value],
-                    error
-                })
+                // nothing
             }
         }
 
@@ -49,7 +47,7 @@ export const createFunc = function (descr, onError, func, shouldCache) {
                     })
                 }
             } catch (error) {
-                // cant log
+                // nothing
             }
         }
 
@@ -93,7 +91,7 @@ export const createFunc = function (descr, onError, func, shouldCache) {
                                 const res = yield* iter
 
                                 if (shouldCache) {
-                                    manageCache(cacheKeys.length, args, res)
+                                    manageCache(cacheKeys.length, args, iter)
                                 }
 
                                 return res
@@ -109,7 +107,7 @@ export const createFunc = function (descr, onError, func, shouldCache) {
                                 const res = yield* iter
 
                                 if (shouldCache) {
-                                    manageCache(cacheKeys.length, args, res)
+                                    manageCache(cacheKeys.length, args, iter)
                                 }
 
                                 return res
@@ -166,7 +164,7 @@ export const createFunc = function (descr, onError, func, shouldCache) {
         logError({
             descr: 'creating an error-handled function',
             error,
-            args: [descr, onError, func, shouldCache]
+            args: mainArgs
         })
 
         return () => {}

@@ -2,19 +2,20 @@ const stringifyAll = function (data) {
     try {
         const seen = new WeakSet()
         const parser = function (_key, val) {
-            switch (true) {
-                case [Infinity, NaN, null, undefined].includes(val):
-                    return `[${String(val)}]`
-                case typeof val === 'bigint':
-                    return Number(val)
-                case typeof val === 'object' || typeof val === 'function':
-                    if (seen.has(val)) return '[$ref]'
-
+            if ([Infinity, NaN, null, undefined].includes(val)) {
+                return `[${String(val)}]`
+            } else if (typeof val === 'bigint') {
+                return Number(val)
+            } else if (typeof val === 'object' || typeof val === 'function') {
+                if (seen.has(val)) {
+                    return '[$ref]'
+                } else {
                     seen.add(val)
 
                     return typeof val === 'function' ? '[f(x)]' : val
-                default:
-                    return val
+                }
+            } else {
+                return val
             }
         }
 
@@ -127,3 +128,5 @@ export const getCacheIdx = function (args, cacheKeys) {
         return -1
     }
 }
+
+export const handledFuncs = new WeakSet()
