@@ -123,7 +123,7 @@ export const createFunc = function (...mainArgs) {
                                 const res = await prom
 
                                 if (shouldCache) {
-                                    manageCache(cacheKeys.length, args, res)
+                                    manageCache(cacheKeys.length, args, prom)
                                 }
 
                                 return res

@@ -80,21 +80,18 @@
 //         yield i
 //         await new Promise(resolve => setTimeout(resolve, 1000))
 //         // throw new Error('intended')
-//         yield i + 10
-//         return 5
+//         return i + 10
 //     }
 // )
 
 // ;(async () => {
 //     const g1 = asyncGen(10)
-//     for await (const x of g1) {
-//         console.log(x)
-//     }
+//     console.log(await g1.next())
+//     console.log(await g1.next())
+//     console.log(await g1.next())
 
 //     const g2 = asyncGen(10)
-//     for await (const x of g2) {
-//         console.log(x)
-//     }
+//     console.log(await g2.next())
 // })()
 
 // const gen = tieUp(
@@ -102,20 +99,17 @@
 //     () => 123,
 //     function* (i) {
 //         yield i
-//         throw new Error('intended')
+//         // throw new Error('intended')
 //         return i + 10
 //     }
 // )
 
 // const g1 = gen(10)
-// for (let x of g1) {
-//     console.log(x)
-// }
-
+// console.log(g1.next())
+// console.log(g1.next())
+// console.log(g1.next())
 // const g2 = gen(10)
-// for (let x of g2) {
-//     console.log(x)
-// }
+// console.log(g2.next())
 
 // const asyncF = tieUp(
 //     'asynchronous function test',
@@ -129,8 +123,12 @@
 // )
 
 // ;(async () => {
-//     console.log(await asyncF(10))
-//     console.log(await asyncF(10))
+//     const a = await asyncF(10)
+//     console.log(a)
+//     console.log(asyncF(10))
+//     const b = await asyncF(10)
+//     console.log(b)
+//     console.log(asyncF(10))
 // })()
 
 // const addNumbers = tieUp(
