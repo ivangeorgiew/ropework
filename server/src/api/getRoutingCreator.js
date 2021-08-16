@@ -1,6 +1,6 @@
-import { tieUpEff, tieUp, isServer } from 'tied-up'
+import { tieEff, tiePure, isServer } from 'tied-up'
 
-const defaultOnError = tieUpEff(
+const defaultOnError = tieEff(
     'catching errors for ',
     () => {},
     ({ descr, args, error }) => {
@@ -20,7 +20,7 @@ const defaultOnError = tieUpEff(
     }
 )
 
-export const getRoutingCreator = tieUp(
+export const getRoutingCreator = tiePure(
     'creating function for routing',
     () => () => {},
     (app, onError) => {
@@ -36,7 +36,7 @@ export const getRoutingCreator = tieUp(
             onError = defaultOnError
         }
 
-        return tieUpEff(
+        return tieEff(
             'creating route for the server',
             () => {},
             (method, path, callback) => {
@@ -54,7 +54,7 @@ export const getRoutingCreator = tieUp(
 
                 app[method](
                     path,
-                    tieUpEff(`${method.toUpperCase()} ${path}`, onError, callback)
+                    tieEff(`${method.toUpperCase()} ${path}`, onError, callback)
                 )
             }
         )

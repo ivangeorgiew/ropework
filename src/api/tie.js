@@ -4,7 +4,7 @@ const one = new TypeError('First argument must be the description string')
 const two = new TypeError('Second argument must be the function called on error')
 const three = new TypeError('Third argument must be the main function')
 
-export const tieUpEff = createFunc(
+export const tieEff = createFunc(
     'tying up function with side-effects',
     () => () => {},
     function (descr, onError, func) {
@@ -16,7 +16,7 @@ export const tieUpEff = createFunc(
     }
 )
 
-export const tieUp = createFunc(
+export const tiePure = createFunc(
     'tying up pure function',
     () => () => {},
     function (descr, onError, func) {

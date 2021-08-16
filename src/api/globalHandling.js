@@ -1,8 +1,8 @@
 import { logError } from '../utils/logging'
 import { browserErrorEvents, isServer, isWeb, nodeErrorEvents } from './constants'
-import { tieUpEff } from './tie'
+import { tieEff } from './tie'
 
-const uncaughtErrorListener = tieUpEff(
+const uncaughtErrorListener = tieEff(
     'listening for uncaught errors',
     () => {},
     eventOrError => {
@@ -40,7 +40,7 @@ const uncaughtErrorListener = tieUpEff(
     }
 )
 
-export const globalHandleErrors = tieUpEff(
+export const globalHandleErrors = tieEff(
     'handling listeners for uncaught errors',
     () => {},
     shouldAdd => {

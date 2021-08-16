@@ -1,7 +1,7 @@
-// const { tieUp, globalHandleErrors } = require('tied-up')
+// const { tiePure, globalHandleErrors } = require('tied-up')
 // globalHandleErrors(true)
 
-// const fib = tieUp(
+// const fib = tiePure(
 //     'calculating fibonacci number',
 //     () => 'Not a number',
 //     function (n, a, b, c, d, e) {
@@ -23,7 +23,7 @@
 
 // d.myself = d
 
-// const A = tieUp(
+// const A = tiePure(
 //     'class A',
 //     () => ({}),
 //     class {
@@ -34,7 +34,7 @@
 //     }
 // )
 
-// const B = tieUp(
+// const B = tiePure(
 //     'class B',
 //     () => ({}),
 //     class extends A {
@@ -73,7 +73,7 @@
 // }
 // showMemory()
 
-// const asyncGen = tieUp(
+// const asyncGen = tiePure(
 //     'asynchronous generator function test',
 //     () => 123,
 //     async function* (i) {
@@ -94,7 +94,7 @@
 //     console.log(await g2.next())
 // })()
 
-// const gen = tieUp(
+// const gen = tiePure(
 //     'generator function test',
 //     () => 123,
 //     function* (i) {
@@ -111,7 +111,7 @@
 // const g2 = gen(10)
 // console.log(g2.next())
 
-// const asyncF = tieUp(
+// const asyncF = tiePure(
 //     'asynchronous function test',
 //     () => 'error val',
 //     async function (i) {
@@ -131,7 +131,7 @@
 //     console.log(asyncF(10))
 // })()
 
-// const addNumbers = tieUp(
+// const addNumbers = tiePure(
 //     'create function to add numbers',
 //     () => () => 'There was an error',
 //     a => {
@@ -141,7 +141,7 @@
 //             throw new Error('Outer error - please pass number')
 //         }
 
-//         return tieUp(
+//         return tiePure(
 //             'adding two number',
 //             () => 'There was an error',
 //             b => {

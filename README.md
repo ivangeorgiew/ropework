@@ -16,7 +16,7 @@ To start using this package you need to first install locally: `npm i tied-up` o
 ## Front-end Example:
 
 ```
-import { tieUpEff, FriendlyError, changeOptions } from 'tied-up'
+import { tieEff, FriendlyError, changeOptions } from 'tied-up'
 
 changeOptions({
     notify: ({ isDevelopment, isFriendlyError, errorDescr, prodInfo }) => {
@@ -33,7 +33,7 @@ changeOptions({
     }
 })
 
-const printNum = tieUpEff({
+const printNum = tieEff({
     descr: 'printing a number',
     argTypes: 'num',
     data: num => {
@@ -46,7 +46,7 @@ const printNum = tieUpEff({
     }
 })
 
-const fib = tieUpEff({
+const fib = tieEff({
     descr: 'calculating fibonacci number',
     argTypes: 'int',
     useCache: ([n]) => [n],
@@ -59,7 +59,7 @@ const fib = tieUpEff({
     }
 })
 
-const measureFib = tieUpEff({
+const measureFib = tieEff({
     descr: 'Measuring time for fibonacci number',
     argTypes: 'int',
     data: num => {
@@ -74,7 +74,7 @@ const measureFib = tieUpEff({
     onError: () => 'Incorrect fibonacchi calculation'
 })
 
-const delayReturn = tieUpEff({
+const delayReturn = tieEff({
     descr: 'Delaying async function',
     argTypes: 'int >= 500 <= 2000',
     data: async (ms) => {
@@ -159,10 +159,10 @@ server.listen(port, () => {
 
     -   type: `constructor`
     -   definition: Constructor that extends `Error`. Use it in functions created
-        with `tieUpEff` to signify that the error was thrown intentionally and that
-        the message is user friendly
+        with `tieEff` to signify that the error was thrown intentionally and that the
+        message is user friendly
 
--   `tieUpEff`
+-   `tieEff`
 
     -   type: `({ descr, data, argTypes, onError, useCache })` ->
         `error handled data`

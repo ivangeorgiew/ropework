@@ -1,6 +1,6 @@
-import { tieUpEff, tieUp, isServer, nodeErrorEvents } from 'tied-up'
+import { tieEff, tiePure, isServer, nodeErrorEvents } from 'tied-up'
 
-export const getHandledServer = tieUp(
+export const getHandledServer = tiePure(
     'initializing error handling for server',
     ({ args: [server] }) => Object.assign({}, server),
     (server, sockets = new Set()) => {
@@ -16,7 +16,7 @@ export const getHandledServer = tieUp(
             throw new TypeError('Second argument must be the sockets Set.')
         }
 
-        const onConnection = tieUpEff(
+        const onConnection = tieEff(
             'adding sockets to server',
             () => {},
             socket => {
@@ -29,7 +29,7 @@ export const getHandledServer = tieUp(
 
         server.on('connection', onConnection)
 
-        const onClose = tieUpEff(
+        const onClose = tieEff(
             'handling server closing',
             () => {},
             () => {
