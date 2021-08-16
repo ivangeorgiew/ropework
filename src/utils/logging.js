@@ -1,6 +1,5 @@
 import { FriendlyError, isServer, isWeb } from '../api/constants'
-import { errorLogger, notify } from '../api/options'
-import { createArgsInfo } from './helpers'
+import { createArgsInfo, errorLogger, notify } from './helpers'
 
 export const logError = function (props) {
     try {

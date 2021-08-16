@@ -123,6 +123,9 @@
 // )
 
 // ;(async () => {
+//     // console.log(await asyncF(10))
+//     // console.log(await asyncF(10))
+
 //     const a = await asyncF(10)
 //     console.log(a)
 //     console.log(asyncF(10))

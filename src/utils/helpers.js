@@ -1,3 +1,5 @@
+import { isDevelopment } from '../api/constants'
+
 const stringifyAll = function (data) {
     try {
         const seen = new WeakSet()
@@ -49,6 +51,55 @@ export const createArgsInfo = function (args) {
     } catch (error) {
         return ''
     }
+}
+
+const defaultLogger =
+    typeof console === 'object' && typeof console.error === 'function'
+        ? console.error
+        : () => {}
+
+let errorLoggerUnhandled = defaultLogger
+
+let notifyUnhandled = () => {}
+
+export const errorLogger = function (...args) {
+    if (isDevelopment) {
+        try {
+            errorLoggerUnhandled.apply(null, args)
+        } catch (error) {
+            const argsInfo = createArgsInfo(args)
+
+            defaultLogger(
+                '\n Issue with: parameter errorLogger\n',
+                `Function arguments: ${argsInfo}\n`,
+                error,
+                '\n'
+            )
+        }
+    }
+}
+
+export const changeErrorLogger = function (newProp) {
+    errorLoggerUnhandled = newProp
+}
+
+export const notify = function (...args) {
+    try {
+        notifyUnhandled.apply(null, args)
+    } catch (error) {
+        const argsInfo = createArgsInfo(args)
+
+        errorLogger(
+            '\n Issue with: parameter notify\n',
+            `Function arguments: ${argsInfo}\n`,
+            error,
+            '\n'
+        )
+    }
+}
+
+export const changeNotify = function (newProp) {
+    notifyUnhandled = newProp
 }
 
 const toKeys = a => [

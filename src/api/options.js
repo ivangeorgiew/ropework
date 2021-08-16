@@ -1,74 +1,26 @@
-import { createArgsInfo } from '../utils/helpers'
-import { isDevelopment } from './constants'
+import { changeErrorLogger, changeNotify } from '../utils/helpers'
+import { tieEff } from './tie'
 
-const defaultLogger =
-    typeof console === 'object' && typeof console.error === 'function'
-        ? console.error
-        : () => {}
-
-let errorLoggerUnhandled = defaultLogger
-
-let notifyUnhandled = () => {}
-
-export const errorLogger = function (...args) {
-    if (isDevelopment) {
-        try {
-            errorLoggerUnhandled.apply(null, args)
-        } catch (error) {
-            const argsInfo = createArgsInfo(args)
-
-            defaultLogger(
-                '\n Issue with: parameter errorLogger\n',
-                `Function arguments: ${argsInfo}\n`,
-                error,
-                '\n'
-            )
-        }
-    }
-}
-
-export const notify = function (...args) {
-    try {
-        notifyUnhandled.apply(null, args)
-    } catch (error) {
-        const argsInfo = createArgsInfo(args)
-
-        errorLogger(
-            '\n Issue with: parameter notify\n',
-            `Function arguments: ${argsInfo}\n`,
-            error,
-            '\n'
-        )
-    }
-}
-
-export const changeOptions = function (props) {
-    try {
+export const changeOptions = tieEff(
+    'changing global options',
+    () => {},
+    props => {
         props = Object.assign({}, props)
 
         let hasMadeChanges = false
 
         if (typeof props.errorLogger === 'function') {
-            errorLoggerUnhandled = props.errorLogger
+            changeErrorLogger(props.errorLogger)
             hasMadeChanges = true
         }
 
         if (typeof props.notify === 'function') {
-            notifyUnhandled = props.notify
+            changeNotify(props.notify)
             hasMadeChanges = true
         }
 
         if (!hasMadeChanges) {
-            throw new TypeError('Pass correct options object please')
+            throw new TypeError('Pass correct options object, please.')
         }
-    } catch (error) {
-        const argsInfo = createArgsInfo([props])
-
-        errorLogger(
-            '\n Issue with: changing options\n',
-            `Function arguments: ${argsInfo}\n`,
-            error,
-            '\n'
-        )
     }
-}
+)
