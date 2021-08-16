@@ -4,11 +4,11 @@ import pkg from './package.json'
 
 const entries = [
     ['.', 'TiedUp'],
-    ['./extras', 'TiedUpExtras']
+    ['./server', 'TiedUpServer']
 ]
 const globals = {
     'tied-up': 'TiedUp',
-    'tied-up/extras': 'TiedUpExtras'
+    'tied-up/server': 'TiedUpServer'
 }
 const commonOutOpts = {
     esModule: false,

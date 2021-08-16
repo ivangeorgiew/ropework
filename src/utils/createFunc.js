@@ -1,4 +1,4 @@
-import { isDevelopment } from '../constants'
+import { isDevelopment } from '../api/constants'
 import { getCacheIdx, handledFuncs } from './helpers'
 import { logError } from './logging'
 

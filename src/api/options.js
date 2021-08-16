@@ -1,5 +1,5 @@
+import { createArgsInfo } from '../utils/helpers'
 import { isDevelopment } from './constants'
-import { createArgsInfo } from './utils/helpers'
 
 const defaultLogger =
     typeof console === 'object' && typeof console.error === 'function'

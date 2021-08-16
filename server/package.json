@@ -1,7 +1,7 @@
 {
-    "name": "tied-up-extras",
+    "name": "tied-up-server",
     "version": "1.0.0",
-    "description": "Error-handling and other function utilities",
+    "description": "Server utils for tied-up",
     "private": true,
     "main": "dist/index.cjs.js",
     "module": "dist/index.esm.js",

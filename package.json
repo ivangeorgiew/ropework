@@ -15,33 +15,33 @@
             "umd": "./dist/index.umd.js",
             "browser": "./dist/index.browser.js"
         },
-        "./extras": {
-            "require": "./extras/dist/index.cjs.js",
-            "import": "./extras/dist/index.esm.js",
-            "umd": "./extras/dist/index.umd.js",
-            "browser": "./extras/dist/index.browser.js"
+        "./server": {
+            "require": "./server/dist/index.cjs.js",
+            "import": "./server/dist/index.esm.js",
+            "umd": "./server/dist/index.umd.js",
+            "browser": "./server/dist/index.browser.js"
         },
         "./package.json": "./package.json"
     },
     "files": [
         "src",
         "dist",
-        "extras/src",
-        "extras/dist",
-        "extras/package.json"
+        "server/src",
+        "server/dist",
+        "server/package.json"
     ],
     "scripts": {
         "prepare": "husky install",
         "preinstall": "npx only-allow pnpm",
         "preversion": "pnpm i && pnpm lint && pnpm build && git add -A",
         "postversion": "git push && pnpm publish",
-        "clean": "rm -fr ./dist ./extras/dist",
+        "clean": "rm -fr ./dist ./server/dist",
         "build": "pnpm clean && rollup -c",
         "bump": "pnpm version patch",
         "bigbump": "pnpm version minor",
         "test": "NODE_ENV=dev node ./tests/index.js",
-        "lint:prettier": "prettier --write --loglevel warn \"{src,extras/src}/**/*.js\"",
-        "lint:eslint": "eslint --fix \"{src,extras/src}/**/*.js\"",
+        "lint:prettier": "prettier --write --loglevel warn \"{src,server/src}/**/*.js\"",
+        "lint:eslint": "eslint --fix \"{src,server/src}/**/*.js\"",
         "lint": "pnpm lint:prettier && pnpm lint:eslint"
     },
     "prettier": {

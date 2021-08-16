@@ -1,4 +1,4 @@
-import { createFunc } from './utils/createFunc'
+import { createFunc } from '../utils/createFunc'
 
 const one = new TypeError('First argument must be the description string')
 const two = new TypeError('Second argument must be the function called on error')
