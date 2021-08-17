@@ -1,11 +1,14 @@
+const process =
+    typeof globalThis.process?.env?.NODE_ENV === 'string'
+        ? globalThis.process
+        : { env: { NODE_ENV: 'production' } }
+
+// so that process.env.NODE_ENV can be replaced AND doesn't throw
+export const isDevelopment = process.env.NODE_ENV !== 'production'
+
 export const isWeb = typeof self === 'object' && globalThis === self
 
 export const isServer = typeof global === 'object' && globalThis === global
-
-export const isDevelopment =
-    typeof process === 'object' && typeof process.env?.NODE_ENV === 'string'
-        ? process.env.NODE_ENV !== 'production'
-        : true
 
 export const FriendlyError = class extends Error {
     constructor(...args) {
