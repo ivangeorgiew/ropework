@@ -1,4 +1,4 @@
-// const { tiePure, globalHandleErrors } = require('tied-up')
+// const { tiePure, tiePurePart, globalHandleErrors } = require('tied-up')
 // globalHandleErrors(true)
 
 // const fib = tiePure(
@@ -134,9 +134,9 @@
 //     console.log(asyncF(10))
 // })()
 
-// const addNumbers = tiePure(
-//     'create function to add numbers',
-//     () => () => 'There was an error',
+// const addNumbers = tiePurePart(
+//     'adding two numbers',
+//     () => 'There was an error',
 //     a => {
 //         console.log('ran outer')
 
@@ -144,19 +144,15 @@
 //             throw new Error('Outer error - please pass number')
 //         }
 
-//         return tiePure(
-//             'adding two number',
-//             () => 'There was an error',
-//             b => {
-//                 console.log('ran inner')
+//         return b => {
+//             console.log('ran inner')
 
-//                 if (typeof b === 'string') {
-//                     throw new Error('Inner error - please pass number')
-//                 }
-
-//                 return a + b
+//             if (typeof b === 'string') {
+//                 throw new Error('Inner error - please pass number')
 //             }
-//         )
+
+//             return a + b
+//         }
 //     }
 // )
 
