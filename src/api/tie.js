@@ -16,34 +16,6 @@ const tie = createFunc(
     }
 )
 
-const tiePart = createFunc(
-    'tying up a partial function',
-    () => () => {},
-    function (descr, onError, func, shouldCache) {
-        if (typeof descr !== 'string') throw one
-        if (typeof onError !== 'function') throw two
-        if (typeof func !== 'function') throw three
-
-        return tiePure(
-            `partial ${descr}`,
-            () => onError,
-            function (...args) {
-                const innerFunc = func.apply(this, args)
-
-                if (typeof innerFunc !== 'function') {
-                    throw new TypeError(
-                        'The partial function has to return a function'
-                    )
-                }
-
-                const creator = shouldCache ? tiePure : tieEff
-
-                return creator(descr, onError, innerFunc)
-            }
-        )
-    }
-)
-
 export const tieEff = createFunc(
     'tying up function with side-effects',
     () => () => {},
@@ -65,6 +37,34 @@ export const tiePure = createFunc(
         if (typeof result !== 'function') throw result
 
         return result
+    }
+)
+
+const tiePart = createFunc(
+    'tying up a partial function',
+    () => () => {},
+    function (descr, onError, func, shouldCache) {
+        if (typeof descr !== 'string') return one
+        if (typeof onError !== 'function') return two
+        if (typeof func !== 'function') return three
+
+        return tiePure(
+            `partial ${descr}`,
+            () => onError,
+            function (...args) {
+                const innerFunc = func.apply(this, args)
+
+                if (typeof innerFunc !== 'function') {
+                    throw new TypeError(
+                        'The partial function has to return a function'
+                    )
+                }
+
+                const creator = shouldCache ? tiePure : tieEff
+
+                return creator(descr, onError, innerFunc)
+            }
+        )
     }
 )
 

@@ -1,10 +1,10 @@
+import { createFunc } from '../utils/createFunc'
 import { changeErrorLogger, changeNotify } from '../utils/helpers'
-import { tieEff } from './tie'
 
-export const changeOptions = tieEff(
+export const changeOptions = createFunc(
     'changing global options',
     () => {},
-    props => {
+    function (props) {
         props = Object.assign({}, props)
 
         let hasMadeChanges = false
