@@ -1,4 +1,26 @@
-import { tieEff, tiePure, isServer, nodeErrorEvents } from 'tied-up'
+import { tieEffPart, tiePure, isServer, nodeErrorEvents } from 'tied-up'
+
+const onConnection = tieEffPart(
+    'adding sockets to server',
+    () => {},
+    sockets => socket => {
+        socket.on('close', () => {
+            sockets.delete(socket)
+        })
+        sockets.add(socket)
+    }
+)
+
+const onClose = tieEffPart(
+    'handling server closing',
+    () => {},
+    (server, sockets) => () => {
+        server.close()
+        sockets.forEach(socket => {
+            socket.destroy()
+        })
+    }
+)
 
 export const getHandledServer = tiePure(
     'initializing error handling for server',
@@ -16,32 +38,10 @@ export const getHandledServer = tiePure(
             throw new TypeError('Second argument must be the sockets Set.')
         }
 
-        const onConnection = tieEff(
-            'adding sockets to server',
-            () => {},
-            socket => {
-                socket.on('close', () => {
-                    sockets.delete(socket)
-                })
-                sockets.add(socket)
-            }
-        )
-
-        server.on('connection', onConnection)
-
-        const onClose = tieEff(
-            'handling server closing',
-            () => {},
-            () => {
-                server.close()
-                sockets.forEach(socket => {
-                    socket.destroy()
-                })
-            }
-        )
+        server.on('connection', onConnection(sockets))
 
         for (let i = 0; i < nodeErrorEvents.length; i++) {
-            process.prependListener(nodeErrorEvents[i], onClose)
+            process.prependListener(nodeErrorEvents[i], onClose(server, sockets))
         }
 
         return server

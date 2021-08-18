@@ -1,30 +1,18 @@
 import { createFunc } from '../utils/createFunc'
 
-const one = new TypeError('First argument must be the description string')
-const two = new TypeError('Second argument must be the function called on error')
-const three = new TypeError('Third argument must be the main function')
-
-const tie = createFunc(
-    'tying up a function',
-    () => () => {},
-    function (descr, onError, func, shouldCache) {
-        if (typeof descr !== 'string') return one
-        if (typeof onError !== 'function') return two
-        if (typeof func !== 'function') return three
-
-        return createFunc(descr, onError, func, shouldCache)
-    }
-)
+const fst = new TypeError('First argument must be the description string')
+const snd = new TypeError('Second argument must be the function called on error')
+const trd = new TypeError('Third argument must be the main function')
 
 export const tieEff = createFunc(
     'tying up function with side-effects',
     () => () => {},
     function (descr, onError, func) {
-        const result = tie(descr, onError, func, false)
+        if (typeof descr !== 'string') throw fst
+        if (typeof onError !== 'function') throw snd
+        if (typeof func !== 'function') throw trd
 
-        if (typeof result !== 'function') throw result
-
-        return result
+        return createFunc(descr, onError, func, false)
     }
 )
 
@@ -32,11 +20,11 @@ export const tiePure = createFunc(
     'tying up pure function',
     () => () => {},
     function (descr, onError, func) {
-        const result = tie(descr, onError, func, true)
+        if (typeof descr !== 'string') throw fst
+        if (typeof onError !== 'function') throw snd
+        if (typeof func !== 'function') throw trd
 
-        if (typeof result !== 'function') throw result
-
-        return result
+        return createFunc(descr, onError, func, true)
     }
 )
 
@@ -44,17 +32,13 @@ const tiePart = createFunc(
     'tying up a partial function',
     () => () => {},
     function (descr, onError, func, shouldCache) {
-        if (typeof descr !== 'string') return one
-        if (typeof onError !== 'function') return two
-        if (typeof func !== 'function') return three
-
         return tiePure(
             `partially ${descr}`,
             () => onError,
             function (...args) {
-                const innerFunc = func.apply(this, args)
+                const inner = func.apply(this, args)
 
-                if (typeof innerFunc !== 'function') {
+                if (typeof inner !== 'function') {
                     throw new TypeError(
                         'The partial function has to return a function'
                     )
@@ -62,7 +46,7 @@ const tiePart = createFunc(
 
                 const creator = shouldCache ? tiePure : tieEff
 
-                return creator(descr, onError, innerFunc)
+                return creator(descr, onError, inner)
             }
         )
     }
@@ -72,11 +56,11 @@ export const tieEffPart = createFunc(
     'tying up partial function with side-effects',
     () => () => {},
     function (descr, onError, func) {
-        const result = tiePart(descr, onError, func, false)
+        if (typeof descr !== 'string') throw fst
+        if (typeof onError !== 'function') throw snd
+        if (typeof func !== 'function') throw trd
 
-        if (typeof result !== 'function') throw result
-
-        return result
+        return tiePart(descr, onError, func, false)
     }
 )
 
@@ -84,11 +68,11 @@ export const tiePurePart = createFunc(
     'tying up pure partial function',
     () => () => {},
     function (descr, onError, func) {
-        const result = tiePart(descr, onError, func, true)
+        if (typeof descr !== 'string') throw fst
+        if (typeof onError !== 'function') throw snd
+        if (typeof func !== 'function') throw trd
 
-        if (typeof result !== 'function') throw result
-
-        return result
+        return tiePart(descr, onError, func, true)
     }
 )
 
