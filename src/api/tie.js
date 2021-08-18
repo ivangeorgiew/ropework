@@ -49,7 +49,7 @@ const tiePart = createFunc(
         if (typeof func !== 'function') return three
 
         return tiePure(
-            `partial ${descr}`,
+            `partially ${descr}`,
             () => onError,
             function (...args) {
                 const innerFunc = func.apply(this, args)

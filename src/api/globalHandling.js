@@ -1,8 +1,8 @@
+import { createFunc } from '../utils/createFunc'
 import { logError } from '../utils/logging'
 import { browserErrorEvents, isServer, isWeb, nodeErrorEvents } from './constants'
-import { tieEff } from './tie'
 
-const uncaughtErrorListener = tieEff(
+const uncaughtErrorListener = createFunc(
     'listening for uncaught errors',
     () => {},
     eventOrError => {
@@ -40,7 +40,7 @@ const uncaughtErrorListener = tieEff(
     }
 )
 
-export const globalHandleErrors = tieEff(
+export const globalHandleErrors = createFunc(
     'handling listeners for uncaught errors',
     () => {},
     shouldAdd => {

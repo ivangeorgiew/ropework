@@ -2,7 +2,7 @@ import { tieEff, tiePure, isServer, nodeErrorEvents } from 'tied-up'
 
 export const getHandledServer = tiePure(
     'initializing error handling for server',
-    ({ args: [server] }) => Object.assign({}, server),
+    ({ args: [server] }) => server,
     (server, sockets = new Set()) => {
         if (!isServer) {
             throw new Error('This function is meant for server use')
