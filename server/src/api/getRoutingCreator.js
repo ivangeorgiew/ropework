@@ -1,4 +1,4 @@
-import { tieEff, tieEffPart, isServer } from 'tied-up'
+import { tieEff, tieEffPart, isServer, or, isFunc, isNil, isStr } from 'tied-up'
 
 const defaultOnError = tieEff(
     'catching server errors',
@@ -23,30 +23,21 @@ export const getRoutingCreator = tieEffPart(
     'creating route for the server',
     () => {},
     (app, onError) => {
-        if (!isServer) {
-            throw new Error('This function is meant for server use')
-        }
+        or(isServer, Error('This function is meant for server use'))
+        or(isFunc(app), TypeError('First argument must be a function'))
+        or(
+            isFunc(onError) || isNil(onError),
+            TypeError('Second argument (if given) must be a function')
+        )
 
-        if (typeof app !== 'function') {
-            throw new TypeError('First argument must be a function')
-        }
-
-        if (typeof onError !== 'function') {
+        if (isNil(onError)) {
             onError = defaultOnError
         }
 
         return (method, path, callback) => {
-            if (typeof method !== 'string') {
-                throw new TypeError('First argument must be the method key.')
-            }
-
-            if (typeof path !== 'string') {
-                throw new TypeError('Second argument must be the routing path.')
-            }
-
-            if (typeof callback !== 'function') {
-                throw new TypeError('Third argument must be the callback.')
-            }
+            or(isStr(method), TypeError('First argument must be the method key.'))
+            or(isStr(path), TypeError('Second argument must be the routing path.'))
+            or(isFunc(callback), TypeError('Third argument must be the callback.'))
 
             app[method](
                 path,

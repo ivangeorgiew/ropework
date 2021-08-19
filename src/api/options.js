@@ -1,11 +1,12 @@
 import { createFunc } from '../utils/createFunc'
 import { changeErrorLogger, changeNotify } from '../utils/helpers'
+import { isObj, or } from './validating'
 
 export const changeOptions = createFunc(
     'changing global options',
     () => {},
     function (props) {
-        props = Object.assign({}, props)
+        or(isObj(props), TypeError('First argument must be an object'))
 
         let hasMadeChanges = false
 
@@ -19,8 +20,6 @@ export const changeOptions = createFunc(
             hasMadeChanges = true
         }
 
-        if (!hasMadeChanges) {
-            throw new TypeError('Pass correct options object, please.')
-        }
+        or(hasMadeChanges, TypeError('Incorrect properties of the given object'))
     }
 )

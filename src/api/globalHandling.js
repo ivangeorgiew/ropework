@@ -1,6 +1,7 @@
 import { createFunc } from '../utils/createFunc'
 import { logError } from '../utils/logging'
 import { browserErrorEvents, isServer, isWeb, nodeErrorEvents } from './constants'
+import { isBool, or } from './validating'
 
 const uncaughtErrorListener = createFunc(
     'listening for uncaught errors',
@@ -44,9 +45,7 @@ export const globalHandleErrors = createFunc(
     'handling listeners for uncaught errors',
     () => {},
     shouldAdd => {
-        if (typeof shouldAdd !== 'boolean') {
-            throw new TypeError('First argument needs to be boolean')
-        }
+        or(isBool(shouldAdd), TypeError('First argument needs to be boolean'))
 
         if (isWeb) {
             for (let i = 0; i < browserErrorEvents.length; i++) {

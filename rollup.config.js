@@ -1,4 +1,6 @@
 import babel from '@rollup/plugin-babel'
+import replace from '@rollup/plugin-replace'
+import strip from '@rollup/plugin-strip'
 import { terser } from 'rollup-plugin-terser'
 import pkg from './package.json'
 
@@ -16,6 +18,8 @@ const commonOutOpts = {
     exports: 'named',
     sourcemap: true
 }
+const makeInput = root => `${root}/src/index.js`
+const external = id => id.startsWith('tied-up')
 const terserOpts = {
     ecma: 6,
     format: {
@@ -29,47 +33,62 @@ const terserOpts = {
         passes: 5
     }
 }
-
-export default entries.map(([root, name]) => ({
-    input: `${root}/src/index.js`,
-    external: id => id.startsWith('tied-up'),
-    output: [
+const babelPlugin = babel({
+    babelHelpers: 'bundled',
+    exclude: 'node_modules/**',
+    babelrc: false,
+    configFile: false,
+    presets: ['@babel/preset-env']
+})
+const treeshake = {
+    propertyReadSideEffects: false,
+    tryCatchDeoptimization: false
+}
+const reducer = (acc, [root, name]) =>
+    acc.concat([
         {
-            ...commonOutOpts,
-            format: 'cjs',
-            file: `${root}/${pkg.main}`
+            input: makeInput(root),
+            external,
+            treeshake,
+            output: [
+                { ...commonOutOpts, format: 'cjs', file: `${root}/${pkg.main}` },
+                {
+                    ...commonOutOpts,
+                    format: 'esm',
+                    file: `${root}/${pkg.module}`
+                }
+            ],
+            plugins: [babelPlugin]
         },
         {
-            ...commonOutOpts,
-            format: 'esm',
-            file: `${root}/${pkg.module}`
-        },
-        {
-            ...commonOutOpts,
-            format: 'esm',
-            file: `${root}/${pkg.browser}`,
-            plugins: [terser({ ...terserOpts, module: true })]
-        },
-        {
-            ...commonOutOpts,
-            format: 'umd',
-            file: `${root}/${pkg.unpkg}`,
-            plugins: [terser(terserOpts)],
-            name,
-            globals
+            input: makeInput(root),
+            external,
+            treeshake,
+            output: [
+                {
+                    ...commonOutOpts,
+                    format: 'esm',
+                    file: `${root}/${pkg.browser}`,
+                    plugins: [terser({ ...terserOpts, module: true })]
+                },
+                {
+                    ...commonOutOpts,
+                    format: 'umd',
+                    file: `${root}/${pkg.unpkg}`,
+                    plugins: [terser(terserOpts)],
+                    name,
+                    globals
+                }
+            ],
+            plugins: [
+                babelPlugin,
+                replace({
+                    'process.env.NODE_ENV': JSON.stringify('production'),
+                    preventAssignment: true
+                }),
+                strip({ functions: ['or'] })
+            ]
         }
-    ],
-    plugins: [
-        babel({
-            babelHelpers: 'bundled',
-            exclude: 'node_modules/**',
-            babelrc: false,
-            configFile: false,
-            presets: ['@babel/preset-env']
-        })
-    ],
-    treeshake: {
-        propertyReadSideEffects: false,
-        tryCatchDeoptimization: false
-    }
-}))
+    ])
+
+export default entries.reduce(reducer, [])

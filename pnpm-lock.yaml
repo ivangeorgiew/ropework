@@ -5,6 +5,8 @@ specifiers:
   '@babel/eslint-parser': ^7.14.9
   '@babel/preset-env': ^7.14.7
   '@rollup/plugin-babel': ^5.3.0
+  '@rollup/plugin-replace': ^3.0.0
+  '@rollup/plugin-strip': ^2.1.0
   eslint: ^7.30.0
   eslint-config-prettier: ^8.3.0
   husky: ^7.0.0
@@ -17,6 +19,8 @@ devDependencies:
   '@babel/eslint-parser': 7.15.0_@babel+core@7.15.0+eslint@7.30.0
   '@babel/preset-env': 7.15.0_@babel+core@7.15.0
   '@rollup/plugin-babel': 5.3.0_@babel+core@7.15.0+rollup@2.56.0
+  '@rollup/plugin-replace': 3.0.0_rollup@2.56.0
+  '@rollup/plugin-strip': 2.1.0_rollup@2.56.0
   eslint: 7.30.0
   eslint-config-prettier: 8.3.0_eslint@7.30.0
   husky: 7.0.1
@@ -1209,6 +1213,27 @@ packages:
       rollup: 2.56.0
     dev: true
 
+  /@rollup/plugin-replace/3.0.0_rollup@2.56.0:
+    resolution: {integrity: sha512-3c7JCbMuYXM4PbPWT4+m/4Y6U60SgsnDT/cCyAyUKwFHg7pTSfsSQzIpETha3a3ig6OdOKzZz87D9ZXIK3qsDg==}
+    peerDependencies:
+      rollup: ^1.20.0 || ^2.0.0
+    dependencies:
+      '@rollup/pluginutils': 3.1.0_rollup@2.56.0
+      magic-string: 0.25.7
+      rollup: 2.56.0
+    dev: true
+
+  /@rollup/plugin-strip/2.1.0_rollup@2.56.0:
+    resolution: {integrity: sha512-OKlIlXMFlH4nVxq0beNSIKVw0LkpNUpVjjvfzH5OAOAR5dhLZgLZBzwYX4ifIAs18YDrreMcZH4xnKmW9fI2AQ==}
+    peerDependencies:
+      rollup: ^1.20.0 || ^2.0.0
+    dependencies:
+      '@rollup/pluginutils': 3.1.0_rollup@2.56.0
+      estree-walker: 2.0.2
+      magic-string: 0.25.7
+      rollup: 2.56.0
+    dev: true
+
   /@rollup/pluginutils/3.1.0_rollup@2.56.0:
     resolution: {integrity: sha512-GksZ6pr6TpIjHm8h9lSQ8pi8BE9VeubNT0OMJ3B5uZJ8pz73NPiqOtCog/x2/QzM1ENChPKxMDhiQuRHsqc+lg==}
     engines: {node: '>= 8.0.0'}
@@ -1656,6 +1681,10 @@ packages:
     resolution: {integrity: sha512-1fMXF3YP4pZZVozF8j/ZLfvnR8NSIljt56UhbZ5PeeDmmGHpgpdwQt7ITlGvYaQukCvuBRMLEiKiYC+oeIg4cg==}
     dev: true
 
+  /estree-walker/2.0.2:
+    resolution: {integrity: sha512-Rfkk/Mp/DL7JVje3u18FxFujQlTNR2q6QfMSMB7AvCBx91NGj/ba3kCfza0f6dVDbw7YlRf/nDrn7pQrCCyQ/w==}
+    dev: true
+
   /esutils/2.0.3:
     resolution: {integrity: sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==}
     engines: {node: '>=0.10.0'}
@@ -1919,6 +1948,12 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       yallist: 4.0.0
+    dev: true
+
+  /magic-string/0.25.7:
+    resolution: {integrity: sha512-4CrMT5DOHTDk4HYDlzmwu4FVCcIYI8gauveasrdCu2IKIFOJ3f0v/8MDGJCDL9oD2ppz/Av1b0Nj345H9M+XIA==}
+    dependencies:
+      sourcemap-codec: 1.4.8
     dev: true
 
   /merge-stream/2.0.0:
@@ -2199,6 +2234,10 @@ packages:
   /source-map/0.7.3:
     resolution: {integrity: sha512-CkCj6giN3S+n9qrYiBTX5gystlENnRW5jZeNLHpe6aue+SrHcG5VYwujhW9s4dY31mEGsxBDrHR6oI69fTXsaQ==}
     engines: {node: '>= 8'}
+    dev: true
+
+  /sourcemap-codec/1.4.8:
+    resolution: {integrity: sha512-9NykojV5Uih4lgo5So5dtw+f0JgJX30KCNI8gwhz2J9A15wD0Ml6tjHKwf6fTSa6fAdVBdZeNOs9eJ71qCk8vA==}
     dev: true
 
   /sprintf-js/1.0.3:

@@ -1,4 +1,12 @@
-import { tieEffPart, tiePure, isServer, nodeErrorEvents } from 'tied-up'
+import {
+    tieEffPart,
+    tiePure,
+    isServer,
+    nodeErrorEvents,
+    or,
+    isObj,
+    isNil
+} from 'tied-up'
 
 const onConnection = tieEffPart(
     'adding sockets to server',
@@ -25,17 +33,16 @@ const onClose = tieEffPart(
 export const getHandledServer = tiePure(
     'initializing error handling for server',
     ({ args: [server] }) => server,
-    (server, sockets = new Set()) => {
-        if (!isServer) {
-            throw new Error('This function is meant for server use')
-        }
+    (server, sockets) => {
+        or(isServer, Error('This function is meant for server use'))
+        or(isObj(server), TypeError('First argument must be the server object.'))
+        or(
+            isNil(sockets) || sockets instanceof Set,
+            TypeError('Second argument (if given) must be a Set.')
+        )
 
-        if (typeof server !== 'object' || server === null) {
-            throw new TypeError('First argument must be the server object.')
-        }
-
-        if (sockets !== undefined && !(sockets instanceof Set)) {
-            throw new TypeError('Second argument must be the sockets Set.')
+        if (isNil(sockets)) {
+            sockets = new Set()
         }
 
         server.on('connection', onConnection(sockets))
