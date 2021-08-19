@@ -1,4 +1,4 @@
-import { isDevelopment } from '../api/constants'
+import { isDev } from '../api/constants'
 import { getCacheIdx, handledFuncs } from './helpers'
 import { logError } from './logging'
 
@@ -150,7 +150,7 @@ export const createFunc = function (...mainArgs) {
             return result
         }
 
-        if (isDevelopment && typeof innerFunc.name === 'string') {
+        if (isDev && typeof innerFunc.name === 'string') {
             Object.defineProperty(innerFunc, 'name', {
                 value: `[${descr}]`,
                 configurable: true

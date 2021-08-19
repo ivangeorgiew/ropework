@@ -1,4 +1,4 @@
-import { isDevelopment } from '../api/constants'
+import { isDev } from '../api/constants'
 
 const stringifyAll = function (data) {
     try {
@@ -63,7 +63,7 @@ let errorLoggerUnhandled = defaultLogger
 let notifyUnhandled = () => {}
 
 export const errorLogger = function (...args) {
-    if (isDevelopment) {
+    if (isDev) {
         try {
             errorLoggerUnhandled.apply(null, args)
         } catch (error) {

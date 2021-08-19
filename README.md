@@ -19,7 +19,7 @@ To start using this package you need to first install locally: `npm i tied-up` o
 import { tieEff, FriendlyError, changeOptions } from 'tied-up'
 
 changeOptions({
-    notify: ({ isDevelopment, isFriendlyError, errorDescr, prodInfo }) => {
+    notify: ({ isDev, isFriendlyError, errorDescr, prodInfo }) => {
         // TODO if app is for developers, remove isFriendlyError check
         if (isFriendlyError) {
             // TODO change with WARNING notification
@@ -27,7 +27,7 @@ changeOptions({
         }
 
         // TODO add production logger that uses prodInfo
-        if (!isDevelopment) {
+        if (!isDev) {
             // callProdLoggerService(prodInfo)
         }
     }
@@ -139,7 +139,7 @@ server.listen(port, () => {
 
 ### API for returned values from the imported function:
 
--   `isDevelopment`
+-   `isDev`
 
     -   type: `boolean`
     -   definition: Boolean parameter that was parsed from `tied-up`
@@ -151,8 +151,7 @@ server.listen(port, () => {
 
 -   `notify`
 
-    -   type: `({ isDevelopment, isFriendlyError, error, errorDescr, prodInfo })` ->
-        ?
+    -   type: `({ isDev, isFriendlyError, error, errorDescr, prodInfo })` -> ?
     -   definition: Function parameter that was parsed from `tied-up`
 
 -   `FriendlyError`
@@ -235,12 +234,12 @@ server.listen(port, () => {
         is provided if you haven't specified it yourself.
 
 -   `changeOptions`
-    -   type: `({ isDevelopment, errorLogger, notify })` -> ?
+    -   type: `({ isDev, errorLogger, notify })` -> ?
     -   definition: Changes the options according to the below api
 
 ### API for options:
 
--   `isDevelopment`
+-   `isDev`
 
     -   type: `boolean`
     -   default: `process.env.NODE_ENV !== 'production'`
@@ -255,12 +254,11 @@ server.listen(port, () => {
         `err`
 
 -   `notify`
-    -   type: `({ isDevelopment, isFriendlyError, errorDescr, prodInfo, error })` ->
-        ?
+    -   type: `({ isDev, isFriendlyError, errorDescr, prodInfo, error })` -> ?
     -   default: `() => {}`
     -   definition: Function for notifying the user with friendly error messages and
         logging in production.
-    -   `isDevelopment`: Boolean that indicates if the environment is not in prod
+    -   `isDev`: Boolean that indicates if the environment is not in prod
     -   `isFriendlyError`: Boolean that indicates whether `error.message` is for
         regular users
     -   `errorDescr`: String that describes what the functionality was supposed to be
