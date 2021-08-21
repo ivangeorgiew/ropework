@@ -6,7 +6,7 @@ specifiers:
   eslint: ^7.30.0
   eslint-config-prettier: ^8.3.0
   eslint-plugin-compat: ^3.13.0
-  eslint-plugin-ecmalist: ^1.0.0
+  eslint-plugin-ecmalist: ^1.0.1
   husky: ^7.0.0
   prettier: ^2.3.2
   rollup: ^2.56.0
@@ -18,7 +18,7 @@ devDependencies:
   eslint: 7.30.0
   eslint-config-prettier: 8.3.0_eslint@7.30.0
   eslint-plugin-compat: 3.13.0_eslint@7.30.0
-  eslint-plugin-ecmalist: 1.0.0_eslint@7.30.0
+  eslint-plugin-ecmalist: 1.0.1_eslint@7.30.0
   husky: 7.0.1
   prettier: 2.3.2
   rollup: 2.56.0
@@ -398,9 +398,9 @@ packages:
       semver: 7.3.5
     dev: true
 
-  /eslint-plugin-ecmalist/1.0.0_eslint@7.30.0:
-    resolution: {integrity: sha512-pvqQwH+rZBVQFNy6Nndk8N4HBcIwZUWo60JPSG0/rzjlXRg23737Z+aWuVWhotWh0enTDCoD4oQN72Q8vjXnvw==}
-    engines: {node: '>=12.0.0'}
+  /eslint-plugin-ecmalist/1.0.1_eslint@7.30.0:
+    resolution: {integrity: sha512-AE9r0nrYVbKIcndnPTUWbcRZTUyP85Gf2clKEPtD5cxQKR+5CDG1GHlyCd3cPgak4v1BSU04iFWufrz5GelQJg==}
+    engines: {node: '>=12.22.0'}
     requiresBuild: true
     dependencies:
       '@mdn/browser-compat-data': 4.0.0

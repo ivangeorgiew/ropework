@@ -87,6 +87,7 @@
         },
         "rules": {
             "ecmalist/no-modules": "off",
+            "ecmalist/no-default-parameters": "error",
             "no-unused-vars": [
                 "error",
                 {
@@ -115,7 +116,7 @@
         "eslint": "^7.30.0",
         "eslint-config-prettier": "^8.3.0",
         "eslint-plugin-compat": "^3.13.0",
-        "eslint-plugin-ecmalist": "^1.0.0",
+        "eslint-plugin-ecmalist": "^1.0.1",
         "husky": "^7.0.0",
         "prettier": "^2.3.2",
         "rollup": "^2.56.0",
