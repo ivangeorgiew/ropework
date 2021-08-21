@@ -1,6 +1,8 @@
 const process =
-    typeof globalThis.process?.env?.NODE_ENV === 'string'
-        ? globalThis.process
+    typeof process instanceof Object &&
+    typeof process.env instanceof Object &&
+    typeof process.env.NODE_ENV === 'string'
+        ? process
         : { env: { NODE_ENV: 'production' } }
 
 // so that process.env.NODE_ENV can be replaced AND doesn't throw

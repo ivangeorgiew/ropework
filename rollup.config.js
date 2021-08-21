@@ -1,4 +1,3 @@
-import babel from '@rollup/plugin-babel'
 import replace from '@rollup/plugin-replace'
 import strip from '@rollup/plugin-strip'
 import { terser } from 'rollup-plugin-terser'
@@ -30,16 +29,9 @@ const terserOpts = {
     compress: {
         keep_infinity: true,
         pure_getters: true,
-        passes: 5
+        passes: 3
     }
 }
-const babelPlugin = babel({
-    babelHelpers: 'bundled',
-    exclude: 'node_modules/**',
-    babelrc: false,
-    configFile: false,
-    presets: ['@babel/preset-env']
-})
 const treeshake = {
     propertyReadSideEffects: false,
     tryCatchDeoptimization: false
@@ -57,8 +49,7 @@ const reducer = (acc, [root, name]) =>
                     format: 'esm',
                     file: `${root}/${pkg.module}`
                 }
-            ],
-            plugins: [babelPlugin]
+            ]
         },
         {
             input: makeInput(root),
@@ -81,7 +72,6 @@ const reducer = (acc, [root, name]) =>
                 }
             ],
             plugins: [
-                babelPlugin,
                 replace({
                     'process.env.NODE_ENV': JSON.stringify('production'),
                     preventAssignment: true
