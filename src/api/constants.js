@@ -1,8 +1,9 @@
+const glProcess = globalThis.process
 const process =
-    typeof process instanceof Object &&
-    typeof process.env instanceof Object &&
-    typeof process.env.NODE_ENV === 'string'
-        ? process
+    typeof glProcess instanceof Object &&
+    typeof glProcess.env instanceof Object &&
+    typeof glProcess.env.NODE_ENV === 'string'
+        ? glProcess
         : { env: { NODE_ENV: 'production' } }
 
 // so that process.env.NODE_ENV can be replaced AND doesn't throw
