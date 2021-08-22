@@ -29,53 +29,6 @@ export const tiePure = createFunc(
     }
 )
 
-const tiePart = createFunc(
-    'tying up a partial function',
-    () => () => {},
-    function (descr, onError, func, shouldCache) {
-        return tiePure(
-            `partially ${descr}`,
-            () => onError,
-            function (...args) {
-                const inner = func.apply(this, args)
-
-                or(
-                    isFunc(inner),
-                    TypeError('The partial function has to return a function')
-                )
-
-                const creator = shouldCache ? tiePure : tieEff
-
-                return creator(descr, onError, inner)
-            }
-        )
-    }
-)
-
-export const tieEffPart = createFunc(
-    'tying up partial function with side-effects',
-    () => () => {},
-    function (descr, onError, func) {
-        or(isStr(descr), TypeError(fst))
-        or(isFunc(onError), TypeError(snd))
-        or(isFunc(func), TypeError(trd))
-
-        return tiePart(descr, onError, func, false)
-    }
-)
-
-export const tiePurePart = createFunc(
-    'tying up pure partial function',
-    () => () => {},
-    function (descr, onError, func) {
-        or(isStr(descr), TypeError(fst))
-        or(isFunc(onError), TypeError(snd))
-        or(isFunc(func), TypeError(trd))
-
-        return tiePart(descr, onError, func, true)
-    }
-)
-
 export const tieTimeout = createFunc(
     'creating tied setTimeout',
     () => {},

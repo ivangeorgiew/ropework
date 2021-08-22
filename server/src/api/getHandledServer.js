@@ -1,17 +1,18 @@
 import {
-    tieEffPart,
-    tiePure,
+    isFunc,
+    isNil,
+    isObj,
     isServer,
     nodeErrorEvents,
     or,
-    isObj,
-    isNil
+    tieEff,
+    tiePure
 } from 'tied-up'
 
-const onConnection = tieEffPart(
+const onConnection = tieEff(
     'adding sockets to server',
     () => {},
-    sockets => socket => {
+    (sockets, socket) => {
         socket.on('close', () => {
             sockets.delete(socket)
         })
@@ -19,10 +20,10 @@ const onConnection = tieEffPart(
     }
 )
 
-const onClose = tieEffPart(
+const onClose = tieEff(
     'handling server closing',
     () => {},
-    (server, sockets) => () => {
+    (server, sockets, _) => {
         server.close()
         sockets.forEach(socket => {
             socket.destroy()
@@ -35,7 +36,10 @@ export const getHandledServer = tiePure(
     ({ args: [server] }) => server,
     (server, sockets) => {
         or(isServer, Error('This function is meant for server use'))
-        or(isObj(server), TypeError('First argument must be the server object.'))
+        or(
+            isObj(server) && isFunc(server.on) && isFunc(server.close),
+            TypeError('First argument must be the server object.')
+        )
         or(
             isNil(sockets) || sockets instanceof Set,
             TypeError('Second argument (if given) must be a Set.')

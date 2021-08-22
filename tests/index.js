@@ -1,4 +1,4 @@
-// const { tiePure, tiePurePart, globalHandleErrors } = require('tied-up')
+// const { tiePure, globalHandleErrors } = require('tied-up')
 // globalHandleErrors(true)
 
 // const fib = tiePure(
@@ -50,8 +50,10 @@
 // console.log(fib.call(c, 4000, a, b, c, d, B))
 // console.log(fib.call(c, 4000, a, b, c, d, B))
 
+// const fibPart = fib.call(c, 4000, a)
 // console.time('fib')
-// fib.call(c, 4000, a, b, c, d, B)
+// // fib.call(c, 4000, a, b, c, d, B)
+// fibPart(b, c, d, B)
 // console.timeEnd('fib')
 
 // const showMemory = () => {
@@ -134,25 +136,16 @@
 //     console.log(asyncF(10))
 // })()
 
-// const addNumbers = tiePurePart(
+// const { isNum, or } = require('tied-up')
+// const addNumbers = tiePure(
 //     'adding two numbers',
 //     () => 'There was an error',
-//     a => {
-//         console.log('ran outer')
+//     (a, b) => {
+//         console.log('ran func')
+//         or(isNum(a), TypeError('First arg must be number'))
+//         or(isNum(b), TypeError('Second arg must be number'))
 
-//         if (typeof a === 'string') {
-//             throw new Error('Outer error - please pass number')
-//         }
-
-//         return b => {
-//             console.log('ran inner')
-
-//             if (typeof b === 'string') {
-//                 throw new Error('Inner error - please pass number')
-//             }
-
-//             return a + b
-//         }
+//         return a + b
 //     }
 // )
 

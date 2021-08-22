@@ -1,4 +1,4 @@
-import { tieEff, tieEffPart, isServer, or, isFunc, isNil, isStr } from 'tied-up'
+import { tieEff, isServer, or, isFunc, isNil, isStr } from 'tied-up'
 
 const defaultOnError = tieEff(
     'catching server errors',
@@ -19,10 +19,10 @@ const defaultOnError = tieEff(
     }
 )
 
-export const getRoutingCreator = tieEffPart(
+export const getRoutingCreator = tieEff(
     'creating route for the server',
     () => {},
-    (app, onError) => {
+    (app, onError, method, path, callback) => {
         or(isServer, Error('This function is meant for server use'))
         or(isFunc(app), TypeError('First argument must be a function'))
         or(
@@ -34,15 +34,13 @@ export const getRoutingCreator = tieEffPart(
             onError = defaultOnError
         }
 
-        return (method, path, callback) => {
-            or(isStr(method), TypeError('First argument must be the method key.'))
-            or(isStr(path), TypeError('Second argument must be the routing path.'))
-            or(isFunc(callback), TypeError('Third argument must be the callback.'))
+        or(isStr(method), TypeError('First argument must be the method key.'))
+        or(isStr(path), TypeError('Second argument must be the routing path.'))
+        or(isFunc(callback), TypeError('Third argument must be the callback.'))
 
-            app[method](
-                path,
-                tieEff(`${method.toUpperCase()} ${path}`, onError, callback)
-            )
-        }
+        app[method](
+            path,
+            tieEff(`${method.toUpperCase()} ${path}`, onError, callback)
+        )
     }
 )

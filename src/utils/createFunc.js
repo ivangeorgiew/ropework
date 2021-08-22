@@ -4,14 +4,15 @@ import { logError } from './logging'
 
 export const createFunc = function (...mainArgs) {
     try {
-        const [descr, onError, func, shouldCache] = mainArgs
+        const [descr, onError, func, isPure] = mainArgs
 
         if (handledFuncs.has(func)) {
             return func
         }
 
-        const cacheKeys = shouldCache ? [] : undefined
-        const cacheValues = shouldCache ? [] : undefined
+        const funcLen = func.length
+        const cacheKeys = []
+        const cacheValues = []
 
         let isNextCallFirst = true
 
@@ -51,31 +52,41 @@ export const createFunc = function (...mainArgs) {
             }
         }
 
+        const getCurry = function (args) {
+            return function (...restArgs) {
+                return innerFunc.apply(this, args.concat(restArgs))
+            }
+        }
+
         const innerFunc = function (...args) {
-            let isFirstCall, result
+            let isFirstCall, shouldCache, result
 
             try {
-                if (shouldCache) {
-                    const cacheIdx = getCacheIdx(args, cacheKeys)
+                const cacheIdx = getCacheIdx(args, cacheKeys)
 
-                    if (cacheIdx !== -1) {
-                        if (cacheIdx !== 0) {
-                            manageCache(
-                                cacheIdx,
-                                cacheKeys[cacheIdx],
-                                cacheValues[cacheIdx]
-                            )
-                        }
-
-                        return cacheValues[0]
+                if (cacheIdx !== -1) {
+                    if (cacheIdx !== 0) {
+                        manageCache(
+                            cacheIdx,
+                            cacheKeys[cacheIdx],
+                            cacheValues[cacheIdx]
+                        )
                     }
+
+                    return cacheValues[0]
                 }
 
                 isFirstCall = isNextCallFirst
                 isNextCallFirst = false
+                shouldCache = isPure
 
                 if (new.target === undefined) {
-                    result = func.apply(this, args)
+                    if (args.length >= funcLen) {
+                        result = func.apply(this, args)
+                    } else {
+                        shouldCache = true
+                        result = getCurry(args)
+                    }
                 } else {
                     result = new func(...args)
                 }
