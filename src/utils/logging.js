@@ -1,7 +1,7 @@
 import { FriendlyError, isServer, isWeb } from '../api/constants'
 import { createArgsInfo, errorLogger, notify } from './helpers'
 
-export const logError = function (props) {
+export const logError = props => {
     try {
         const errorDescr =
             'Issue with: ' +

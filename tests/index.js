@@ -4,11 +4,11 @@
 // const fib = tiePure(
 //     'calculating fibonacci number',
 //     () => 'Not a number',
-//     function (n, a, b, c, d, e) {
+//     (n, a, b, c, d, e) => {
 //         if (n <= 1) return n
 
-//         const pre = fib.call(this, n - 2, a, b, c, d, e)
-//         const prepre = fib.call(this, n - 1, a, b, c, d, e)
+//         const pre = fib(n - 2, a, b, c, d, e)
+//         const prepre = fib(n - 1, a, b, c, d, e)
 
 //         return pre + prepre
 //     }
@@ -45,15 +45,15 @@
 //     }
 // )
 
-// console.log(fib.call(c, 500000, a, b, c, d, B))
-// console.log(fib.call(c, 500000, a, b, c, d, B))
-// console.log(fib.call(c, 4000, a, b, c, d, B))
-// console.log(fib.call(c, 4000, a, b, c, d, B))
+// console.log(fib(500000, a, b, c, d, B))
+// console.log(fib(500000, a, b, c, d, B))
+// console.log(fib(4000, a, b, c, d, B))
+// console.log(fib(4000, a, b, c, d, B))
 
-// const fibPart = fib.call(c, 4000, a)
+// // const fibPart = fib(4000, a)
 // console.time('fib')
-// // fib.call(c, 4000, a, b, c, d, B)
-// fibPart(b, c, d, B)
+// fib(4000, a, b, c, d, B)
+// // fibPart(b, c, d, B)
 // console.timeEnd('fib')
 
 // const showMemory = () => {
@@ -65,13 +65,13 @@
 //         )
 //     }
 // }
-// // const testFunc = function (a, b, c, d, e, f) {
+// // const testFunc = (a, b, c, d, e, f) => {
 // //     return [a, b, c, d, e, f]
 // // }
 // showMemory()
 // for (let i = 1; i <= 1000; i++) {
-//     fib.call(c, 1000, a, b, c, d, B)
-//     // testFunc.call(c, 5, a, b, c, d, B)
+//     fib(1000, a, b, c, d, B)
+//     // testFunc(5, a, b, c, d, B)
 // }
 // showMemory()
 

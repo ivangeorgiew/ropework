@@ -13,7 +13,7 @@ export const isObj = val => !isNil && typeof val === 'object' && !isArr(val)
 const validateOr = createFunc(
     'validating statements',
     () => false,
-    function (isValid, error) {
+    (isValid, error) => {
         if (typeof isValid !== 'boolean') {
             throw TypeError('First argument must be boolean')
         }
@@ -26,7 +26,7 @@ const validateOr = createFunc(
     }
 )
 
-export const or = function (isValid, error) {
+export const or = (isValid, error) => {
     if (validateOr(isValid, error) && !isValid) {
         throw error
     }

@@ -5,7 +5,7 @@ import { isObj, or } from './validating'
 export const changeOptions = createFunc(
     'changing global options',
     () => {},
-    function (props) {
+    props => {
         or(isObj(props), TypeError('First argument must be an object'))
 
         let hasMadeChanges = false

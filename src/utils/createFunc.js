@@ -2,7 +2,7 @@ import { isDev } from '../api/constants'
 import { getCacheIdx, handledFuncs } from './helpers'
 import { logError } from './logging'
 
-export const createFunc = function (...mainArgs) {
+export const createFunc = (...mainArgs) => {
     try {
         const [descr, onError, func, isPure] = mainArgs
 
@@ -16,7 +16,7 @@ export const createFunc = function (...mainArgs) {
 
         let isNextCallFirst = true
 
-        const manageCache = function (idx, key, value) {
+        const manageCache = (idx, key, value) => {
             try {
                 if (idx > 5) {
                     idx = 5
@@ -34,7 +34,7 @@ export const createFunc = function (...mainArgs) {
             }
         }
 
-        const innerCatch = function (args, error) {
+        const innerCatch = (args, error) => {
             try {
                 logError({ descr, error, args })
 
@@ -52,7 +52,7 @@ export const createFunc = function (...mainArgs) {
             }
         }
 
-        const getCurry = function (args) {
+        const getCurry = args => {
             return function (...restArgs) {
                 return innerFunc.apply(this, args.concat(restArgs))
             }

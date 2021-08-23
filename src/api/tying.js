@@ -8,7 +8,7 @@ const trd = 'Third argument must be the main function'
 export const tieEff = createFunc(
     'tying up function with side-effects',
     () => () => {},
-    function (descr, onError, func) {
+    (descr, onError, func) => {
         or(isStr(descr), TypeError(fst))
         or(isFunc(onError), TypeError(snd))
         or(isFunc(func), TypeError(trd))
@@ -20,7 +20,7 @@ export const tieEff = createFunc(
 export const tiePure = createFunc(
     'tying up pure function',
     () => () => {},
-    function (descr, onError, func) {
+    (descr, onError, func) => {
         or(isStr(descr), TypeError(fst))
         or(isFunc(onError), TypeError(snd))
         or(isFunc(func), TypeError(trd))
@@ -32,7 +32,7 @@ export const tiePure = createFunc(
 export const tieTimeout = createFunc(
     'creating tied setTimeout',
     () => {},
-    function (descr, onError, func, delay, ...args) {
+    (descr, onError, func, delay, ...args) => {
         return setTimeout(tieEff(descr, onError, func), delay, ...args)
     }
 )
@@ -40,7 +40,7 @@ export const tieTimeout = createFunc(
 export const tieInterval = createFunc(
     'creating tied setInterval',
     () => {},
-    function (descr, onError, func, delay, ...args) {
+    (descr, onError, func, delay, ...args) => {
         return setInterval(tieEff(descr, onError, func), delay, ...args)
     }
 )

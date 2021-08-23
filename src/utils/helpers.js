@@ -1,9 +1,9 @@
 import { isDev } from '../api/constants'
 
-const stringifyAll = function (data) {
+const stringifyAll = data => {
     try {
         const seen = new WeakSet()
-        const parser = function (_key, val) {
+        const parser = (_key, val) => {
             if ([Infinity, NaN, null, undefined].includes(val)) {
                 return `[${String(val)}]`
             } else if (typeof val === 'bigint') {
@@ -27,7 +27,7 @@ const stringifyAll = function (data) {
     }
 }
 
-export const createArgsInfo = function (args) {
+export const createArgsInfo = args => {
     try {
         let acc
 
@@ -62,7 +62,7 @@ let errorLoggerUnhandled = defaultLogger
 
 let notifyUnhandled = () => {}
 
-export const errorLogger = function (...args) {
+export const errorLogger = (...args) => {
     if (isDev) {
         try {
             errorLoggerUnhandled.apply(null, args)
@@ -79,11 +79,11 @@ export const errorLogger = function (...args) {
     }
 }
 
-export const changeErrorLogger = function (newProp) {
+export const changeErrorLogger = newProp => {
     errorLoggerUnhandled = newProp
 }
 
-export const notify = function (...args) {
+export const notify = (...args) => {
     try {
         notifyUnhandled.apply(null, args)
     } catch (error) {
@@ -98,7 +98,7 @@ export const notify = function (...args) {
     }
 }
 
-export const changeNotify = function (newProp) {
+export const changeNotify = newProp => {
     notifyUnhandled = newProp
 }
 
@@ -109,7 +109,7 @@ const toKeys = a => [
 
 const isSVZ = (a, b) => a === b || (a !== a && b !== b)
 
-const isEqual = function (a, b) {
+const isEqual = (a, b) => {
     try {
         let ctr
 
@@ -148,7 +148,7 @@ const isEqual = function (a, b) {
     }
 }
 
-export const getCacheIdx = function (args, cacheKeys) {
+export const getCacheIdx = (args, cacheKeys) => {
     try {
         const cacheKeysLen = cacheKeys.length
 
