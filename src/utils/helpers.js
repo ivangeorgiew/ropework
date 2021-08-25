@@ -22,7 +22,7 @@ const stringifyAll = data => {
         }
 
         return JSON.stringify(data, parser, 0)
-    } catch (error) {
+    } catch (_e) {
         return JSON.stringify(`[unparsed data]`)
     }
 }
@@ -48,7 +48,7 @@ export const createArgsInfo = args => {
         }
 
         return acc
-    } catch (error) {
+    } catch (_e) {
         return ''
     }
 }
@@ -104,7 +104,7 @@ export const changeNotify = newProp => {
 
 const toKeys = a => [
     ...Object.getOwnPropertyNames(a),
-    ...Object.getOwnPropertySymbols(a)
+    ...Object.getOwnPropertySymbols(a),
 ]
 
 const isSVZ = (a, b) => a === b || (a !== a && b !== b)
@@ -143,7 +143,7 @@ const isEqual = (a, b) => {
         } else {
             return a !== a && b !== b
         }
-    } catch (error) {
+    } catch (_e) {
         return false
     }
 }
@@ -175,7 +175,7 @@ export const getCacheIdx = (args, cacheKeys) => {
         }
 
         return -1
-    } catch (error) {
+    } catch (_e) {
         return -1
     }
 }

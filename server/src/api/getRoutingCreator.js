@@ -12,8 +12,8 @@ const defaultOnError = tieEff(
                 error: {
                     name: `Server issue with: ${descr}`,
                     message,
-                    stack
-                }
+                    stack,
+                },
             })
         }
     }
@@ -22,17 +22,15 @@ const defaultOnError = tieEff(
 export const getRoutingCreator = tieEff(
     'creating route for the server',
     () => {},
-    (app, onError, method, path, callback) => {
+    (app, _onError, method, path, callback) => {
         or(isServer, Error('This function is meant for server use'))
         or(isFunc(app), TypeError('First argument must be a function'))
         or(
-            isFunc(onError) || isNil(onError),
+            isFunc(_onError) || isNil(_onError),
             TypeError('Second argument (if given) must be a function')
         )
 
-        if (isNil(onError)) {
-            onError = defaultOnError
-        }
+        const onError = isNil(_onError) ? defaultOnError : _onError
 
         or(isStr(method), TypeError('First argument must be the method key.'))
         or(isStr(path), TypeError('Second argument must be the routing path.'))

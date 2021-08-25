@@ -18,14 +18,14 @@ export const logError = props => {
             errorDescription: errorDescr,
             arguments: args,
             date: new Date().toUTCString(),
-            error
+            error,
         }
 
         if (isWeb) {
             Object.assign(prodInfo, {
                 url: self.location.href,
                 browserInfo: self.navigator.userAgent,
-                clientOS: self.navigator.platform
+                clientOS: self.navigator.platform,
             })
         } else if (isServer) {
             Object.assign(prodInfo, {
@@ -33,7 +33,7 @@ export const logError = props => {
                 filepath: process.cwd(),
                 cpuArch: process.arch,
                 serverOS: process.platform,
-                depVersions: process.versions
+                depVersions: process.versions,
             })
         }
 
@@ -42,7 +42,7 @@ export const logError = props => {
             args,
             error,
             isFriendlyError,
-            prodInfo
+            prodInfo,
         })
 
         const argsInfo = createArgsInfo(args)

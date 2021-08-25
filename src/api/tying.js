@@ -32,15 +32,13 @@ export const tiePure = createFunc(
 export const tieTimeout = createFunc(
     'creating tied setTimeout',
     () => {},
-    (descr, onError, func, delay, ...args) => {
-        return setTimeout(tieEff(descr, onError, func), delay, ...args)
-    }
+    (descr, onError, func, delay, ...args) =>
+        setTimeout(tieEff(descr, onError, func), delay, ...args)
 )
 
 export const tieInterval = createFunc(
     'creating tied setInterval',
     () => {},
-    (descr, onError, func, delay, ...args) => {
-        return setInterval(tieEff(descr, onError, func), delay, ...args)
-    }
+    (descr, onError, func, delay, ...args) =>
+        setInterval(tieEff(descr, onError, func), delay, ...args)
 )

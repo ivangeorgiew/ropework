@@ -2,10 +2,8 @@ import { isDev } from '../api/constants'
 import { getCacheIdx, handledFuncs } from './helpers'
 import { logError } from './logging'
 
-export const createFunc = (...mainArgs) => {
+export const createFunc = (descr, onError, func, isPure) => {
     try {
-        const [descr, onError, func, isPure] = mainArgs
-
         if (handledFuncs.has(func)) {
             return func
         }
@@ -16,11 +14,9 @@ export const createFunc = (...mainArgs) => {
 
         let isNextCallFirst = true
 
-        const manageCache = (idx, key, value) => {
+        const manageCache = (_idx, key, value) => {
             try {
-                if (idx > 5) {
-                    idx = 5
-                }
+                let idx = _idx > 5 ? 5 : _idx
 
                 while (idx--) {
                     cacheKeys[idx + 1] = cacheKeys[idx]
@@ -29,7 +25,7 @@ export const createFunc = (...mainArgs) => {
 
                 cacheKeys[0] = key
                 cacheValues[0] = value
-            } catch (error) {
+            } catch (_e) {
                 // nothing
             }
         }
@@ -44,22 +40,26 @@ export const createFunc = (...mainArgs) => {
                     logError({
                         descr: `catching errors for [${descr}]`,
                         args,
-                        error
+                        error,
                     })
                 }
-            } catch (error) {
+            } catch (_e) {
                 // nothing
             }
+
+            return undefined
         }
 
-        const getCurry = args => {
-            return function (...restArgs) {
+        const getCurry = args =>
+            function (...restArgs) {
+                // eslint-disable-next-line no-use-before-define
                 return innerFunc.apply(this, args.concat(restArgs))
             }
-        }
 
         const innerFunc = function (...args) {
-            let isFirstCall, shouldCache, result
+            let isFirstCall
+            let shouldCache
+            let result
 
             try {
                 const cacheIdx = getCacheIdx(args, cacheKeys)
@@ -78,16 +78,17 @@ export const createFunc = (...mainArgs) => {
 
                 isFirstCall = isNextCallFirst
                 isNextCallFirst = false
-                shouldCache = isPure
 
                 if (new.target === undefined) {
                     if (args.length >= funcLen) {
+                        shouldCache = isPure
                         result = func.apply(this, args)
                     } else {
                         shouldCache = true
                         result = getCurry(args)
                     }
                 } else {
+                    shouldCache = isPure
                     result = new func(...args)
                 }
 
@@ -164,7 +165,7 @@ export const createFunc = (...mainArgs) => {
         if (isDev && typeof innerFunc.name === 'string') {
             Object.defineProperty(innerFunc, 'name', {
                 value: `[${descr}]`,
-                configurable: true
+                configurable: true,
             })
         }
 
@@ -175,7 +176,7 @@ export const createFunc = (...mainArgs) => {
         logError({
             descr: 'creating an error-handled function',
             error,
-            args: mainArgs
+            args: [descr, onError, func, isPure],
         })
 
         return () => {}

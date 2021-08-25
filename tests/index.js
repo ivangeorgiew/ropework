@@ -59,11 +59,11 @@
 // const showMemory = () => {
 //     const used = process.memoryUsage()
 
-//     for (const objKey in used) {
+//     Object.keys(used).forEach(objKey => {
 //         console.log(
 //             `${objKey}: ${Math.round((used[objKey] / 1024 / 1024) * 100) / 100} MB`
 //         )
-//     }
+//     })
 // }
 // // const testFunc = (a, b, c, d, e, f) => {
 // //     return [a, b, c, d, e, f]
@@ -80,7 +80,9 @@
 //     () => 123,
 //     async function* (i) {
 //         yield i
-//         await new Promise(resolve => setTimeout(resolve, 1000))
+//         await new Promise(resolve => {
+//             setTimeout(resolve, 1000)
+//         })
 //         // throw new Error('intended')
 //         return i + 10
 //     }
@@ -116,9 +118,11 @@
 // const asyncF = tiePure(
 //     'asynchronous function test',
 //     () => 'error val',
-//     async function (i) {
+//     async i => {
 //         // await asyncF(i + 1)
-//         await new Promise(resolve => setTimeout(resolve, 1000))
+//         await new Promise(resolve => {
+//             setTimeout(resolve, 1000)
+//         })
 //         // throw new Error('intended')
 //         return i
 //     }

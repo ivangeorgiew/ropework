@@ -27,5 +27,5 @@ export const nodeErrorEvents = [
     'unhandledRejection',
     'SIGTERM',
     'SIGINT',
-    'SIGHUP'
+    'SIGHUP',
 ]

@@ -40,60 +40,17 @@
         "bump": "pnpm version patch",
         "bigbump": "pnpm version minor",
         "test": "node ./tests/index.js",
-        "lint:prettier": "prettier --write --loglevel warn \"{src,server/src}/**/*.js\"",
-        "lint:eslint": "eslint \"{src,server/src}/**/*.js\"",
-        "lint": "pnpm lint:prettier && pnpm lint:eslint"
+        "lint:prettier": "prettier --write --loglevel warn \"**/!(dist)/*.{js,json,md}\"",
+        "lint:eslint": "eslint \"**/!(dist)/*.js\"",
+        "lint": "pnpm lint:eslint && pnpm lint:prettier"
     },
-    "prettier": {
-        "printWidth": 85,
-        "tabWidth": 4,
-        "useTabs": false,
-        "semi": false,
-        "singleQuote": true,
-        "quoteProps": "as-needed",
-        "jsxSingleQuote": true,
-        "trailingComma": "none",
-        "bracketSpacing": true,
-        "jsxBracketSameLine": false,
-        "arrowParens": "avoid",
-        "htmlWhitespaceSensitivity": "css",
-        "proseWrap": "always",
-        "endOfLine": "lf"
-    },
+    "prettier": "@ivan_georgiew/prettier-config",
     "eslintConfig": {
-        "parserOptions": {
-            "ecmaVersion": 2021,
-            "sourceType": "module",
-            "ecmaFeatures": {
-                "impliedStrict": true
-            }
-        },
-        "env": {
-            "browser": true,
-            "es2021": true,
-            "node": true,
-            "worker": true
-        },
         "extends": [
-            "eslint:recommended",
-            "prettier",
-            "plugin:compat/recommended",
-            "plugin:ecmalist/recommended"
+            "@ivan_georgiew/eslint-config"
         ],
-        "settings": {
-            "es": {
-                "aggressive": true
-            }
-        },
         "rules": {
-            "ecmalist/no-modules": "off",
-            "default-param-last": "error",
-            "no-unused-vars": [
-                "error",
-                {
-                    "args": "none"
-                }
-            ]
+            "ecmalist/no-modules": "off"
         }
     },
     "browserslist": [
@@ -112,12 +69,11 @@
     "bugs": "https://github.com/ivangeorgiew/tied-up/issues",
     "homepage": "https://github.com/ivangeorgiew/tied-up#readme",
     "devDependencies": {
+        "@ivan_georgiew/eslint-config": "^1.0.2",
+        "@ivan_georgiew/prettier-config": "^1.0.3",
         "@rollup/plugin-replace": "^3.0.0",
         "@rollup/plugin-strip": "^2.1.0",
         "eslint": "^7.30.0",
-        "eslint-config-prettier": "^8.3.0",
-        "eslint-plugin-compat": "^3.13.0",
-        "eslint-plugin-ecmalist": "^1.0.3",
         "husky": "^7.0.0",
         "prettier": "^2.3.2",
         "rollup": "^2.56.0",
