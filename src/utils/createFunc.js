@@ -2,7 +2,7 @@ import { isDev } from '../api/constants'
 import { getCacheIdx, handledFuncs } from './helpers'
 import { logError } from './logging'
 
-export const createFunc = (descr, onError, func, isPure) => {
+export const createFunc = (descr, onError, func, shouldCache) => {
     try {
         if (handledFuncs.has(func)) {
             return func
@@ -50,24 +50,32 @@ export const createFunc = (descr, onError, func, isPure) => {
             return undefined
         }
 
-        const getCurry = args =>
-            function (...newArgs) {
-                try {
-                    const rest =
-                        newArgs.length === 0 && funcLen - args.length === 1
-                            ? [undefined]
-                            : newArgs
+        const getCurry = args => {
+            try {
+                const result = function (...newArgs) {
+                    try {
+                        const rest =
+                            newArgs.length === 0 && funcLen - args.length === 1
+                                ? [undefined]
+                                : newArgs
 
-                    // eslint-disable-next-line no-use-before-define
-                    return innerFunc.apply(this, args.concat(rest))
-                } catch (error) {
-                    return innerCatch(newArgs, error)
+                        // eslint-disable-next-line no-use-before-define
+                        return innerFunc.apply(this, args.concat(rest))
+                    } catch (error) {
+                        return innerCatch(args.concat(newArgs), error)
+                    }
                 }
+
+                manageCache(cacheKeys.length, args, result)
+
+                return result
+            } catch (error) {
+                return innerCatch(args, error)
             }
+        }
 
         const innerFunc = function (...args) {
             let isFirstCall
-            let shouldCache
             let result
 
             try {
@@ -90,15 +98,12 @@ export const createFunc = (descr, onError, func, isPure) => {
 
                 // normal call or constructor
                 if (new.target === undefined) {
-                    if (args.length >= funcLen) {
-                        shouldCache = isPure
-                        result = func.apply(this, args)
+                    if (args.length < funcLen) {
+                        return getCurry(args)
                     } else {
-                        shouldCache = true
-                        result = getCurry(args)
+                        result = func.apply(this, args)
                     }
                 } else {
-                    shouldCache = isPure
                     result = new func(...args)
                 }
 
@@ -186,7 +191,7 @@ export const createFunc = (descr, onError, func, isPure) => {
         logError({
             descr: 'creating an error-handled function',
             error,
-            args: [descr, onError, func, isPure],
+            args: [descr, onError, func, shouldCache],
         })
 
         return () => {}
