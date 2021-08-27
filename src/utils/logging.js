@@ -1,4 +1,4 @@
-import { FriendlyError, isServer, isWeb } from '../api/constants'
+import { isServer, isWeb } from '../api/constants'
 import { createArgsInfo, errorLogger, notify } from './helpers'
 
 export const logError = props => {
@@ -11,8 +11,6 @@ export const logError = props => {
             props.error instanceof Error ? props.error : new Error('Unknown error')
 
         const args = Array.isArray(props.args) ? props.args : []
-
-        const isFriendlyError = error instanceof FriendlyError
 
         const prodInfo = {
             errorDescription: errorDescr,
@@ -41,7 +39,6 @@ export const logError = props => {
             errorDescr,
             args,
             error,
-            isFriendlyError,
             prodInfo,
         })
 
