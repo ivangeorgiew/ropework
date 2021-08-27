@@ -51,9 +51,18 @@ export const createFunc = (descr, onError, func, isPure) => {
         }
 
         const getCurry = args =>
-            function (...restArgs) {
-                // eslint-disable-next-line no-use-before-define
-                return innerFunc.apply(this, args.concat(restArgs))
+            function (...newArgs) {
+                try {
+                    const rest =
+                        newArgs.length === 0 && funcLen - args.length === 1
+                            ? [undefined]
+                            : newArgs
+
+                    // eslint-disable-next-line no-use-before-define
+                    return innerFunc.apply(this, args.concat(rest))
+                } catch (error) {
+                    return innerCatch(newArgs, error)
+                }
             }
 
         const innerFunc = function (...args) {
@@ -79,6 +88,7 @@ export const createFunc = (descr, onError, func, isPure) => {
                 isFirstCall = isNextCallFirst
                 isNextCallFirst = false
 
+                // normal call or constructor
                 if (new.target === undefined) {
                     if (args.length >= funcLen) {
                         shouldCache = isPure
@@ -162,7 +172,7 @@ export const createFunc = (descr, onError, func, isPure) => {
             return result
         }
 
-        if (isDev && typeof innerFunc.name === 'string') {
+        if (isDev) {
             Object.defineProperty(innerFunc, 'name', {
                 value: `[${descr}]`,
                 configurable: true,
