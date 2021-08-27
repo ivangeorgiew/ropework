@@ -1,6 +1,6 @@
-import { tieEff, isServer, or, isFunc, isNil, isStr } from 'tied-up'
+import { tieImpure, isServer, or, isFunc, isNil, isStr } from 'tied-up'
 
-const defaultOnError = tieEff(
+const defaultOnError = tieImpure(
     'catching server errors',
     () => {},
     ({ descr, error, args: [, res] }) => {
@@ -19,7 +19,7 @@ const defaultOnError = tieEff(
     }
 )
 
-export const getRoutingCreator = tieEff(
+export const getRoutingCreator = tieImpure(
     'creating route for the server',
     () => {},
     (app, _onError, method, path, callback) => {
@@ -38,7 +38,7 @@ export const getRoutingCreator = tieEff(
 
         app[method](
             path,
-            tieEff(`${method.toUpperCase()} ${path}`, onError, callback)
+            tieImpure(`${method.toUpperCase()} ${path}`, onError, callback)
         )
     }
 )

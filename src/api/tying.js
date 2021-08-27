@@ -5,8 +5,8 @@ const fst = 'First argument must be the description string'
 const snd = 'Second argument must be the function called on error'
 const trd = 'Third argument must be the main function'
 
-export const tieEff = createFunc(
-    'tying up function with side-effects',
+export const tieImpure = createFunc(
+    'tying up impure function',
     () => () => {},
     (descr, onError, func) => {
         or(isStr(descr), TypeError(fst))
@@ -33,12 +33,12 @@ export const tieTimeout = createFunc(
     'creating tied setTimeout',
     () => {},
     (descr, onError, func, delay, ...args) =>
-        setTimeout(tieEff(descr, onError, func), delay, ...args)
+        setTimeout(tieImpure(descr, onError, func), delay, ...args)
 )
 
 export const tieInterval = createFunc(
     'creating tied setInterval',
     () => {},
     (descr, onError, func, delay, ...args) =>
-        setInterval(tieEff(descr, onError, func), delay, ...args)
+        setInterval(tieImpure(descr, onError, func), delay, ...args)
 )

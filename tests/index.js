@@ -50,10 +50,10 @@
 // console.log(fib(4000, a, b, c, d, B))
 // console.log(fib(4000, a, b, c, d, B))
 
-// // const fibPart = fib(4000, a)
 // console.time('fib')
-// fib(4000, a, b, c, d, B)
-// // fibPart(b, c, d, B)
+// // fib(4000, a, b, c, d, B)
+// const fibPart = fib(4000, a)
+// fibPart(b, c, d, B)
 // console.timeEnd('fib')
 
 // const showMemory = () => {

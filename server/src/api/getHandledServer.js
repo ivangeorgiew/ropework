@@ -5,11 +5,11 @@ import {
     isServer,
     nodeErrorEvents,
     or,
-    tieEff,
+    tieImpure,
     tiePure,
 } from 'tied-up'
 
-const onConnection = tieEff(
+const onConnection = tieImpure(
     'adding sockets to server',
     () => {},
     (sockets, socket) => {
@@ -20,7 +20,7 @@ const onConnection = tieEff(
     }
 )
 
-const onClose = tieEff(
+const onClose = tieImpure(
     'handling server closing',
     () => {},
     (server, sockets, _) => {
