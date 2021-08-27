@@ -6,7 +6,6 @@
     "main": "dist/index.cjs.js",
     "module": "dist/index.esm.js",
     "unpkg": "dist/index.umd.js",
-    "browser": "dist/index.browser.js",
     "license": "MIT",
     "peerDependencies": {
         "tied-up": "*"
