@@ -8,7 +8,7 @@ export const isSym = val => typeof val === 'symbol'
 export const isNil = val => val === undefined || val === null
 export const isFunc = val => typeof val === 'function'
 export const isArr = val => Array.isArray(val)
-export const isObj = val => !isNil && typeof val === 'object' && !isArr(val)
+export const isObj = val => !isNil(val) && typeof val === 'object' && !isArr(val)
 
 const validateOr = createFunc(
     'validating statements',
