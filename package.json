@@ -39,7 +39,7 @@
         "test": "node ./tests/index.js",
         "lint:prettier": "prettier --write --loglevel warn \"**/!(dist)/*.{js,json,md}\"",
         "lint:eslint": "eslint \"**/!(dist)/*.js\"",
-        "lint": "pnpm lint:eslint && pnpm lint:prettier"
+        "lint": "pnpm lint:prettier && pnpm lint:eslint"
     },
     "prettier": "@ivan_georgiew/prettier-config",
     "eslintConfig": {
