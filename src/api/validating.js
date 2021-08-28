@@ -1,21 +1,36 @@
 import { createFunc } from '../utils/createFunc'
 
-export const isStr = val => typeof val === 'string'
-export const isNum = val => typeof val === 'number'
-export const isInt = val => Number.isInteger(val) && Number.isFinite(val)
-export const isBigInt = val => typeof val === 'bigint'
-export const isBool = val => typeof val === 'boolean'
-export const isSym = val => typeof val === 'symbol'
-export const isNil = val => val === undefined || val === null
-export const isFunc = val => typeof val === 'function'
-export const isArr = val => Array.isArray(val)
-export const isObj = val => !isNil(val) && typeof val === 'object' && !isArr(val)
+const wrap = createFunc(
+    'creating simple validation function',
+    () => () => false,
+    (what, func) => createFunc(`checking if ${what}`, () => false, func, true)
+)
 
-const validateOr = createFunc(
-    'validating statements',
+export const isStr = wrap('string', val => typeof val === 'string')
+export const isNum = wrap('number', val => typeof val === 'number')
+export const isInt = wrap(
+    'integer',
+    val => Number.isInteger(val) && Number.isFinite(val)
+)
+export const isBigInt = wrap('BigInt', val => typeof val === 'bigint')
+export const isBool = wrap('boolean', val => typeof val === 'boolean')
+export const isSym = wrap('Symbol', val => typeof val === 'symbol')
+export const isNil = wrap(
+    'undefined or null',
+    val => val === undefined || val === null
+)
+export const isFunc = wrap('function', val => typeof val === 'function')
+export const isArr = wrap('array', val => Array.isArray(val))
+export const isObj = wrap(
+    'object',
+    val => !isNil(val) && typeof val === 'object' && !isArr(val)
+)
+
+const checkIfArgsValid = createFunc(
+    'validating `or` arguments',
     () => false,
     (isValid, error) => {
-        if (typeof isValid !== 'boolean') {
+        if (!isBool(isValid)) {
             throw TypeError('First argument must be boolean')
         }
 
@@ -28,7 +43,7 @@ const validateOr = createFunc(
 )
 
 export const or = (isValid, error) => {
-    if (validateOr(isValid, error) && !isValid) {
+    if (checkIfArgsValid(isValid, error) && !isValid) {
         throw error
     }
 }

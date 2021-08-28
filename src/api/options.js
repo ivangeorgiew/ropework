@@ -1,25 +1,34 @@
 import { createFunc } from '../utils/createFunc'
 import { changeErrorLogger, changeNotify } from '../utils/helpers'
-import { isObj, or } from './validating'
+import { isFunc, isNil, isObj, or } from './validating'
 
 export const changeOptions = createFunc(
     'changing global options',
     () => {},
     props => {
-        or(isObj(props), TypeError('First argument must be an object'))
+        or(isObj(props), TypeError('You must pass an object'))
 
-        let hasMadeChanges = false
+        const { errorLogger, notify } = props
 
-        if (typeof props.errorLogger === 'function') {
-            changeErrorLogger(props.errorLogger)
-            hasMadeChanges = true
+        or(
+            isFunc(errorLogger) || isFunc(notify),
+            TypeError('Wrong key names or wrong values')
+        )
+        or(
+            isNil(errorLogger) || isFunc(errorLogger),
+            TypeError('`errorLogger` must be function if given')
+        )
+        or(
+            isNil(notify) || isFunc(notify),
+            TypeError('`notify` must be function if given')
+        )
+
+        if (isFunc(errorLogger)) {
+            changeErrorLogger(errorLogger)
         }
 
-        if (typeof props.notify === 'function') {
-            changeNotify(props.notify)
-            hasMadeChanges = true
+        if (isFunc(notify)) {
+            changeNotify(notify)
         }
-
-        or(hasMadeChanges, TypeError('Incorrect properties of the given object'))
     }
 )
