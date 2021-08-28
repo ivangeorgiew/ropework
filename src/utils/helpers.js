@@ -23,7 +23,7 @@ const stringifyAll = data => {
 
         return JSON.stringify(data, parser, 0)
     } catch (_e) {
-        return JSON.stringify(`[unparsed data]`)
+        return JSON.stringify('[unknown]')
     }
 }
 
@@ -60,8 +60,6 @@ const defaultLogger =
 
 let errorLoggerUnhandled = defaultLogger
 
-let notifyUnhandled = () => {}
-
 export const errorLogger = (...args) => {
     if (isDev) {
         try {
@@ -83,6 +81,8 @@ export const changeErrorLogger = newProp => {
     errorLoggerUnhandled = newProp
 }
 
+let notifyUnhandled = () => {}
+
 export const notify = (...args) => {
     try {
         notifyUnhandled.apply(null, args)
@@ -101,6 +101,8 @@ export const notify = (...args) => {
 export const changeNotify = newProp => {
     notifyUnhandled = newProp
 }
+
+export const handledFuncs = new WeakSet()
 
 const toKeys = a => [
     ...Object.getOwnPropertyNames(a),
@@ -179,5 +181,3 @@ export const getCacheIdx = (args, cacheKeys) => {
         return -1
     }
 }
-
-export const handledFuncs = new WeakSet()
