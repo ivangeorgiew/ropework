@@ -6,16 +6,20 @@
     "sideEffects": false,
     "main": "dist/index.cjs.js",
     "module": "dist/index.esm.js",
+    "mainProd": "dist/index.cjs.min.js",
+    "moduleProd": "dist/index.esm.min.js",
     "unpkg": "dist/index.umd.js",
     "exports": {
         ".": {
-            "require": "./dist/index.cjs.js",
+            "browser": "./dist/index.esm.min.js",
             "import": "./dist/index.esm.js",
+            "require": "./dist/index.cjs.js",
             "umd": "./dist/index.umd.js"
         },
         "./server": {
-            "require": "./server/dist/index.cjs.js",
+            "browser": "./server/dist/index.esm.min.js",
             "import": "./server/dist/index.esm.js",
+            "require": "./server/dist/index.cjs.js",
             "umd": "./server/dist/index.umd.js"
         },
         "./package.json": "./package.json"
