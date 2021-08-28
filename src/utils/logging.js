@@ -107,13 +107,17 @@ export const logError = props => {
 
         manageErrorsCache(errorsCache.length, errorDescr, msg)
     } catch (error) {
-        const argsInfo = createArgsInfo([props])
+        try {
+            const argsInfo = createArgsInfo([props])
 
-        errorLogger(
-            '\n Issue with: logging errors\n',
-            `Function arguments: ${argsInfo}\n`,
-            error,
-            '\n'
-        )
+            errorLogger(
+                '\n Issue with: logging errors\n',
+                `Function arguments: ${argsInfo}\n`,
+                error,
+                '\n'
+            )
+        } catch (_e) {
+            // nothing
+        }
     }
 }

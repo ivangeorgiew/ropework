@@ -64,20 +64,28 @@ export const errorLogger = (...args) => {
         try {
             errorLoggerUnhandled.apply(null, args)
         } catch (error) {
-            const argsInfo = createArgsInfo(args)
+            try {
+                const argsInfo = createArgsInfo(args)
 
-            defaultLogger(
-                '\n Issue with: parameter errorLogger\n',
-                `Function arguments: ${argsInfo}\n`,
-                error,
-                '\n'
-            )
+                defaultLogger(
+                    '\n Issue with: parameter errorLogger\n',
+                    `Function arguments: ${argsInfo}\n`,
+                    error,
+                    '\n'
+                )
+            } catch (_e) {
+                // nothing
+            }
         }
     }
 }
 
 export const changeErrorLogger = newProp => {
-    errorLoggerUnhandled = newProp
+    try {
+        errorLoggerUnhandled = newProp
+    } catch (_e) {
+        // nothing
+    }
 }
 
 let notifyUnhandled = () => {}
@@ -86,19 +94,27 @@ export const notify = (...args) => {
     try {
         notifyUnhandled.apply(null, args)
     } catch (error) {
-        const argsInfo = createArgsInfo(args)
+        try {
+            const argsInfo = createArgsInfo(args)
 
-        errorLogger(
-            '\n Issue with: parameter notify\n',
-            `Function arguments: ${argsInfo}\n`,
-            error,
-            '\n'
-        )
+            errorLogger(
+                '\n Issue with: parameter notify\n',
+                `Function arguments: ${argsInfo}\n`,
+                error,
+                '\n'
+            )
+        } catch (_e) {
+            // nothing
+        }
     }
 }
 
 export const changeNotify = newProp => {
-    notifyUnhandled = newProp
+    try {
+        notifyUnhandled = newProp
+    } catch (_e) {
+        // nothing
+    }
 }
 
 export const handledFuncs = new WeakSet()

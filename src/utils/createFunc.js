@@ -33,21 +33,25 @@ export const createFunc = (descr, onError, func, shouldCache) => {
         const innerCatch = (args, error) => {
             try {
                 logError({ descr, error, args })
-
-                try {
-                    return onError({ descr, args, error })
-                } catch (error) {
-                    logError({
-                        descr: `catching errors for [${descr}]`,
-                        args,
-                        error,
-                    })
-                }
             } catch (_e) {
                 // nothing
             }
 
-            return undefined
+            try {
+                return onError({ descr, args, error })
+            } catch (error) {
+                try {
+                    logError({
+                        descr: `handling errors for [${descr}]`,
+                        args,
+                        error,
+                    })
+                } catch (_e) {
+                    // nothing
+                }
+
+                return undefined
+            }
         }
 
         const getCurry = args => {
@@ -188,12 +192,16 @@ export const createFunc = (descr, onError, func, shouldCache) => {
 
         return innerFunc
     } catch (error) {
-        logError({
-            descr: 'creating an error-handled function',
-            error,
-            args: [descr, onError, func, shouldCache],
-        })
+        try {
+            logError({
+                descr: 'creating an error-handled function',
+                error,
+                args: [descr, onError, func, shouldCache],
+            })
+        } catch (_e) {
+            // nothing
+        }
 
-        return () => {}
+        return func
     }
 }
