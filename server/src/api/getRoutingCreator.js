@@ -22,15 +22,15 @@ const defaultOnError = tieImpure(
 export const getRoutingCreator = tieImpure(
     'creating route for the server',
     () => {},
-    (app, _onError, method, path, callback) => {
+    (app, onError_, method, path, callback) => {
         or(isServer, Error('This function is meant for server use'))
         or(isFunc(app), TypeError('First argument must be a function'))
         or(
-            isFunc(_onError) || isNil(_onError),
+            isFunc(onError_) || isNil(onError_),
             TypeError('Second argument (if given) must be a function')
         )
 
-        const onError = isNil(_onError) ? defaultOnError : _onError
+        const onError = isNil(onError_) ? defaultOnError : onError_
 
         or(isStr(method), TypeError('First argument must be the method key.'))
         or(isStr(path), TypeError('Second argument must be the routing path.'))

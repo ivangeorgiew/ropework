@@ -7,36 +7,33 @@ const uncaughtErrorListener = createFunc(
     'listening for uncaught errors',
     () => {},
     eventOrError => {
+        const descr = 'unhandled error'
+
         if (isWeb) {
-            let error
+            const error = !(eventOrError instanceof Event)
+                ? undefined
+                : eventOrError.reason instanceof Error
+                ? eventOrError.reason
+                : eventOrError.error instanceof Error
+                ? eventOrError.error
+                : undefined
 
             if (eventOrError instanceof Event) {
                 eventOrError.stopImmediatePropagation()
                 eventOrError.preventDefault()
-
-                error =
-                    eventOrError.reason instanceof Error
-                        ? eventOrError.reason
-                        : eventOrError.error instanceof Error
-                        ? eventOrError.error
-                        : undefined
             }
 
-            logError({ descr: 'unhandled error', error })
+            logError({ descr, error })
         } else if (isServer) {
-            let exitCode = 0
+            const exitCode = eventOrError instanceof Error ? 1 : 0
 
             if (eventOrError instanceof Error) {
-                exitCode = 1
-
-                logError({ descr: 'unhandled error', error: eventOrError })
+                logError({ descr, error: eventOrError })
             }
 
-            global
-                .setTimeout(() => {
-                    process.exit(exitCode)
-                }, 500)
-                .unref()
+            setTimeout(() => {
+                process.exit(exitCode)
+            }, 500).unref()
         }
     }
 )
@@ -45,32 +42,24 @@ export const globalHandleErrors = createFunc(
     'handling listeners for uncaught errors',
     () => {},
     shouldAdd => {
-        or(isBool(shouldAdd), TypeError('First argument needs to be boolean'))
+        or(isBool(shouldAdd), TypeError('You must pass a boolean'))
 
         if (isWeb) {
-            for (let i = 0; i < browserErrorEvents.length; i++) {
-                self.removeEventListener(
-                    browserErrorEvents[i],
-                    uncaughtErrorListener,
-                    true
-                )
+            browserErrorEvents.forEach(event => {
+                self.removeEventListener(event, uncaughtErrorListener, true)
 
                 if (shouldAdd) {
-                    self.addEventListener(
-                        browserErrorEvents[i],
-                        uncaughtErrorListener,
-                        true
-                    )
+                    self.addEventListener(event, uncaughtErrorListener, true)
                 }
-            }
+            })
         } else if (isServer) {
-            for (let i = 0; i < nodeErrorEvents.length; i++) {
-                process.removeListener(nodeErrorEvents[i], uncaughtErrorListener)
+            nodeErrorEvents.forEach(event => {
+                process.removeListener(event, uncaughtErrorListener)
 
                 if (shouldAdd) {
-                    process.on(nodeErrorEvents[i], uncaughtErrorListener)
+                    process.on(event, uncaughtErrorListener)
                 }
-            }
+            })
         }
     }
 )

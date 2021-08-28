@@ -29,27 +29,26 @@ const stringifyAll = data => {
 
 export const createArgsInfo = args => {
     try {
-        let acc
+        const argsInfo = args.reduce((acc, arg, i) => {
+            const stringified =
+                typeof arg === 'function' ? 'f(x)' : stringifyAll(arg)
 
-        for (let i = 0; i < args.length; i++) {
-            const arg = args[i]
-            let parsedArg = typeof arg === 'function' ? 'f(x)' : stringifyAll(arg)
+            const parsedArg =
+                stringified.length > 100
+                    ? Array.isArray(arg)
+                        ? '[large array]'
+                        : `[large ${typeof arg}]`
+                    : stringified.replace(
+                          /"\[(Infinity|NaN|null|undefined|f\(x\)|\$ref)\]"/g,
+                          '$1'
+                      )
 
-            if (parsedArg.length > 100) {
-                parsedArg = Array.isArray(arg) ? '[large array]' : '[large object]'
-            } else {
-                parsedArg = parsedArg.replace(
-                    /"\[(Infinity|NaN|null|undefined|f\(x\)|\$ref)\]"/g,
-                    '$1'
-                )
-            }
+            return i === 0 ? parsedArg : `${acc} , ${parsedArg}`
+        }, '')
 
-            acc = i === 0 ? parsedArg : `${acc} , ${parsedArg}`
-        }
-
-        return acc
+        return argsInfo === '' ? 'no args' : argsInfo
     } catch (_e) {
-        return ''
+        return 'unknown args'
     }
 }
 
@@ -113,12 +112,10 @@ const isSVZ = (a, b) => a === b || (a !== a && b !== b)
 
 const isEqual = (a, b) => {
     try {
-        let ctr
-
         if (a === b) {
             return true
-        } else if (a && b && (ctr = a.constructor) === b.constructor) {
-            if (ctr !== Object && ctr !== Array) {
+        } else if (a && b && a.constructor === b.constructor) {
+            if (a.constructor !== Object && a.constructor !== Array) {
                 return false
             } else {
                 const objKeys = toKeys(a)

@@ -1,3 +1,4 @@
+// so that process.env.NODE_ENV can be replaced and doesn't throw
 const glProcess = globalThis.process
 const process =
     glProcess instanceof Object &&
@@ -6,7 +7,6 @@ const process =
         ? glProcess
         : { env: { NODE_ENV: 'development' } }
 
-// so that process.env.NODE_ENV can be replaced AND doesn't throw
 export const isDev = process.env.NODE_ENV !== 'production'
 
 export const isWeb = typeof self === 'object' && globalThis === self

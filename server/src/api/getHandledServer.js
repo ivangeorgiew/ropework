@@ -16,6 +16,7 @@ const onConnection = tieImpure(
         socket.on('close', () => {
             sockets.delete(socket)
         })
+
         sockets.add(socket)
     }
 )
@@ -23,35 +24,38 @@ const onConnection = tieImpure(
 const onClose = tieImpure(
     'handling server closing',
     () => {},
-    (server, sockets, _) => {
+    (server, sockets, event, _) => {
         server.close()
+
         sockets.forEach(socket => {
             socket.destroy()
         })
+
+        process.removeListener(event, onClose(server, sockets, event))
     }
 )
 
 export const getHandledServer = tiePure(
     'initializing error handling for server',
     ({ args: [server] }) => server,
-    (server, _sockets) => {
+    (server, sockets_) => {
         or(isServer, Error('This function is meant for server use'))
         or(
             isObj(server) && isFunc(server.on) && isFunc(server.close),
             TypeError('First argument must be the server object.')
         )
         or(
-            isNil(_sockets) || _sockets instanceof Set,
+            isNil(sockets_) || sockets_ instanceof Set,
             TypeError('Second argument (if given) must be a Set.')
         )
 
-        const sockets = isNil(_sockets) ? new Set() : _sockets
+        const sockets = isNil(sockets_) ? new Set() : sockets_
 
         server.on('connection', onConnection(sockets))
 
-        for (let i = 0; i < nodeErrorEvents.length; i++) {
-            process.prependListener(nodeErrorEvents[i], onClose(server, sockets))
-        }
+        nodeErrorEvents.forEach(event => {
+            process.prependListener(event, onClose(server, sockets, event))
+        })
 
         return server
     }
