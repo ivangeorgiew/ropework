@@ -2,6 +2,7 @@ import { createFunc } from '../utils/createFunc'
 
 export const isStr = val => typeof val === 'string'
 export const isNum = val => typeof val === 'number'
+export const isInt = val => Number.isInteger(val) && Number.isFinite(val)
 export const isBigInt = val => typeof val === 'bigint'
 export const isBool = val => typeof val === 'boolean'
 export const isSym = val => typeof val === 'symbol'
