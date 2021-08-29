@@ -1,7 +1,7 @@
 {
     "name": "tied-up",
     "version": "1.0.0",
-    "description": "Error-handling and other function utilities",
+    "description": "Error-handling for functions",
     "private": true,
     "sideEffects": false,
     "main": "dist/index.cjs.js",
@@ -63,7 +63,14 @@
     "engines": {
         "node": ">=12.22.0"
     },
-    "keywords": [],
+    "keywords": [
+        "error",
+        "exception",
+        "error-handling",
+        "validation",
+        "memoization",
+        "functional programming"
+    ],
     "author": "Ivan Georgiev <ivan_georgiew@yahoo.com>",
     "license": "MIT",
     "repository": "github:ivangeorgiew/tied-up",
