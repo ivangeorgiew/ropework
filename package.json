@@ -34,16 +34,17 @@
     "scripts": {
         "prepare": "husky install",
         "preinstall": "npx only-allow pnpm",
-        "preversion": "pnpm i && pnpm lint && pnpm build && git add -A",
+        "preversion": "pnpm i && pnpm build && git add -A",
         "postversion": "git push && pnpm publish",
         "clean": "rm -fr ./dist ./server/dist",
         "build": "pnpm clean && rollup -c",
         "bump": "pnpm version patch",
         "bigbump": "pnpm version minor",
-        "test": "node ./tests/index.js",
-        "lint:prettier": "prettier --write --loglevel warn \"**/!(dist)/*.{js,json,md}\"",
-        "lint:eslint": "eslint \"**/!(dist)/*.js\"",
-        "lint": "pnpm lint:prettier && pnpm lint:eslint"
+        "test": "node ./tests/index.js"
+    },
+    "lint-staged": {
+        "*.js": "eslint --cache --fix",
+        "*.{js,json,md}": "prettier --write"
     },
     "prettier": "@ivan_georgiew/prettier-config",
     "eslintConfig": {
