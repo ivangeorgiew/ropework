@@ -1,7 +1,7 @@
 lockfileVersion: 5.3
 
 specifiers:
-  '@ivan_georgiew/eslint-config': ^1.0.2
+  '@ivan_georgiew/eslint-config': ^1.0.3
   '@ivan_georgiew/prettier-config': ^1.0.3
   '@rollup/plugin-replace': ^3.0.0
   '@rollup/plugin-strip': ^2.1.0
@@ -13,7 +13,7 @@ specifiers:
   rollup-plugin-terser: ^7.0.2
 
 devDependencies:
-  '@ivan_georgiew/eslint-config': 1.0.2_eslint@7.32.0
+  '@ivan_georgiew/eslint-config': 1.0.3_eslint@7.32.0
   '@ivan_georgiew/prettier-config': 1.0.3_prettier@2.3.2
   '@rollup/plugin-replace': 3.0.0_rollup@2.56.0
   '@rollup/plugin-strip': 2.1.0_rollup@2.56.0
@@ -85,8 +85,8 @@ packages:
     resolution: {integrity: sha512-wdppn25U8z/2yiaT6YGquE6X8sSv7hNMWSXYSSU1jGv/yd6XqjXgTDJ8KP4NgjTXfJ3GbRjeeb8RTV7a/VpM+w==}
     dev: true
 
-  /@ivan_georgiew/eslint-config/1.0.2_eslint@7.32.0:
-    resolution: {integrity: sha512-bMUxMJIc6g8LKicltm2bsvuBHacxb2YR1QQ80KEU8n/vrKy1ssggZy+WojlleNDIPj/j/DLhoDWcF9UyRQxCFA==}
+  /@ivan_georgiew/eslint-config/1.0.3_eslint@7.32.0:
+    resolution: {integrity: sha512-IctJd8dzyhF36Ukd3uYb0clWrozKSlL7+yrfphRFxsGm7nNuT4cwEZDc59EVWh8TjYA5ryyDZaLAC9a/JfMcCw==}
     engines: {node: '>=12.22.0'}
     requiresBuild: true
     peerDependencies:
@@ -95,7 +95,7 @@ packages:
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-compat: 3.13.0_eslint@7.32.0
-      eslint-plugin-ecmalist: 1.0.7_eslint@7.32.0
+      eslint-plugin-ecmalist: 1.0.8_eslint@7.32.0
       eslint-plugin-import: 2.24.2_eslint@7.32.0
       eslint-plugin-promise: 5.1.0_eslint@7.32.0
       eslint-plugin-regexp: 1.0.0_eslint@7.32.0
@@ -114,8 +114,8 @@ packages:
     resolution: {integrity: sha512-n2RC9d6XatVbWFdHLimzzUJxJ1KY8LdjqrW6YvGPiRmsHkhOUx74/Ct10x5Yo7bC/Jvqx7cDEW8IMPv/+vwEzA==}
     dev: true
 
-  /@mdn/browser-compat-data/4.0.0:
-    resolution: {integrity: sha512-Yn5Xf+LyH+KZ0wz0XXzD1C7uGKF29RMrcXLaRHwzH3Uo5fRtnPTdWJIyT8kCrvxt8Wq8MQpMDByk/AufmPWL1A==}
+  /@mdn/browser-compat-data/4.0.1:
+    resolution: {integrity: sha512-Q3w8hkRE/3ATasymBUACDphIDKFS3OxKSJsPlnVwKxbbxF94lXF771P7ltgOZ6HhaC5zBZomuIfjBIYrj3SFYg==}
     dev: true
 
   /@rollup/plugin-replace/3.0.0_rollup@2.56.0:
@@ -298,9 +298,9 @@ packages:
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
     dependencies:
-      caniuse-lite: 1.0.30001251
+      caniuse-lite: 1.0.30001252
       colorette: 1.3.0
-      electron-to-chromium: 1.3.817
+      electron-to-chromium: 1.3.822
       escalade: 3.1.1
       node-releases: 1.1.75
     dev: true
@@ -323,6 +323,10 @@ packages:
 
   /caniuse-lite/1.0.30001251:
     resolution: {integrity: sha512-HOe1r+9VkU4TFmnU70z+r7OLmtR+/chB1rdcJUeQlAinjEeb0cKL20tlAtOagNZhbrtLnCvV19B4FmF1rgzl6A==}
+    dev: true
+
+  /caniuse-lite/1.0.30001252:
+    resolution: {integrity: sha512-I56jhWDGMtdILQORdusxBOH+Nl/KgQSdDmpJezYddnAkVOmnoU8zwjTV9xAjMIYxr0iPreEAVylCGcmHCjfaOw==}
     dev: true
 
   /chalk/2.4.2:
@@ -479,8 +483,8 @@ packages:
       esutils: 2.0.3
     dev: true
 
-  /electron-to-chromium/1.3.817:
-    resolution: {integrity: sha512-Vw0Faepf2Id9Kf2e97M/c99qf168xg86JLKDxivvlpBQ9KDtjSeX0v+TiuSE25PqeQfTz+NJs375b64ca3XOIQ==}
+  /electron-to-chromium/1.3.822:
+    resolution: {integrity: sha512-k7jG5oYYHxF4jx6PcqwHX3JVME/OjzolqOZiIogi9xtsfsmTjTdie4x88OakYFPEa8euciTgCCzvVNwvmjHb1Q==}
     dev: true
 
   /emoji-regex/8.0.0:
@@ -588,14 +592,14 @@ packages:
       semver: 7.3.5
     dev: true
 
-  /eslint-plugin-ecmalist/1.0.7_eslint@7.32.0:
-    resolution: {integrity: sha512-t/VwheZ9dJIk32K/uI0YR4B1AU+ymOgQTvJyOIFy/GmzGQ2VApGWlSwDceVj+Nq49KSgEQRdjvFpfg1GEqg0NQ==}
+  /eslint-plugin-ecmalist/1.0.8_eslint@7.32.0:
+    resolution: {integrity: sha512-0Rh8E/CD70RulX/BmbIzvGEN0Y2wMEqdqJ/zXJDVIJHf1JFrqLs4L93ozEtmhCD4i5WEGMlfJJ5OGRamvtnqAg==}
     engines: {node: '>=12.22.0'}
     requiresBuild: true
     peerDependencies:
       eslint: '>= 7.30.0'
     dependencies:
-      '@mdn/browser-compat-data': 4.0.0
+      '@mdn/browser-compat-data': 4.0.1
       browserslist: 4.16.8
       eslint: 7.32.0
       eslint-plugin-es: github.com/ivangeorgiew/eslint-plugin-es/433b188aae274cc82943d92fcd5088dc18b0d58e_eslint@7.32.0
