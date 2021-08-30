@@ -2,7 +2,7 @@ lockfileVersion: 5.3
 
 specifiers:
   '@ivan_georgiew/eslint-config': ^1.0.3
-  '@ivan_georgiew/prettier-config': ^1.0.3
+  '@ivan_georgiew/prettier-config': ^1.0.4
   '@rollup/plugin-replace': ^3.0.0
   '@rollup/plugin-strip': ^2.1.0
   eslint: ^7.32.0
@@ -14,7 +14,7 @@ specifiers:
 
 devDependencies:
   '@ivan_georgiew/eslint-config': 1.0.3_eslint@7.32.0
-  '@ivan_georgiew/prettier-config': 1.0.3_prettier@2.3.2
+  '@ivan_georgiew/prettier-config': 1.0.4_prettier@2.3.2
   '@rollup/plugin-replace': 3.0.0_rollup@2.56.0
   '@rollup/plugin-strip': 2.1.0_rollup@2.56.0
   eslint: 7.32.0
@@ -101,8 +101,8 @@ packages:
       eslint-plugin-regexp: 1.0.0_eslint@7.32.0
     dev: true
 
-  /@ivan_georgiew/prettier-config/1.0.3_prettier@2.3.2:
-    resolution: {integrity: sha512-rRZs+Cwr9BGZ2vkxSXom5vjG+hHz9n7MJY67wKIpvk2C1r64Wa7gx4ltmBau0HNBHpXBH9jiP+H9iBovGsByoQ==}
+  /@ivan_georgiew/prettier-config/1.0.4_prettier@2.3.2:
+    resolution: {integrity: sha512-tEIzQmx058rHD2Y/QWGeF02f9HDcoOmSxLb2NUH48DkVnYJvQuO5E8dre1EjPe3jXzz6dpczPQMMx+5Mo8YDUw==}
     requiresBuild: true
     peerDependencies:
       prettier: '>= 2.3.2'

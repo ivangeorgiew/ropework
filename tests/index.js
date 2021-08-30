@@ -1,9 +1,9 @@
-// const { tiePure, globalHandleErrors } = require('tied-up')
+// const { tiePure, globalHandleErrors } = require("tied-up")
 // globalHandleErrors(true)
 
 // const fib = tiePure(
-//     'calculating fibonacci number',
-//     () => 'Not a number',
+//     "calculating fibonacci number",
+//     () => "Not a number",
 //     (n, a, b, c, d, e) => {
 //         if (n <= 1) return n
 
@@ -15,16 +15,16 @@
 // )
 
 // const a = () => {
-//     throw new Error('sup')
+//     throw new Error("sup")
 // }
-// const b = new Error('blabla')
+// const b = new Error("blabla")
 // const c = [5, 6]
 // const d = { b: 6, a }
 
 // d.myself = d
 
 // const A = tiePure(
-//     'class A',
+//     "class A",
 //     () => ({}),
 //     class {
 //         constructor({ a }) {
@@ -35,7 +35,7 @@
 // )
 
 // const B = tiePure(
-//     'class B',
+//     "class B",
 //     () => ({}),
 //     class extends A {
 //         constructor({ a, b }) {
@@ -50,11 +50,11 @@
 // console.log(fib(4000, a, b, c, d, B))
 // console.log(fib(4000, a, b, c, d, B))
 
-// console.time('fib')
+// console.time("fib")
 // fib(4000, a, b, c, d, B)
 // // const fibPart = fib(4000, a)
 // // fibPart(b, c, d, B)
-// console.timeEnd('fib')
+// console.timeEnd("fib")
 
 // const showMemory = () => {
 //     const used = process.memoryUsage()
@@ -76,7 +76,7 @@
 // showMemory()
 
 // const asyncGen = tiePure(
-//     'asynchronous generator function test',
+//     "asynchronous generator function test",
 //     () => 123,
 //     async function* (i) {
 //         yield i
@@ -99,7 +99,7 @@
 // })()
 
 // const gen = tiePure(
-//     'generator function test',
+//     "generator function test",
 //     () => 123,
 //     function* (i) {
 //         yield i
@@ -116,8 +116,8 @@
 // console.log(g2.next())
 
 // const asyncF = tiePure(
-//     'asynchronous function test',
-//     () => 'error val',
+//     "asynchronous function test",
+//     () => "error val",
 //     async i => {
 //         // await asyncF(i + 1)
 //         await new Promise(resolve => {
@@ -140,25 +140,25 @@
 //     console.log(asyncF(10))
 // })()
 
-// const { isNum, or } = require('tied-up')
+// const { isNum, or } = require("tied-up")
 // const addNumbers = tiePure(
-//     'adding two numbers',
-//     () => 'There was an error',
+//     "adding two numbers",
+//     () => "There was an error",
 //     (a, b) => {
-//         console.log('ran func')
-//         or(isNum(a), TypeError('First arg must be number'))
-//         or(isNum(b), TypeError('Second arg must be number'))
+//         console.log("ran func")
+//         or(isNum(a), TypeError("First arg must be number"))
+//         or(isNum(b), TypeError("Second arg must be number"))
 
 //         return a + b
 //     }
 // )
 
-// const addTenTo = addNumbers('sup')
-// console.log(addTenTo('sup'))
+// const addTenTo = addNumbers("sup")
+// console.log(addTenTo("sup"))
 
 // const addTenTo = addNumbers(10)
 // const copyOfAddTenTo = addNumbers(10)
 // console.log(addTenTo(5))
 // console.log(copyOfAddTenTo(5))
-// console.log(copyOfAddTenTo('bla'))
+// console.log(copyOfAddTenTo("bla"))
 // console.log(copyOfAddTenTo())

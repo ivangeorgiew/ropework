@@ -1,11 +1,11 @@
-import { tieImpure, isServer, or, isFunc, isNil, isStr } from 'tied-up'
+import { tieImpure, isServer, or, isFunc, isNil, isStr } from "tied-up"
 
 const defaultOnError = tieImpure(
-    'catching server errors',
+    "catching server errors",
     () => {},
     ({ descr, error, args: [, res] }) => {
         const message = error instanceof Error ? error.message : error
-        const stack = error instanceof Error ? error.stack : ''
+        const stack = error instanceof Error ? error.stack : ""
 
         if (!res.headersSent) {
             res.status(500).json({
@@ -20,21 +20,21 @@ const defaultOnError = tieImpure(
 )
 
 export const getRoutingCreator = tieImpure(
-    'creating route for the server',
+    "creating route for the server",
     () => {},
     (app, onError_, method, path, callback) => {
-        or(isServer, Error('This function is meant for server use'))
-        or(isFunc(app), TypeError('First argument must be a function'))
+        or(isServer, Error("This function is meant for server use"))
+        or(isFunc(app), TypeError("First argument must be a function"))
         or(
             isFunc(onError_) || isNil(onError_),
-            TypeError('Second argument (if given) must be a function')
+            TypeError("Second argument (if given) must be a function")
         )
 
         const onError = isNil(onError_) ? defaultOnError : onError_
 
-        or(isStr(method), TypeError('First argument must be the method key.'))
-        or(isStr(path), TypeError('Second argument must be the routing path.'))
-        or(isFunc(callback), TypeError('Third argument must be the callback.'))
+        or(isStr(method), TypeError("First argument must be the method key."))
+        or(isStr(path), TypeError("Second argument must be the routing path."))
+        or(isFunc(callback), TypeError("Third argument must be the callback."))
 
         app[method](
             path,

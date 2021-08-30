@@ -1,6 +1,6 @@
-import { isDev } from '../api/constants'
-import { getCacheIdx, handledFuncs } from './helpers'
-import { logError } from './logging'
+import { isDev } from "../api/constants"
+import { getCacheIdx, handledFuncs } from "./helpers"
+import { logError } from "./logging"
 
 export const createFunc = (descr, onError, func, shouldCache) => {
     try {
@@ -114,8 +114,8 @@ export const createFunc = (descr, onError, func, shouldCache) => {
                 let shouldStore = true
 
                 // handle async, generator and async generator
-                if (typeof result === 'object' && result !== null) {
-                    if (typeof result[Symbol.asyncIterator] === 'function') {
+                if (typeof result === "object" && result !== null) {
+                    if (typeof result[Symbol.asyncIterator] === "function") {
                         shouldStore = false
                         result = (async function* (iter) {
                             try {
@@ -131,7 +131,7 @@ export const createFunc = (descr, onError, func, shouldCache) => {
                                 return innerCatch(args, error)
                             }
                         })(result)
-                    } else if (typeof result[Symbol.iterator] === 'function') {
+                    } else if (typeof result[Symbol.iterator] === "function") {
                         shouldStore = false
                         result = (function* (iter) {
                             try {
@@ -147,7 +147,7 @@ export const createFunc = (descr, onError, func, shouldCache) => {
                                 return innerCatch(args, error)
                             }
                         })(result)
-                    } else if (typeof result.then === 'function') {
+                    } else if (typeof result.then === "function") {
                         shouldStore = false
                         result = (async function (prom) {
                             try {
@@ -182,7 +182,7 @@ export const createFunc = (descr, onError, func, shouldCache) => {
         }
 
         if (isDev) {
-            Object.defineProperty(innerFunc, 'name', {
+            Object.defineProperty(innerFunc, "name", {
                 value: `[${descr}]`,
                 configurable: true,
             })
@@ -194,7 +194,7 @@ export const createFunc = (descr, onError, func, shouldCache) => {
     } catch (error) {
         try {
             logError({
-                descr: 'creating an error-handled function',
+                descr: "creating an error-handled function",
                 error,
                 args: [descr, onError, func, shouldCache],
             })

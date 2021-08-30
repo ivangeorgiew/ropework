@@ -1,4 +1,4 @@
-import { isDev } from '../api/constants'
+import { isDev } from "../api/constants"
 
 const stringifyAll = data => {
     try {
@@ -6,15 +6,15 @@ const stringifyAll = data => {
         const parser = (_key, val) => {
             if ([Infinity, NaN, null, undefined].includes(val)) {
                 return `[${String(val)}]`
-            } else if (typeof val === 'bigint') {
+            } else if (typeof val === "bigint") {
                 return Number(val)
-            } else if (typeof val === 'object' || typeof val === 'function') {
+            } else if (typeof val === "object" || typeof val === "function") {
                 if (seen.has(val)) {
-                    return '[$ref]'
+                    return "[$ref]"
                 } else {
                     seen.add(val)
 
-                    return typeof val === 'function' ? '[f(x)]' : val
+                    return typeof val === "function" ? "[f(x)]" : val
                 }
             } else {
                 return val
@@ -23,7 +23,7 @@ const stringifyAll = data => {
 
         return JSON.stringify(data, parser, 0)
     } catch (_e) {
-        return JSON.stringify('[unknown]')
+        return JSON.stringify("[unknown]")
     }
 }
 
@@ -31,29 +31,29 @@ export const createArgsInfo = args => {
     try {
         const argsInfo = args.reduce((acc, arg, i) => {
             const stringified =
-                typeof arg === 'function' ? 'f(x)' : stringifyAll(arg)
+                typeof arg === "function" ? "f(x)" : stringifyAll(arg)
 
             const parsedArg =
                 stringified.length > 100
                     ? Array.isArray(arg)
-                        ? '[large array]'
+                        ? "[large array]"
                         : `[large ${typeof arg}]`
                     : stringified.replace(
                           /"\[(Infinity|NaN|null|undefined|f\(x\)|\$ref)\]"/g,
-                          '$1'
+                          "$1"
                       )
 
             return i === 0 ? parsedArg : `${acc} , ${parsedArg}`
-        }, '')
+        }, "")
 
-        return argsInfo === '' ? 'no args' : argsInfo
+        return argsInfo === "" ? "no args" : argsInfo
     } catch (_e) {
-        return 'unknown args'
+        return "unknown args"
     }
 }
 
 const defaultLogger =
-    typeof console === 'object' && typeof console.error === 'function'
+    typeof console === "object" && typeof console.error === "function"
         ? console.error
         : () => {}
 
@@ -68,10 +68,10 @@ export const errorLogger = (...args) => {
                 const argsInfo = createArgsInfo(args)
 
                 defaultLogger(
-                    '\n Issue with: parameter errorLogger\n',
+                    "\n Issue with: parameter errorLogger\n",
                     `Function arguments: ${argsInfo}\n`,
                     error,
-                    '\n'
+                    "\n"
                 )
             } catch (_e) {
                 // nothing
@@ -98,10 +98,10 @@ export const notify = (...args) => {
             const argsInfo = createArgsInfo(args)
 
             errorLogger(
-                '\n Issue with: parameter notify\n',
+                "\n Issue with: parameter notify\n",
                 `Function arguments: ${argsInfo}\n`,
                 error,
-                '\n'
+                "\n"
             )
         } catch (_e) {
             // nothing

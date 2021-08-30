@@ -1,5 +1,5 @@
-import { isServer, isWeb } from '../api/constants'
-import { createArgsInfo, errorLogger, notify } from './helpers'
+import { isServer, isWeb } from "../api/constants"
+import { createArgsInfo, errorLogger, notify } from "./helpers"
 
 const errorsCache = []
 
@@ -46,11 +46,11 @@ const manageErrorsCache = (_idx, errorDescr, msg) => {
 export const logError = props => {
     try {
         const errorDescr =
-            'Issue with: ' +
-            (typeof props.descr === 'string' ? props.descr : 'part of the app')
+            "Issue with: " +
+            (typeof props.descr === "string" ? props.descr : "part of the app")
 
         const error =
-            props.error instanceof Error ? props.error : new Error('Unknown error')
+            props.error instanceof Error ? props.error : new Error("Unknown error")
 
         const args = Array.isArray(props.args) ? props.args : []
 
@@ -102,7 +102,7 @@ export const logError = props => {
             `\n ${errorDescr}\n`,
             `Function arguments: ${argsInfo}\n`,
             error,
-            '\n'
+            "\n"
         )
 
         manageErrorsCache(errorsCache.length, errorDescr, msg)
@@ -111,10 +111,10 @@ export const logError = props => {
             const argsInfo = createArgsInfo([props])
 
             errorLogger(
-                '\n Issue with: logging errors\n',
+                "\n Issue with: logging errors\n",
                 `Function arguments: ${argsInfo}\n`,
                 error,
-                '\n'
+                "\n"
             )
         } catch (_e) {
             // nothing
