@@ -35,7 +35,8 @@ const uncaughtErrorListener = createFunc(
                 process.exit(exitCode)
             }, 500).unref()
         }
-    }
+    },
+    false
 )
 
 export const globalHandleErrors = createFunc(
@@ -61,5 +62,6 @@ export const globalHandleErrors = createFunc(
                 }
             })
         }
-    }
+    },
+    false
 )

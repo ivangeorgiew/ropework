@@ -14,7 +14,8 @@ export const tieImpure = createFunc(
         or(isFunc(func), TypeError(trd))
 
         return createFunc(descr, onError, func, false)
-    }
+    },
+    true
 )
 
 export const tiePure = createFunc(
@@ -26,19 +27,22 @@ export const tiePure = createFunc(
         or(isFunc(func), TypeError(trd))
 
         return createFunc(descr, onError, func, true)
-    }
+    },
+    true
 )
 
 export const tieTimeout = createFunc(
     "creating tied setTimeout",
     () => {},
     (descr, onError, func, delay, ...args) =>
-        setTimeout(tieImpure(descr, onError, func), delay, ...args)
+        setTimeout(tieImpure(descr, onError, func), delay, ...args),
+    true
 )
 
 export const tieInterval = createFunc(
     "creating tied setInterval",
     () => {},
     (descr, onError, func, delay, ...args) =>
-        setInterval(tieImpure(descr, onError, func), delay, ...args)
+        setInterval(tieImpure(descr, onError, func), delay, ...args),
+    true
 )

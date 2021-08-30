@@ -3,7 +3,9 @@ import { createFunc } from "../utils/createFunc"
 const wrap = createFunc(
     "creating simple validation function",
     () => () => false,
-    (what, func) => createFunc(`checking if ${what}`, () => false, func, true)
+    (what, func) =>
+        createFunc(`checking if value is ${what}`, () => false, func, true),
+    true
 )
 
 export const isStr = wrap("string", val => typeof val === "string")
@@ -39,7 +41,8 @@ const checkIfArgsValid = createFunc(
         }
 
         return true
-    }
+    },
+    true
 )
 
 export const or = (isValid, error) => {

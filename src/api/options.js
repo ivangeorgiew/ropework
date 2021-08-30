@@ -30,5 +30,6 @@ export const changeOptions = createFunc(
         if (isFunc(notify)) {
             changeNotify(notify)
         }
-    }
+    },
+    false
 )
