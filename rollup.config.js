@@ -98,11 +98,13 @@ const reducer = (acc, [root, name]) =>
             output: [
                 {
                     ...commonOutOpts,
+                    sourcemap: false,
                     format: "cjs",
                     file: `${root}/${pkg.main.replace("index", "test")}`,
                 },
                 {
                     ...commonOutOpts,
+                    sourcemap: false,
                     format: "esm",
                     file: `${root}/${pkg.module.replace("index", "test")}`,
                 },
