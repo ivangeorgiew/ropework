@@ -1,27 +1,27 @@
-import replace from '@rollup/plugin-replace'
-import strip from '@rollup/plugin-strip'
-import { terser } from 'rollup-plugin-terser'
-import pkg from './package.json'
+import replace from "@rollup/plugin-replace"
+import strip from "@rollup/plugin-strip"
+import { terser } from "rollup-plugin-terser"
+import pkg from "./package.json"
 
 const entries = [
-    ['.', 'TiedUp'],
-    ['./server', 'TiedUpServer'],
+    [".", "TiedUp"],
+    ["./server", "TiedUpServer"],
 ]
 
 const globals = {
-    'tied-up': 'TiedUp',
-    'tied-up/server': 'TiedUpServer',
+    "tied-up": "TiedUp",
+    "tied-up/server": "TiedUpServer",
 }
 
 const commonOutOpts = {
     esModule: false,
     freeze: false,
-    exports: 'named',
+    exports: "named",
 }
 
 const makeInput = root => `${root}/src/index.js`
 
-const external = id => id.startsWith('tied-up')
+const external = id => id.startsWith("tied-up")
 
 const terserOpts = {
     ecma: 6,
@@ -49,8 +49,8 @@ const reducer = (acc, [root, name]) =>
             external,
             treeshake,
             output: [
-                { ...commonOutOpts, format: 'cjs', file: `${root}/${pkg.main}` },
-                { ...commonOutOpts, format: 'esm', file: `${root}/${pkg.module}` },
+                { ...commonOutOpts, format: "cjs", file: `${root}/${pkg.main}` },
+                { ...commonOutOpts, format: "esm", file: `${root}/${pkg.module}` },
             ],
         },
         {
@@ -61,19 +61,19 @@ const reducer = (acc, [root, name]) =>
                 {
                     ...commonOutOpts,
                     sourcemap: true,
-                    format: 'cjs',
+                    format: "cjs",
                     file: `${root}/${pkg.mainProd}`,
                 },
                 {
                     ...commonOutOpts,
                     sourcemap: true,
-                    format: 'esm',
+                    format: "esm",
                     file: `${root}/${pkg.moduleProd}`,
                 },
                 {
                     ...commonOutOpts,
                     sourcemap: true,
-                    format: 'umd',
+                    format: "umd",
                     file: `${root}/${pkg.unpkg}`,
                     name,
                     globals,
@@ -82,10 +82,10 @@ const reducer = (acc, [root, name]) =>
             plugins: [
                 terser(terserOpts),
                 replace({
-                    'preventAssignment': true,
-                    'process.env.NODE_ENV': JSON.stringify('production'),
+                    "preventAssignment": true,
+                    "process.env.NODE_ENV": JSON.stringify("production"),
                 }),
-                strip({ functions: ['or'] }),
+                strip({ functions: ["or"] }),
             ],
         },
     ])

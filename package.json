@@ -22,7 +22,8 @@
             "require": "./server/dist/index.cjs.js",
             "umd": "./server/dist/index.umd.js"
         },
-        "./package.json": "./package.json"
+        "./package.json": "./package.json",
+        "./": "./"
     },
     "files": [
         "src",
@@ -40,10 +41,10 @@
         "build": "pnpm clean && rollup -c",
         "bump": "pnpm version patch",
         "bigbump": "pnpm version minor",
-        "test": "node ./tests/index.js"
+        "test": "NODE_ENV=test node ./tests/index.js"
     },
     "lint-staged": {
-        "*.js": "eslint --cache --fix",
+        "*.js": "eslint --fix",
         "*.{js,json,md}": "prettier --write"
     },
     "prettier": "@ivan_georgiew/prettier-config",
