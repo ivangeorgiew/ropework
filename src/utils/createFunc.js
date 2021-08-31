@@ -3,14 +3,14 @@ import { isArr, isBool, isFunc, isInt, isNil, isStr, or } from "../api/validatin
 import { getCacheIdx, handledFuncs } from "./helpers"
 import { logError } from "./logging"
 
-export const createFunc = (descr, onError, func, shouldCache) => {
+export const createFunc = (descr, onError, func, isPure) => {
     try {
         if (isTest) {
             or(isStr(descr), TypeError("First arg must be string"))
             or(isFunc(onError), TypeError("Second arg must be function"))
             or(isFunc(func), TypeError("Third arg must be function"))
             or(
-                isNil(shouldCache) || isBool(shouldCache),
+                isNil(isPure) || isBool(isPure),
                 TypeError("Fourth arg must be boolean or undefined")
             )
         }
@@ -171,7 +171,7 @@ export const createFunc = (descr, onError, func, shouldCache) => {
                             try {
                                 const res = yield* iter
 
-                                if (shouldCache) {
+                                if (isPure) {
                                     manageCache(cacheKeys.length, args, iter)
                                 }
 
@@ -187,7 +187,7 @@ export const createFunc = (descr, onError, func, shouldCache) => {
                             try {
                                 const res = yield* iter
 
-                                if (shouldCache) {
+                                if (isPure) {
                                     manageCache(cacheKeys.length, args, iter)
                                 }
 
@@ -203,7 +203,7 @@ export const createFunc = (descr, onError, func, shouldCache) => {
                             try {
                                 const res = await prom
 
-                                if (shouldCache) {
+                                if (isPure) {
                                     manageCache(cacheKeys.length, args, prom)
                                 }
 
@@ -216,7 +216,7 @@ export const createFunc = (descr, onError, func, shouldCache) => {
                     }
                 }
 
-                if (shouldCache && shouldStore) {
+                if (isPure && shouldStore) {
                     manageCache(cacheKeys.length, args, result)
                 }
             } catch (error) {
@@ -238,7 +238,7 @@ export const createFunc = (descr, onError, func, shouldCache) => {
             })
         }
 
-        handledFuncs.add(innerFunc)
+        handledFuncs.set(innerFunc, { cacheKeys, cacheValues })
 
         return innerFunc
     } catch (error) {
@@ -246,7 +246,7 @@ export const createFunc = (descr, onError, func, shouldCache) => {
             try {
                 logError({
                     descr: "createFunc",
-                    args: [descr, onError, func, shouldCache],
+                    args: [descr, onError, func, isPure],
                     error,
                 })
             } catch (_e) {

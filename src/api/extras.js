@@ -1,6 +1,6 @@
 import { createFunc } from "../utils/createFunc"
-import { options } from "../utils/helpers"
-import { isObj, or } from "./validating"
+import { handledFuncs, options } from "../utils/helpers"
+import { isFunc, isObj, or } from "./validating"
 
 export const changeOptions = createFunc(
     "changing global options",
@@ -19,5 +19,19 @@ export const changeOptions = createFunc(
 
             options[key] = props[key]
         })
+    }
+)
+
+export const clearCacheFor = createFunc(
+    "clear cache for a tied function",
+    () => {},
+    func => {
+        or(isFunc(func), TypeError("You must pass a function"))
+
+        if (handledFuncs.has(func)) {
+            const { cacheKeys, cacheValues } = handledFuncs.get(func)
+
+            cacheKeys.length = cacheValues.length = 0
+        }
     }
 )

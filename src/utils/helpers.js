@@ -114,7 +114,7 @@ export const notify = (...args) => {
     }
 }
 
-export const handledFuncs = new WeakSet()
+export const handledFuncs = new WeakMap()
 
 const toKeys = a => [
     ...Object.getOwnPropertyNames(a),

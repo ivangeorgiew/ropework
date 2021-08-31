@@ -20,12 +20,14 @@ const getErrorsCacheIdx = (errorDescr, msg) => {
         for (let i = 0; i < errorsCacheLen; i++) {
             const item = errorsCache[i]
 
-            if (
-                errorDescr === item.errorDescr &&
-                msg === item.msg &&
-                Date.now() - item.time < 1000
-            ) {
-                return i
+            if (errorDescr === item.errorDescr && msg === item.msg) {
+                if (Date.now() - item.time < 1000) {
+                    return i
+                } else {
+                    errorsCache.splice(i, 1)
+
+                    return -1
+                }
             }
         }
 
