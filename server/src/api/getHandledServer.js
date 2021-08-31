@@ -3,6 +3,8 @@ import {
     isNil,
     isObj,
     isServer,
+    isStr,
+    isTest,
     nodeErrorEvents,
     or,
     tieImpure,
@@ -13,6 +15,11 @@ const onConnection = tieImpure(
     "adding sockets to server",
     () => {},
     (sockets, socket) => {
+        if (isTest) {
+            or(sockets instanceof Set, TypeError("First arg must be Set"))
+            or(isObj(socket), TypeError("Second arg must be object"))
+        }
+
         socket.on("close", () => {
             sockets.delete(socket)
         })
@@ -25,6 +32,12 @@ const onClose = tieImpure(
     "handling server closing",
     () => {},
     (server, sockets, event, _) => {
+        if (isTest) {
+            or(isObj(server), TypeError("First arg must be object"))
+            or(sockets instanceof Set, TypeError("Second arg must be Set"))
+            or(isStr(event), TypeError("Third arg must be string"))
+        }
+
         server.close()
 
         sockets.forEach(socket => {

@@ -1,4 +1,8 @@
-import { isDev } from "../api/constants"
+import { isDev, isTest } from "../api/constants"
+import { isArr, isFunc, isObj, or } from "../api/validating"
+
+const defaultLogger =
+    isDev && isObj(console) && isFunc(console.error) ? console.error : () => {}
 
 const stringifyAll = data => {
     try {
@@ -29,6 +33,10 @@ const stringifyAll = data => {
 
 export const createArgsInfo = args => {
     try {
+        if (isTest) {
+            or(isArr(args), TypeError("Must be passed array"))
+        }
+
         const argsInfo = args.reduce((acc, arg, i) => {
             const stringified =
                 typeof arg === "function" ? "f(x)" : stringifyAll(arg)
@@ -47,29 +55,38 @@ export const createArgsInfo = args => {
         }, "")
 
         return argsInfo === "" ? "no args" : argsInfo
-    } catch (_e) {
+    } catch (error) {
+        if (isTest) {
+            try {
+                defaultLogger(
+                    "\n Issue with: createArgsInfo\n",
+                    `Function arguments types: ${typeof args}\n`,
+                    error,
+                    "\n"
+                )
+            } catch (_e) {
+                // nothing
+            }
+        }
+
         return "unknown args"
     }
 }
 
-const defaultLogger =
-    typeof console === "object" && typeof console.error === "function"
-        ? console.error
-        : () => {}
-
-let errorLoggerUnhandled = defaultLogger
+export const options = Object.seal({
+    errorLogger: defaultLogger,
+    notify: () => {},
+})
 
 export const errorLogger = (...args) => {
     if (isDev) {
         try {
-            errorLoggerUnhandled.apply(null, args)
+            options.errorLogger.apply(null, args)
         } catch (error) {
             try {
-                const argsInfo = createArgsInfo(args)
-
                 defaultLogger(
-                    "\n Issue with: parameter errorLogger\n",
-                    `Function arguments: ${argsInfo}\n`,
+                    "\n Issue with: errorLogger\n",
+                    `Function arguments: ${createArgsInfo(args)}\n`,
                     error,
                     "\n"
                 )
@@ -80,40 +97,20 @@ export const errorLogger = (...args) => {
     }
 }
 
-export const changeErrorLogger = newProp => {
-    try {
-        errorLoggerUnhandled = newProp
-    } catch (_e) {
-        // nothing
-    }
-}
-
-let notifyUnhandled = () => {}
-
 export const notify = (...args) => {
     try {
-        notifyUnhandled.apply(null, args)
+        options.notify.apply(null, args)
     } catch (error) {
         try {
-            const argsInfo = createArgsInfo(args)
-
             errorLogger(
-                "\n Issue with: parameter notify\n",
-                `Function arguments: ${argsInfo}\n`,
+                "\n Issue with: notify\n",
+                `Function arguments: ${createArgsInfo(args)}\n`,
                 error,
                 "\n"
             )
         } catch (_e) {
             // nothing
         }
-    }
-}
-
-export const changeNotify = newProp => {
-    try {
-        notifyUnhandled = newProp
-    } catch (_e) {
-        // nothing
     }
 }
 
@@ -165,6 +162,11 @@ const isEqual = (a, b) => {
 
 export const getCacheIdx = (args, cacheKeys) => {
     try {
+        if (isTest) {
+            or(isArr(args), TypeError("First arg must be array"))
+            or(isArr(cacheKeys), TypeError("Second arg must be array"))
+        }
+
         const cacheKeysLen = cacheKeys.length
 
         if (cacheKeysLen === 0) {
@@ -190,7 +192,20 @@ export const getCacheIdx = (args, cacheKeys) => {
         }
 
         return -1
-    } catch (_e) {
+    } catch (error) {
+        if (isTest) {
+            try {
+                errorLogger(
+                    "\n Issue with: getCacheIdx\n",
+                    `Function arguments: ${createArgsInfo([args, cacheKeys])}\n`,
+                    error,
+                    "\n"
+                )
+            } catch (_e) {
+                // nothing
+            }
+        }
+
         return -1
     }
 }

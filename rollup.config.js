@@ -17,6 +17,7 @@ const commonOutOpts = {
     esModule: false,
     freeze: false,
     exports: "named",
+    sourcemap: true,
 }
 
 const makeInput = root => `${root}/src/index.js`
@@ -52,6 +53,10 @@ const reducer = (acc, [root, name]) =>
                 { ...commonOutOpts, format: "cjs", file: `${root}/${pkg.main}` },
                 { ...commonOutOpts, format: "esm", file: `${root}/${pkg.module}` },
             ],
+            plugins: [
+                replace({ preventAssignment: true, __TEST__: false }),
+                terser(terserOpts),
+            ],
         },
         {
             input: makeInput(root),
@@ -60,19 +65,16 @@ const reducer = (acc, [root, name]) =>
             output: [
                 {
                     ...commonOutOpts,
-                    sourcemap: true,
                     format: "cjs",
-                    file: `${root}/${pkg.mainProd}`,
+                    file: `${root}/${pkg.main.replace(".js", ".prod.js")}`,
                 },
                 {
                     ...commonOutOpts,
-                    sourcemap: true,
                     format: "esm",
-                    file: `${root}/${pkg.moduleProd}`,
+                    file: `${root}/${pkg.module.replace(".js", ".prod.js")}`,
                 },
                 {
                     ...commonOutOpts,
-                    sourcemap: true,
                     format: "umd",
                     file: `${root}/${pkg.unpkg}`,
                     name,
@@ -80,12 +82,37 @@ const reducer = (acc, [root, name]) =>
                 },
             ],
             plugins: [
-                terser(terserOpts),
                 replace({
                     "preventAssignment": true,
                     "process.env.NODE_ENV": JSON.stringify("production"),
+                    "__TEST__": false,
                 }),
                 strip({ functions: ["or"] }),
+                terser(terserOpts),
+            ],
+        },
+        {
+            input: makeInput(root),
+            external,
+            treeshake,
+            output: [
+                {
+                    ...commonOutOpts,
+                    format: "cjs",
+                    file: `${root}/${pkg.main.replace("index", "test")}`,
+                },
+                {
+                    ...commonOutOpts,
+                    format: "esm",
+                    file: `${root}/${pkg.module.replace("index", "test")}`,
+                },
+            ],
+            plugins: [
+                replace({
+                    "preventAssignment": true,
+                    "process.env.NODE_ENV": JSON.stringify("development"),
+                    "__TEST__": true,
+                }),
             ],
         },
     ])

@@ -9,6 +9,8 @@ const process =
 
 export const isDev = process.env.NODE_ENV !== "production"
 
+export const isTest = __TEST__
+
 export const isWeb = typeof self === "object" && globalThis === self
 
 export const isServer = typeof global === "object" && globalThis === global

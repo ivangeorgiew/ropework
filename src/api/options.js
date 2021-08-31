@@ -1,6 +1,6 @@
 import { createFunc } from "../utils/createFunc"
-import { changeErrorLogger, changeNotify } from "../utils/helpers"
-import { isFunc, isNil, isObj, or } from "./validating"
+import { options } from "../utils/helpers"
+import { isObj, or } from "./validating"
 
 export const changeOptions = createFunc(
     "changing global options",
@@ -8,28 +8,16 @@ export const changeOptions = createFunc(
     props => {
         or(isObj(props), TypeError("You must pass an object"))
 
-        const { errorLogger, notify } = props
+        Object.keys(props).forEach(key => {
+            or(key in options, TypeError(`Key "${key}" is not valid option`))
+            or(
+                typeof props[key] === typeof options[key],
+                TypeError(
+                    `Value of "${key}" has to have type ${typeof options[key]}`
+                )
+            )
 
-        or(
-            isFunc(errorLogger) || isFunc(notify),
-            TypeError("Wrong key names or wrong values")
-        )
-        or(
-            isNil(errorLogger) || isFunc(errorLogger),
-            TypeError("`errorLogger` must be function if given")
-        )
-        or(
-            isNil(notify) || isFunc(notify),
-            TypeError("`notify` must be function if given")
-        )
-
-        if (isFunc(errorLogger)) {
-            changeErrorLogger(errorLogger)
-        }
-
-        if (isFunc(notify)) {
-            changeNotify(notify)
-        }
-    },
-    false
+            options[key] = props[key]
+        })
+    }
 )

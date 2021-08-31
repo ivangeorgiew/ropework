@@ -6,18 +6,16 @@
     "sideEffects": false,
     "main": "dist/index.cjs.js",
     "module": "dist/index.esm.js",
-    "mainProd": "dist/index.cjs.min.js",
-    "moduleProd": "dist/index.esm.min.js",
     "unpkg": "dist/index.umd.js",
     "exports": {
         ".": {
-            "browser": "./dist/index.esm.min.js",
+            "browser": "./dist/index.esm.prod.js",
             "import": "./dist/index.esm.js",
             "require": "./dist/index.cjs.js",
             "umd": "./dist/index.umd.js"
         },
         "./server": {
-            "browser": "./server/dist/index.esm.min.js",
+            "browser": "./server/dist/index.esm.prod.js",
             "import": "./server/dist/index.esm.js",
             "require": "./server/dist/index.cjs.js",
             "umd": "./server/dist/index.umd.js"
@@ -52,6 +50,9 @@
         "extends": [
             "@ivan_georgiew/eslint-config"
         ],
+        "globals": {
+            "__TEST__": "readonly"
+        },
         "rules": {
             "ecmalist/no-modules": "off"
         }

@@ -1,4 +1,4 @@
-// const { tiePure, globalHandleErrors } = require("tied-up")
+// const { tiePure, globalHandleErrors } = require("tied-up/dist/test.cjs.js")
 // globalHandleErrors(true)
 
 // const fib = tiePure(
@@ -50,31 +50,6 @@
 // console.log(fib(4000, a, b, c, d, B))
 // console.log(fib(4000, a, b, c, d, B))
 
-// console.time("fib")
-// fib(4000, a, b, c, d, B)
-// // const fibPart = fib(4000, a)
-// // fibPart(b, c, d, B)
-// console.timeEnd("fib")
-
-// const showMemory = () => {
-//     const used = process.memoryUsage()
-
-//     Object.keys(used).forEach(objKey => {
-//         console.log(
-//             `${objKey}: ${Math.round((used[objKey] / 1024 / 1024) * 100) / 100} MB`
-//         )
-//     })
-// }
-// // const testFunc = (a, b, c, d, e, f) => {
-// //     return [a, b, c, d, e, f]
-// // }
-// showMemory()
-// for (let i = 1; i <= 1000; i++) {
-//     fib(1000, a, b, c, d, B)
-//     // testFunc(5, a, b, c, d, B)
-// }
-// showMemory()
-
 // const asyncGen = tiePure(
 //     "asynchronous generator function test",
 //     () => 123,
@@ -83,7 +58,7 @@
 //         await new Promise(resolve => {
 //             setTimeout(resolve, 1000)
 //         })
-//         // throw new Error('intended')
+//         // throw new Error("intended")
 //         return i + 10
 //     }
 // )
@@ -103,7 +78,7 @@
 //     () => 123,
 //     function* (i) {
 //         yield i
-//         // throw new Error('intended')
+//         // throw new Error("intended")
 //         return i + 10
 //     }
 // )
@@ -123,7 +98,7 @@
 //         await new Promise(resolve => {
 //             setTimeout(resolve, 1000)
 //         })
-//         // throw new Error('intended')
+//         // throw new Error("intended")
 //         return i
 //     }
 // )
@@ -140,7 +115,7 @@
 //     console.log(asyncF(10))
 // })()
 
-// const { isNum, or } = require("tied-up")
+// const { isNum, or } = require("tied-up/dist/test.cjs.js")
 // const addNumbers = tiePure(
 //     "adding two numbers",
 //     () => "There was an error",
@@ -153,12 +128,13 @@
 //     }
 // )
 
-// const addTenTo = addNumbers("sup")
-// console.log(addTenTo("sup"))
-
+// const addSupTo = addNumbers("sup")
 // const addTenTo = addNumbers(10)
 // const copyOfAddTenTo = addNumbers(10)
+
+// console.log(addSupTo(5))
 // console.log(addTenTo(5))
 // console.log(copyOfAddTenTo(5))
 // console.log(copyOfAddTenTo("bla"))
+
 // console.log(copyOfAddTenTo())

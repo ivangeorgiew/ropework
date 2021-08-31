@@ -1,9 +1,20 @@
-import { isDev } from "../api/constants"
+import { isDev, isTest } from "../api/constants"
+import { isArr, isBool, isFunc, isInt, isNil, isStr, or } from "../api/validating"
 import { getCacheIdx, handledFuncs } from "./helpers"
 import { logError } from "./logging"
 
 export const createFunc = (descr, onError, func, shouldCache) => {
     try {
+        if (isTest) {
+            or(isStr(descr), TypeError("First arg must be string"))
+            or(isFunc(onError), TypeError("Second arg must be function"))
+            or(isFunc(func), TypeError("Third arg must be function"))
+            or(
+                isNil(shouldCache) || isBool(shouldCache),
+                TypeError("Fourth arg must be boolean or undefined")
+            )
+        }
+
         if (handledFuncs.has(func)) {
             return func
         }
@@ -16,6 +27,14 @@ export const createFunc = (descr, onError, func, shouldCache) => {
 
         const manageCache = (_idx, key, value) => {
             try {
+                if (isTest) {
+                    or(
+                        isInt(_idx) && _idx >= 0,
+                        TypeError("First arg must be positive integer")
+                    )
+                    or(isArr(key), TypeError("Second arg must be array"))
+                }
+
                 let idx = _idx > 5 ? 5 : _idx
 
                 while (idx--) {
@@ -25,29 +44,48 @@ export const createFunc = (descr, onError, func, shouldCache) => {
 
                 cacheKeys[0] = key
                 cacheValues[0] = value
-            } catch (_e) {
-                // nothing
+            } catch (error) {
+                if (isTest) {
+                    try {
+                        logError({
+                            descr: "manageCache",
+                            args: [_idx, key, value],
+                            error,
+                        })
+                    } catch (_e) {
+                        // nothing
+                    }
+                }
             }
         }
 
         const innerCatch = (args, error) => {
             try {
-                logError({ descr, error, args })
-            } catch (_e) {
-                // nothing
-            }
+                if (isTest) {
+                    or(isArr(args), TypeError("First arg must be array"))
+                    or(error instanceof Error, TypeError("Second arg must be Error"))
+                }
 
-            try {
-                return onError({ descr, args, error })
-            } catch (error) {
+                logError({ descr, error, args })
+
                 try {
+                    return onError({ descr, args, error })
+                } catch (error) {
                     logError({
                         descr: `handling errors for [${descr}]`,
-                        args,
+                        args: [{ descr, args, error }],
                         error,
                     })
-                } catch (_e) {
-                    // nothing
+
+                    return undefined
+                }
+            } catch (error) {
+                if (isTest) {
+                    try {
+                        logError({ descr: "innerCatch", args: [args, error], error })
+                    } catch (_e) {
+                        // nothing
+                    }
                 }
 
                 return undefined
@@ -56,6 +94,10 @@ export const createFunc = (descr, onError, func, shouldCache) => {
 
         const getCurry = args => {
             try {
+                if (isTest) {
+                    or(isArr(args), TypeError("First arg must be array"))
+                }
+
                 const result = function (...newArgs) {
                     try {
                         const rest =
@@ -74,6 +116,14 @@ export const createFunc = (descr, onError, func, shouldCache) => {
 
                 return result
             } catch (error) {
+                if (isTest) {
+                    try {
+                        logError({ descr: "getCurry", args: [args], error })
+                    } catch (_e) {
+                        // nothing
+                    }
+                }
+
                 return innerCatch(args, error)
             }
         }
@@ -192,14 +242,16 @@ export const createFunc = (descr, onError, func, shouldCache) => {
 
         return innerFunc
     } catch (error) {
-        try {
-            logError({
-                descr: "creating an error-handled function",
-                error,
-                args: [descr, onError, func, shouldCache],
-            })
-        } catch (_e) {
-            // nothing
+        if (isTest) {
+            try {
+                logError({
+                    descr: "createFunc",
+                    args: [descr, onError, func, shouldCache],
+                    error,
+                })
+            } catch (_e) {
+                // nothing
+            }
         }
 
         return func
