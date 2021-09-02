@@ -42,7 +42,7 @@
         "test": "NODE_ENV=test node ./tests/index.js"
     },
     "lint-staged": {
-        "*.js": "eslint --fix",
+        "*.js": "eslint --cache --fix",
         "*.{js,json,md}": "prettier --write"
     },
     "prettier": "@ivan_georgiew/prettier-config",

@@ -1,8 +1,8 @@
 import { isDev, isTest } from "../api/constants"
-import { isArr, isFunc, isObj, or } from "../api/validating"
+import { checkArr, checkFunc, checkObj, or } from "../api/validating"
 
 const defaultLogger =
-    isDev && isObj(console) && isFunc(console.error) ? console.error : () => {}
+    isDev && checkObj(console) && checkFunc(console.error) ? console.error : () => {}
 
 const stringifyAll = data => {
     try {
@@ -34,7 +34,7 @@ const stringifyAll = data => {
 export const createArgsInfo = args => {
     try {
         if (isTest) {
-            or(isArr(args), TypeError("Must be passed array"))
+            or(checkArr(args), TypeError("Must be passed array"))
         }
 
         const argsInfo = args.reduce((acc, arg, i) => {
@@ -121,9 +121,9 @@ const toKeys = a => [
     ...Object.getOwnPropertySymbols(a),
 ]
 
-const isSVZ = (a, b) => a === b || (a !== a && b !== b)
+const checkSVZ = (a, b) => a === b || (a !== a && b !== b)
 
-const isEqual = (a, b) => {
+const checkEqual = (a, b) => {
     try {
         if (a === b) {
             return true
@@ -139,11 +139,11 @@ const isEqual = (a, b) => {
                 } else if (objKeysLen === 0) {
                     return true
                 } else if (objKeysLen === 1) {
-                    return isSVZ(a[objKeys[0]], b[objKeys[0]])
+                    return checkSVZ(a[objKeys[0]], b[objKeys[0]])
                 } else {
                     for (
                         let m = 0;
-                        m < objKeysLen && isSVZ(a[objKeys[m]], b[objKeys[m]]);
+                        m < objKeysLen && checkSVZ(a[objKeys[m]], b[objKeys[m]]);
                         m++
                     ) {
                         if (m === objKeysLen - 1) return true
@@ -163,8 +163,8 @@ const isEqual = (a, b) => {
 export const getCacheIdx = (args, cacheKeys) => {
     try {
         if (isTest) {
-            or(isArr(args), TypeError("First arg must be array"))
-            or(isArr(cacheKeys), TypeError("Second arg must be array"))
+            or(checkArr(args), TypeError("First arg must be array"))
+            or(checkArr(cacheKeys), TypeError("Second arg must be array"))
         }
 
         const cacheKeysLen = cacheKeys.length
@@ -183,9 +183,9 @@ export const getCacheIdx = (args, cacheKeys) => {
             } else if (argsLen === 0) {
                 return i
             } else if (argsLen === 1) {
-                if (isEqual(key[0], args[0])) return i
+                if (checkEqual(key[0], args[0])) return i
             } else {
-                for (let m = 0; m < argsLen && isEqual(key[m], args[m]); m++) {
+                for (let m = 0; m < argsLen && checkEqual(key[m], args[m]); m++) {
                     if (m === argsLen - 1) return i
                 }
             }

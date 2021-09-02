@@ -1,9 +1,9 @@
 import {
-    isFunc,
-    isNil,
-    isObj,
+    checkFunc,
+    checkNil,
+    checkObj,
     isServer,
-    isStr,
+    checkStr,
     isTest,
     nodeErrorEvents,
     or,
@@ -17,7 +17,7 @@ const onConnection = tieImpure(
     (sockets, socket) => {
         if (isTest) {
             or(sockets instanceof Set, TypeError("First arg must be Set"))
-            or(isObj(socket), TypeError("Second arg must be object"))
+            or(checkObj(socket), TypeError("Second arg must be object"))
         }
 
         socket.on("close", () => {
@@ -33,9 +33,9 @@ const onClose = tieImpure(
     () => {},
     (server, sockets, event, _) => {
         if (isTest) {
-            or(isObj(server), TypeError("First arg must be object"))
+            or(checkObj(server), TypeError("First arg must be object"))
             or(sockets instanceof Set, TypeError("Second arg must be Set"))
-            or(isStr(event), TypeError("Third arg must be string"))
+            or(checkStr(event), TypeError("Third arg must be string"))
         }
 
         server.close()
@@ -54,15 +54,15 @@ export const getHandledServer = tiePure(
     (server, sockets_) => {
         or(isServer, Error("This function is meant for server use"))
         or(
-            isObj(server) && isFunc(server.on) && isFunc(server.close),
+            checkObj(server) && checkFunc(server.on) && checkFunc(server.close),
             TypeError("First argument must be the server object.")
         )
         or(
-            isNil(sockets_) || sockets_ instanceof Set,
+            checkNil(sockets_) || sockets_ instanceof Set,
             TypeError("Second argument (if given) must be a Set.")
         )
 
-        const sockets = isNil(sockets_) ? new Set() : sockets_
+        const sockets = checkNil(sockets_) ? new Set() : sockets_
 
         server.on("connection", onConnection(sockets))
 

@@ -1,4 +1,4 @@
-// const { tiePure, globalHandleErrors } = require("tied-up/dist/test.cjs.js")
+// const { tiePure, globalHandleErrors } = require("../dist/test.cjs.js")
 // globalHandleErrors(true)
 
 // const fib = tiePure(
@@ -115,14 +115,14 @@
 //     console.log(asyncF(10))
 // })()
 
-// const { isNum, or } = require("tied-up/dist/test.cjs.js")
+// const { checkNum, or } = require("../dist/test.cjs.js")
 // const addNumbers = tiePure(
 //     "adding two numbers",
 //     () => "There was an error",
 //     (a, b) => {
 //         console.log("ran func")
-//         or(isNum(a), TypeError("First arg must be number"))
-//         or(isNum(b), TypeError("Second arg must be number"))
+//         or(checkNum(a), TypeError("First arg must be number"))
+//         or(checkNum(b), TypeError("Second arg must be number"))
 
 //         return a + b
 //     }

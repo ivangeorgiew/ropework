@@ -1,16 +1,24 @@
 import { isDev, isTest } from "../api/constants"
-import { isArr, isBool, isFunc, isInt, isNil, isStr, or } from "../api/validating"
+import {
+    checkArr,
+    checkBool,
+    checkFunc,
+    checkInt,
+    checkNil,
+    checkStr,
+    or,
+} from "../api/validating"
 import { getCacheIdx, handledFuncs } from "./helpers"
 import { logError } from "./logging"
 
 export const createFunc = (descr, onError, func, isPure) => {
     try {
         if (isTest) {
-            or(isStr(descr), TypeError("First arg must be string"))
-            or(isFunc(onError), TypeError("Second arg must be function"))
-            or(isFunc(func), TypeError("Third arg must be function"))
+            or(checkStr(descr), TypeError("First arg must be string"))
+            or(checkFunc(onError), TypeError("Second arg must be function"))
+            or(checkFunc(func), TypeError("Third arg must be function"))
             or(
-                isNil(isPure) || isBool(isPure),
+                checkNil(isPure) || checkBool(isPure),
                 TypeError("Fourth arg must be boolean or undefined")
             )
         }
@@ -29,10 +37,10 @@ export const createFunc = (descr, onError, func, isPure) => {
             try {
                 if (isTest) {
                     or(
-                        isInt(_idx) && _idx >= 0,
+                        checkInt(_idx) && _idx >= 0,
                         TypeError("First arg must be positive integer")
                     )
-                    or(isArr(key), TypeError("Second arg must be array"))
+                    or(checkArr(key), TypeError("Second arg must be array"))
                 }
 
                 let idx = _idx > 5 ? 5 : _idx
@@ -62,7 +70,7 @@ export const createFunc = (descr, onError, func, isPure) => {
         const innerCatch = (args, error) => {
             try {
                 if (isTest) {
-                    or(isArr(args), TypeError("First arg must be array"))
+                    or(checkArr(args), TypeError("First arg must be array"))
                     or(error instanceof Error, TypeError("Second arg must be Error"))
                 }
 
@@ -95,7 +103,7 @@ export const createFunc = (descr, onError, func, isPure) => {
         const getCurry = args => {
             try {
                 if (isTest) {
-                    or(isArr(args), TypeError("First arg must be array"))
+                    or(checkArr(args), TypeError("First arg must be array"))
                 }
 
                 const result = function (...newArgs) {

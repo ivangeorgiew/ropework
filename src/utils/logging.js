@@ -1,5 +1,5 @@
 import { isServer, isTest, isWeb } from "../api/constants"
-import { isInt, isObj, isStr, or } from "../api/validating"
+import { checkInt, checkObj, checkStr, or } from "../api/validating"
 import { createArgsInfo, errorLogger, notify } from "./helpers"
 
 const errorsCache = []
@@ -7,8 +7,8 @@ const errorsCache = []
 const getErrorsCacheIdx = (errorDescr, msg) => {
     try {
         if (isTest) {
-            or(isStr(errorDescr), TypeError("First arg must be string"))
-            or(isStr(msg), TypeError("Second arg must be string"))
+            or(checkStr(errorDescr), TypeError("First arg must be string"))
+            or(checkStr(msg), TypeError("Second arg must be string"))
         }
 
         const errorsCacheLen = errorsCache.length
@@ -54,11 +54,11 @@ const manageErrorsCache = (_idx, errorDescr, msg) => {
     try {
         if (isTest) {
             or(
-                isInt(_idx) && _idx >= 0,
+                checkInt(_idx) && _idx >= 0,
                 TypeError("First arg must be positive integer")
             )
-            or(isStr(errorDescr), TypeError("Second arg must be string"))
-            or(isStr(msg), TypeError("Third arg must be string"))
+            or(checkStr(errorDescr), TypeError("Second arg must be string"))
+            or(checkStr(msg), TypeError("Third arg must be string"))
         }
 
         let idx = _idx > 5 ? 5 : _idx
@@ -91,7 +91,7 @@ const manageErrorsCache = (_idx, errorDescr, msg) => {
 export const logError = props => {
     try {
         if (isTest) {
-            or(isObj(props), TypeError("Must be given an object"))
+            or(checkObj(props), TypeError("Must be given an object"))
         }
 
         const errorDescr =
