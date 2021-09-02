@@ -6,18 +6,23 @@ import {
     checkStr,
     isTest,
     nodeErrorEvents,
-    or,
+    orThrow,
+    validateArgs,
     tieImpure,
     tiePure,
 } from "tied-up"
+
+const onConnectionSpec = [
+    [arg => arg instanceof Set, "First arg must be Set"],
+    [checkObj, "Second arg must be object"],
+]
 
 const onConnection = tieImpure(
     "adding sockets to server",
     () => {},
     (sockets, socket) => {
         if (isTest) {
-            or(sockets instanceof Set, TypeError("First arg must be Set"))
-            or(checkObj(socket), TypeError("Second arg must be object"))
+            validateArgs(onConnectionSpec, [sockets, socket])
         }
 
         socket.on("close", () => {
@@ -28,14 +33,18 @@ const onConnection = tieImpure(
     }
 )
 
+const onCloseSpec = [
+    [checkObj, "First arg must be object"],
+    [arg => arg instanceof Set, "Second arg must be Set"],
+    [checkStr, "Third arg must be string"],
+]
+
 const onClose = tieImpure(
     "handling server closing",
     () => {},
     (server, sockets, event, _) => {
         if (isTest) {
-            or(checkObj(server), TypeError("First arg must be object"))
-            or(sockets instanceof Set, TypeError("Second arg must be Set"))
-            or(checkStr(event), TypeError("Third arg must be string"))
+            validateArgs(onCloseSpec, [server, sockets, event])
         }
 
         server.close()
@@ -48,19 +57,24 @@ const onClose = tieImpure(
     }
 )
 
+const getHandledServerSpec = [
+    [
+        arg => checkObj(arg) && checkFunc(arg.on) && checkFunc(arg.close),
+        "First argument must be the server object.",
+    ],
+    [
+        arg => checkNil(arg) || arg instanceof Set,
+        "Second argument must be Set or undefined.",
+    ],
+]
+
 export const getHandledServer = tiePure(
     "initializing error handling for server",
     ({ args: [server] }) => server,
     (server, sockets_) => {
-        or(isServer, Error("This function is meant for server use"))
-        or(
-            checkObj(server) && checkFunc(server.on) && checkFunc(server.close),
-            TypeError("First argument must be the server object.")
-        )
-        or(
-            checkNil(sockets_) || sockets_ instanceof Set,
-            TypeError("Second argument (if given) must be a Set.")
-        )
+        validateArgs(getHandledServerSpec, [server, sockets_])
+
+        orThrow(isServer, "This function is meant for server use")
 
         const sockets = checkNil(sockets_) ? new Set() : sockets_
 

@@ -1,5 +1,6 @@
-// const { tiePure, globalHandleErrors } = require("../dist/test.cjs.js")
+// const { tiePure, changeOptions, globalHandleErrors } = require("../dist/test.cjs.js")
 // globalHandleErrors(true)
+// changeOptions({ errorLogger: console.error, notify: () => {} })
 
 // const fib = tiePure(
 //     "calculating fibonacci number",
@@ -106,6 +107,7 @@
 // ;(async () => {
 //     // console.log(await asyncF(10))
 //     // console.log(await asyncF(10))
+//     // console.log("\nafter the errors")
 
 //     const a = await asyncF(10)
 //     console.log(a)
@@ -115,14 +117,19 @@
 //     console.log(asyncF(10))
 // })()
 
-// const { checkNum, or } = require("../dist/test.cjs.js")
+// const { checkNum, validateArgs } = require("../dist/test.cjs.js")
+
+// const addNumbersSpec = [
+//     [checkNum, "First arg must be number"],
+//     [checkNum, "Second arg must be number"],
+// ]
+
 // const addNumbers = tiePure(
 //     "adding two numbers",
 //     () => "There was an error",
 //     (a, b) => {
 //         console.log("ran func")
-//         or(checkNum(a), TypeError("First arg must be number"))
-//         or(checkNum(b), TypeError("Second arg must be number"))
+//         validateArgs(addNumbersSpec, [a, b])
 
 //         return a + b
 //     }
@@ -138,3 +145,8 @@
 // console.log(copyOfAddTenTo("bla"))
 
 // console.log(copyOfAddTenTo())
+
+// changeOptions({ errorLogger: 5, notify: () => {} })
+// changeOptions({ errorLogger: console.error, notify: 5 })
+// changeOptions({ typo: () => {} })
+// changeOptions("blabla")

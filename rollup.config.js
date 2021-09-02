@@ -87,7 +87,7 @@ const reducer = (acc, [root, name]) =>
                     "process.env.NODE_ENV": JSON.stringify("production"),
                     "__TEST__": false,
                 }),
-                strip({ functions: ["or"] }),
+                strip({ functions: ["orThrow", "validateArgs"] }),
                 terser(terserOpts),
             ],
         },

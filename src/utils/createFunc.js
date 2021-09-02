@@ -5,22 +5,42 @@ import {
     checkFunc,
     checkInt,
     checkNil,
+    validateArgs,
     checkStr,
-    or,
 } from "../api/validating"
-import { getCacheIdx, handledFuncs } from "./helpers"
+import { getCacheIdx, handledFuncs } from "./createFuncHelpers"
+import { logErrorDefault } from "./helpers"
 import { logError } from "./logging"
+
+const createFuncSpec = [
+    [
+        arg => checkStr(arg) && arg.length > 2,
+        "First arg must be string longer than 2 characters",
+    ],
+    [checkFunc, "Second arg must be function"],
+    [checkFunc, "Third arg must be function"],
+    [
+        arg => checkNil(arg) || checkBool(arg),
+        "Fourth arg must be boolean or undefined",
+    ],
+]
+
+const manageCacheSpec = [
+    [arg => checkInt(arg) && arg >= 0, "First arg must be positive integer"],
+    [checkArr, "Second arg must be array"],
+]
+
+const innerCatchSpec = [
+    [checkArr, "First arg must be array"],
+    [arg => arg instanceof Error, "Second arg must be Error"],
+]
+
+const getCurrySpec = [[checkArr, "First arg must be array"]]
 
 export const createFunc = (descr, onError, func, isPure) => {
     try {
         if (isTest) {
-            or(checkStr(descr), TypeError("First arg must be string"))
-            or(checkFunc(onError), TypeError("Second arg must be function"))
-            or(checkFunc(func), TypeError("Third arg must be function"))
-            or(
-                checkNil(isPure) || checkBool(isPure),
-                TypeError("Fourth arg must be boolean or undefined")
-            )
+            validateArgs(createFuncSpec, [descr, onError, func, isPure])
         }
 
         if (handledFuncs.has(func)) {
@@ -36,11 +56,7 @@ export const createFunc = (descr, onError, func, isPure) => {
         const manageCache = (_idx, key, value) => {
             try {
                 if (isTest) {
-                    or(
-                        checkInt(_idx) && _idx >= 0,
-                        TypeError("First arg must be positive integer")
-                    )
-                    or(checkArr(key), TypeError("Second arg must be array"))
+                    validateArgs(manageCacheSpec, [_idx, key, value])
                 }
 
                 let idx = _idx > 5 ? 5 : _idx
@@ -55,7 +71,7 @@ export const createFunc = (descr, onError, func, isPure) => {
             } catch (error) {
                 if (isTest) {
                     try {
-                        logError({
+                        logErrorDefault({
                             descr: "manageCache",
                             args: [_idx, key, value],
                             error,
@@ -70,8 +86,7 @@ export const createFunc = (descr, onError, func, isPure) => {
         const innerCatch = (args, error) => {
             try {
                 if (isTest) {
-                    or(checkArr(args), TypeError("First arg must be array"))
-                    or(error instanceof Error, TypeError("Second arg must be Error"))
+                    validateArgs(innerCatchSpec, [args, error])
                 }
 
                 logError({ descr, error, args })
@@ -90,7 +105,11 @@ export const createFunc = (descr, onError, func, isPure) => {
             } catch (error) {
                 if (isTest) {
                     try {
-                        logError({ descr: "innerCatch", args: [args, error], error })
+                        logErrorDefault({
+                            descr: "innerCatch",
+                            args: [args, error],
+                            error,
+                        })
                     } catch (_e) {
                         // nothing
                     }
@@ -103,7 +122,7 @@ export const createFunc = (descr, onError, func, isPure) => {
         const getCurry = args => {
             try {
                 if (isTest) {
-                    or(checkArr(args), TypeError("First arg must be array"))
+                    validateArgs(getCurrySpec, [args])
                 }
 
                 const result = function (...newArgs) {
@@ -126,7 +145,7 @@ export const createFunc = (descr, onError, func, isPure) => {
             } catch (error) {
                 if (isTest) {
                     try {
-                        logError({ descr: "getCurry", args: [args], error })
+                        logErrorDefault({ descr: "getCurry", args: [args], error })
                     } catch (_e) {
                         // nothing
                     }
@@ -252,7 +271,7 @@ export const createFunc = (descr, onError, func, isPure) => {
     } catch (error) {
         if (isTest) {
             try {
-                logError({
+                logErrorDefault({
                     descr: "createFunc",
                     args: [descr, onError, func, isPure],
                     error,
@@ -262,6 +281,6 @@ export const createFunc = (descr, onError, func, isPure) => {
             }
         }
 
-        return func
+        return () => {}
     }
 }

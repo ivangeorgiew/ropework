@@ -1,7 +1,7 @@
 import { createFunc } from "../utils/createFunc"
 import { logError } from "../utils/logging"
 import { browserErrorEvents, isServer, isWeb, nodeErrorEvents } from "./constants"
-import { checkBool, or } from "./validating"
+import { checkBool, validateArgs } from "./validating"
 
 const uncaughtErrorListener = createFunc(
     "listening for uncaught errors",
@@ -38,11 +38,13 @@ const uncaughtErrorListener = createFunc(
     }
 )
 
+const globalHandleErrorsSpec = [[checkBool, "You must pass a boolean"]]
+
 export const globalHandleErrors = createFunc(
     "handling listeners for uncaught errors",
     () => {},
     shouldAdd => {
-        or(checkBool(shouldAdd), TypeError("You must pass a boolean"))
+        validateArgs(globalHandleErrorsSpec, [shouldAdd])
 
         if (isWeb) {
             browserErrorEvents.forEach(event => {

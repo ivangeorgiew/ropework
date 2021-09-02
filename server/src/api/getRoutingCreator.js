@@ -1,4 +1,12 @@
-import { tieImpure, isServer, or, checkFunc, checkNil, checkStr } from "tied-up"
+import {
+    tieImpure,
+    isServer,
+    orThrow,
+    validateArgs,
+    checkFunc,
+    checkNil,
+    checkStr,
+} from "tied-up"
 
 const defaultOnError = tieImpure(
     "catching server errors",
@@ -19,22 +27,26 @@ const defaultOnError = tieImpure(
     }
 )
 
+const getRoutingCreatorSpec = [
+    [checkFunc, "First argument must be a function"],
+    [
+        arg => checkFunc(arg) || checkNil(arg),
+        "Second argument must be a function or undefined",
+    ],
+    [checkStr, "Third argument must be string"],
+    [checkStr, "Fourth argument must be string"],
+    [checkFunc, "Fifth argument must be function"],
+]
+
 export const getRoutingCreator = tieImpure(
     "creating route for the server",
     () => {},
     (app, onError_, method, path, callback) => {
-        or(isServer, Error("This function is meant for server use"))
-        or(checkFunc(app), TypeError("First argument must be a function"))
-        or(
-            checkFunc(onError_) || checkNil(onError_),
-            TypeError("Second argument (if given) must be a function")
-        )
+        validateArgs(getRoutingCreatorSpec, [app, onError_, method, path, callback])
+
+        orThrow(isServer, "This function is meant for server use")
 
         const onError = checkNil(onError_) ? defaultOnError : onError_
-
-        or(checkStr(method), TypeError("First argument must be the method key."))
-        or(checkStr(path), TypeError("Second argument must be the routing path."))
-        or(checkFunc(callback), TypeError("Third argument must be the callback."))
 
         app[method](
             path,
