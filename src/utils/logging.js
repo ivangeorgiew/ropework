@@ -72,11 +72,7 @@ export const logError = props => {
         manageErrorsCache(errorsCache.length, errorDescr, msg)
     } catch (error) {
         if (isTest) {
-            try {
-                logErrorDefault({ descr: "logError", args: [props], error })
-            } catch (_e) {
-                // nothing
-            }
+            logErrorDefault({ descr: "logError", args: [props], error })
         }
     }
 }

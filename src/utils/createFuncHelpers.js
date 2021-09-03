@@ -45,11 +45,7 @@ const checkEqual = (a, b) => {
         }
     } catch (error) {
         if (isTest) {
-            try {
-                logErrorDefault({ descr: "checkEqual", args: [a, b], error })
-            } catch (_e) {
-                // nothing
-            }
+            logErrorDefault({ descr: "checkEqual", args: [a, b], error })
         }
 
         return false
@@ -94,15 +90,7 @@ export const getCacheIdx = (args, cacheKeys) => {
         return -1
     } catch (error) {
         if (isTest) {
-            try {
-                logErrorDefault({
-                    descr: "getCacheIdx",
-                    args: [args, cacheKeys],
-                    error,
-                })
-            } catch (_e) {
-                // nothing
-            }
+            logErrorDefault({ descr: "getCacheIdx", args: [args, cacheKeys], error })
         }
 
         return -1

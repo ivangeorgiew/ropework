@@ -38,15 +38,11 @@ export const getErrorsCacheIdx = (errorDescr, msg) => {
         return -1
     } catch (error) {
         if (isTest) {
-            try {
-                logErrorDefault({
-                    descr: "getErrorsCacheIdx",
-                    args: [errorDescr, msg],
-                    error,
-                })
-            } catch (_e) {
-                // nothing
-            }
+            logErrorDefault({
+                descr: "getErrorsCacheIdx",
+                args: [errorDescr, msg],
+                error,
+            })
         }
 
         return -1
@@ -74,15 +70,11 @@ export const manageErrorsCache = (_idx, errorDescr, msg) => {
         errorsCache[0] = { errorDescr, msg, time: Date.now() }
     } catch (error) {
         if (isTest) {
-            try {
-                logErrorDefault({
-                    descr: "manageErrorsCache",
-                    args: [_idx, errorDescr, msg],
-                    error,
-                })
-            } catch (_e) {
-                // nothing
-            }
+            logErrorDefault({
+                descr: "manageErrorsCache",
+                args: [_idx, errorDescr, msg],
+                error,
+            })
         }
     }
 }

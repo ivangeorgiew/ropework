@@ -65,16 +65,12 @@ export const createArgsInfo = args => {
         return argsInfo === "" ? "no args" : argsInfo
     } catch (error) {
         if (isTest) {
-            try {
-                defaultLogger(
-                    "\n Issue with: createArgsInfo\n",
-                    `Function arguments types: ${typeof args}\n`,
-                    error,
-                    "\n"
-                )
-            } catch (_e) {
-                // nothing
-            }
+            defaultLogger(
+                "\n Issue with: createArgsInfo\n",
+                `Function arguments types: ${typeof args}\n`,
+                error,
+                "\n"
+            )
         }
 
         return "unknown args"
@@ -105,16 +101,12 @@ export const logErrorDefault = props => {
             "\n"
         )
     } catch (error) {
-        try {
-            defaultLogger(
-                `\n Issue with: logErrorDefault\n`,
-                `Function arguments: ${createArgsInfo([props])}\n`,
-                error,
-                "\n"
-            )
-        } catch (_e) {
-            // nothing
-        }
+        defaultLogger(
+            `\n Issue with: logErrorDefault\n`,
+            `Function arguments: ${createArgsInfo([props])}\n`,
+            error,
+            "\n"
+        )
     }
 }
 
@@ -128,11 +120,7 @@ export const errorLogger = (...args) => {
         try {
             options.errorLogger.apply(null, args)
         } catch (error) {
-            try {
-                logErrorDefault({ descr: "errorLogger", args, error })
-            } catch (_e) {
-                // nothing
-            }
+            logErrorDefault({ descr: "errorLogger", args, error })
         }
     }
 }
@@ -141,10 +129,6 @@ export const notify = (...args) => {
     try {
         options.notify.apply(null, args)
     } catch (error) {
-        try {
-            logErrorDefault({ descr: "notify", args, error })
-        } catch (_e) {
-            // nothing
-        }
+        logErrorDefault({ descr: "notify", args, error })
     }
 }
