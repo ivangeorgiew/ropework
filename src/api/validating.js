@@ -1,3 +1,5 @@
+import { isTest } from "./constants"
+
 export const checkStr = val => typeof val === "string"
 export const checkNum = val => typeof val === "number"
 export const checkInt = val => Number.isInteger(val) && Number.isFinite(val)
@@ -42,29 +44,66 @@ export const validateArgs = (spec, args, ErrorConstr) => {
 
     const InnerError = checkNil(ErrorConstr) ? Error : ErrorConstr
 
+    const validateItem = (item, idx, key) => {
+        if (isTest) {
+            orThrow(
+                (checkArr(item) && item.length === 2) || checkObj(item),
+                `validateArgs -> validateItem -> First arg must be array with 2 items or object`
+            )
+            orThrow(
+                checkInt(idx) && idx >= 0,
+                `validateArgs -> validateItem -> Second arg must be positive integer`
+            )
+            orThrow(
+                checkStr(key) || checkNil(key),
+                `validateArgs -> validateItem -> Third arg must be string or undefined`
+            )
+        }
+
+        const isNested = checkStr(key)
+        const [getIsValid, msg] = isNested ? item[key] : item
+        const extra = isNested ? `[${key}]` : ""
+
+        orThrow(
+            checkFunc(getIsValid),
+            `validateArgs -> firstArg[${idx}]${extra}[0] must be function`
+        )
+        orThrow(
+            checkStr(msg),
+            `validateArgs -> firstArg[${idx}]${extra}[1] must be string`
+        )
+
+        const isValid = getIsValid(isNested ? args[idx][key] : args[idx])
+
+        orThrow(
+            checkBool(isValid),
+            `validateArgs -> firstArg[${idx}]${extra}[0] must return boolean`
+        )
+
+        orThrow(isValid, msg, InnerError)
+    }
+
     for (let i = 0; i < spec.length; i++) {
         const item = spec[i]
 
         orThrow(
-            checkArr(item) && item.length === 2,
-            `validateArgs -> firstArg[${i}] must be array with 2 items`
+            (checkArr(item) && item.length === 2) || checkObj(item),
+            `validateArgs -> firstArg[${i}] must be array with 2 items or object`
         )
 
-        const [getIsValid, msg] = item
+        if (checkArr(item)) {
+            validateItem(item, i)
+        } else {
+            orThrow(
+                checkObj(args[i]) || checkArr(args[i]),
+                `Argument with index ${i} must be object or array`
+            )
 
-        orThrow(
-            checkFunc(getIsValid),
-            `validateArgs -> firstArg[${i}][0] must be function`
-        )
-        orThrow(checkStr(msg), `validateArgs -> firstArg[${i}][1] must be string`)
+            const keys = Object.keys(item)
 
-        const isValid = getIsValid(args[i])
-
-        orThrow(
-            checkBool(isValid),
-            `validateArgs -> firstArg[${i}][0] must return boolean`
-        )
-
-        orThrow(isValid, msg, InnerError)
+            for (let m = 0; m < keys.length; m++) {
+                validateItem(item, i, keys[m])
+            }
+        }
     }
 }

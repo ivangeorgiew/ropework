@@ -77,20 +77,19 @@ export const createArgsInfo = args => {
     }
 }
 
-const logErrorDefaultSpec = [
-    [
-        arg =>
-            checkObj(arg) &&
-            checkStr(arg.descr) &&
-            checkArr(arg.args) &&
-            arg.error instanceof Error,
-        "You must pass an { descr: string, args: array, error: instanceof Error }",
-    ],
+export const logErrorSpec = [
+    {
+        descr: [checkStr, "`descr` must be string"],
+        args: [checkArr, "`args` must be array"],
+        error: [arg => arg instanceof Error, "`error` must be instanceof Error"],
+    },
 ]
 
 export const logErrorDefault = props => {
     try {
-        validateArgs(logErrorDefaultSpec, [props])
+        if (isTest) {
+            validateArgs(logErrorSpec, [props])
+        }
 
         const { descr, args, error } = props
 
@@ -101,12 +100,14 @@ export const logErrorDefault = props => {
             "\n"
         )
     } catch (error) {
-        defaultLogger(
-            `\n Issue with: logErrorDefault\n`,
-            `Function arguments: ${createArgsInfo([props])}\n`,
-            error,
-            "\n"
-        )
+        if (isTest) {
+            defaultLogger(
+                `\n Issue with: logErrorDefault\n`,
+                `Function arguments: ${createArgsInfo([props])}\n`,
+                error,
+                "\n"
+            )
+        }
     }
 }
 

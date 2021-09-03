@@ -1,9 +1,13 @@
 import { isServer, isTest, isWeb } from "../api/constants"
-import { checkObj, validateArgs } from "../api/validating"
-import { createArgsInfo, errorLogger, logErrorDefault, notify } from "./helpers"
+import { validateArgs } from "../api/validating"
+import {
+    createArgsInfo,
+    errorLogger,
+    logErrorDefault,
+    logErrorSpec,
+    notify,
+} from "./helpers"
 import { errorsCache, getErrorsCacheIdx, manageErrorsCache } from "./loggingHelpers"
-
-const logErrorSpec = [[checkObj, "Must be given an object"]]
 
 export const logError = props => {
     try {
@@ -11,22 +15,15 @@ export const logError = props => {
             validateArgs(logErrorSpec, [props])
         }
 
-        const errorDescr =
-            "Issue with: " +
-            (typeof props.descr === "string" ? props.descr : "part of the app")
+        const { descr, args, error } = props
 
-        const error =
-            props.error instanceof Error ? props.error : new Error("Unknown error")
-
-        const args = Array.isArray(props.args) ? props.args : []
-
-        const msg = error.message
-
-        const cacheIdx = getErrorsCacheIdx(errorDescr, msg)
+        const errorDescr = `Issue with: ${descr}`
+        const errorMsg = error.message
+        const cacheIdx = getErrorsCacheIdx(errorDescr, errorMsg)
 
         if (cacheIdx !== -1) {
             if (cacheIdx !== 0) {
-                manageErrorsCache(cacheIdx, errorDescr, msg)
+                manageErrorsCache(cacheIdx, errorDescr, errorMsg)
             }
 
             return
@@ -69,7 +66,7 @@ export const logError = props => {
             "\n"
         )
 
-        manageErrorsCache(errorsCache.length, errorDescr, msg)
+        manageErrorsCache(errorsCache.length, errorDescr, errorMsg)
     } catch (error) {
         if (isTest) {
             logErrorDefault({ descr: "logError", args: [props], error })

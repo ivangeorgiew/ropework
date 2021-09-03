@@ -8,27 +8,28 @@ const uncaughtErrorListener = createFunc(
     () => {},
     eventOrError => {
         const descr = "unhandled error"
+        const unknownMsg = "Unknown error"
 
         if (isWeb) {
             const error = !(eventOrError instanceof Event)
-                ? undefined
+                ? Error(unknownMsg)
                 : eventOrError.reason instanceof Error
                 ? eventOrError.reason
                 : eventOrError.error instanceof Error
                 ? eventOrError.error
-                : undefined
+                : Error(unknownMsg)
 
             if (eventOrError instanceof Event) {
                 eventOrError.stopImmediatePropagation()
                 eventOrError.preventDefault()
             }
 
-            logError({ descr, error })
+            logError({ descr, args: [], error })
         } else if (isServer) {
             const exitCode = eventOrError instanceof Error ? 1 : 0
 
             if (eventOrError instanceof Error) {
-                logError({ descr, error: eventOrError })
+                logError({ descr, args: [], error: eventOrError })
             }
 
             setTimeout(() => {
