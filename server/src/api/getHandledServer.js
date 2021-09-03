@@ -13,8 +13,8 @@ import {
 } from "tied-up"
 
 const onConnectionSpec = [
-    [arg => arg instanceof Set, "First arg must be Set"],
-    [checkObj, "Second arg must be object"],
+    [arg => arg instanceof Set, "must be Set"],
+    [checkObj, "must be object"],
 ]
 
 const onConnection = tieImpure(
@@ -34,9 +34,9 @@ const onConnection = tieImpure(
 )
 
 const onCloseSpec = [
-    [checkObj, "First arg must be object"],
-    [arg => arg instanceof Set, "Second arg must be Set"],
-    [checkStr, "Third arg must be string"],
+    [checkObj, "must be object"],
+    [arg => arg instanceof Set, "must be Set"],
+    [checkStr, "must be string"],
 ]
 
 const onClose = tieImpure(
@@ -60,12 +60,9 @@ const onClose = tieImpure(
 const getHandledServerSpec = [
     [
         arg => checkObj(arg) && checkFunc(arg.on) && checkFunc(arg.close),
-        "First argument must be the server object.",
+        "must be the server object.",
     ],
-    [
-        arg => checkNil(arg) || arg instanceof Set,
-        "Second argument must be Set or undefined.",
-    ],
+    [arg => checkNil(arg) || arg instanceof Set, "must be Set or undefined."],
 ]
 
 export const getHandledServer = tiePure(

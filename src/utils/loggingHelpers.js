@@ -1,12 +1,12 @@
 import { isTest } from "../api/constants"
-import { checkInt, checkStr, validateArgs } from "../api/validating"
+import { checkIdx, checkStr, validateArgs } from "../api/validating"
 import { logErrorDefault } from "./helpers"
 
 export const errorsCache = []
 
 const getErrorsCacheIdxSpec = [
-    [checkStr, "First arg must be string"],
-    [checkStr, "Second arg must be string"],
+    [checkStr, "must be string"],
+    [checkStr, "must be string"],
 ]
 
 export const getErrorsCacheIdx = (errorDescr, msg) => {
@@ -50,9 +50,9 @@ export const getErrorsCacheIdx = (errorDescr, msg) => {
 }
 
 const manageErrorsCacheSpec = [
-    [arg => checkInt(arg) && arg >= 0, "First arg must be positive integer"],
-    [checkStr, "Second arg must be string"],
-    [checkStr, "Third arg must be string"],
+    [checkIdx, "must be valid index"],
+    [checkStr, "must be string"],
+    [checkStr, "must be string"],
 ]
 
 export const manageErrorsCache = (_idx, errorDescr, msg) => {

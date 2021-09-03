@@ -3,10 +3,12 @@ import { isTest } from "./constants"
 export const checkStr = val => typeof val === "string"
 export const checkNum = val => typeof val === "number"
 export const checkInt = val => Number.isInteger(val) && Number.isFinite(val)
+export const checkIdx = val => checkInt(val) && val >= 0
 export const checkBigInt = val => typeof val === "bigint"
 export const checkBool = val => typeof val === "boolean"
 export const checkSym = val => typeof val === "symbol"
 export const checkNil = val => val === undefined || val === null
+export const checkNotNil = val => !checkNil(val)
 export const checkFunc = val => typeof val === "function"
 export const checkArr = val => Array.isArray(val)
 export const checkObj = val =>
@@ -16,15 +18,15 @@ export const checkErrorConstr = val =>
 
 export const orThrow = (isValid, msg, ErrorConstr) => {
     if (!checkBool(isValid)) {
-        throw Error("First arg to [orThrow] must be boolean")
+        throw Error("orThrow -> arguments[0] must be boolean")
     }
 
     if (!checkStr(msg)) {
-        throw Error("Second arg to [orThrow] must be string")
+        throw Error("orThrow -> argumenst[1] must be string")
     }
 
     if (!checkNil(ErrorConstr) && !checkErrorConstr(ErrorConstr)) {
-        throw Error("Third arg to [orThrow] must be undefined or Error constructor")
+        throw Error("orThrow -> arguments[2] must be undefined or Error constructor")
     }
 
     const InnerError = checkNil(ErrorConstr) ? Error : ErrorConstr
@@ -35,11 +37,11 @@ export const orThrow = (isValid, msg, ErrorConstr) => {
 }
 
 export const validateArgs = (spec, args, ErrorConstr) => {
-    orThrow(checkArr(spec), "First arg to [validateArgs] must be array")
-    orThrow(checkArr(args), "Second arg to [validateArgs] must be array")
+    orThrow(checkArr(spec), "validateArgs -> arguments[0] must be array")
+    orThrow(checkArr(args), "validateArgs -> arguments[1] must be array")
     orThrow(
         checkNil(ErrorConstr) || checkErrorConstr(ErrorConstr),
-        "Third arg to [validateArgs] must be undefined or Error constructor"
+        "validateArgs -> arguments[2] must be undefined or Error constructor"
     )
 
     const InnerError = checkNil(ErrorConstr) ? Error : ErrorConstr
@@ -48,15 +50,15 @@ export const validateArgs = (spec, args, ErrorConstr) => {
         if (isTest) {
             orThrow(
                 (checkArr(item) && item.length === 2) || checkObj(item),
-                `validateArgs -> validateItem -> First arg must be array with 2 items or object`
+                `validateArgs -> validateItem -> arguments[0] must be array with 2 items or object`
             )
             orThrow(
-                checkInt(idx) && idx >= 0,
-                `validateArgs -> validateItem -> Second arg must be positive integer`
+                checkIdx(idx),
+                `validateArgs -> validateItem -> arguments[1] must be valid index`
             )
             orThrow(
                 checkStr(key) || checkNil(key),
-                `validateArgs -> validateItem -> Third arg must be string or undefined`
+                `validateArgs -> validateItem -> arguments[2] must be string or undefined`
             )
         }
 
@@ -66,21 +68,23 @@ export const validateArgs = (spec, args, ErrorConstr) => {
 
         orThrow(
             checkFunc(getIsValid),
-            `validateArgs -> firstArg[${idx}]${extra}[0] must be function`
+            `validateArgs -> arguments[0][${idx}]${extra}[0] must be function`
         )
         orThrow(
             checkStr(msg),
-            `validateArgs -> firstArg[${idx}]${extra}[1] must be string`
+            `validateArgs -> arguments[0][${idx}]${extra}[1] must be string`
         )
 
         const isValid = getIsValid(isNested ? args[idx][key] : args[idx])
 
         orThrow(
             checkBool(isValid),
-            `validateArgs -> firstArg[${idx}]${extra}[0] must return boolean`
+            `validateArgs -> arguments[0][${idx}]${extra}[0] must return boolean`
         )
 
-        orThrow(isValid, msg, InnerError)
+        const wholeMsg = `arguments[${idx}]${extra} - ${msg}`
+
+        orThrow(isValid, wholeMsg, InnerError)
     }
 
     for (let i = 0; i < spec.length; i++) {
@@ -88,7 +92,7 @@ export const validateArgs = (spec, args, ErrorConstr) => {
 
         orThrow(
             (checkArr(item) && item.length === 2) || checkObj(item),
-            `validateArgs -> firstArg[${i}] must be array with 2 items or object`
+            `validateArgs -> arguments[0][${i}] must be array with length 2 or object`
         )
 
         if (checkArr(item)) {
@@ -96,7 +100,7 @@ export const validateArgs = (spec, args, ErrorConstr) => {
         } else {
             orThrow(
                 checkObj(args[i]) || checkArr(args[i]),
-                `Argument with index ${i} must be object or array`
+                `arguments[${i}] - must be object or array`
             )
 
             const keys = Object.keys(item)

@@ -53,8 +53,8 @@ const checkEqual = (a, b) => {
 }
 
 const getCacheIdxSpec = [
-    [checkArr, "First arg must be array"],
-    [checkArr, "Second arg must be array"],
+    [checkArr, "must be array"],
+    [checkArr, "must be array"],
 ]
 
 export const getCacheIdx = (args, cacheKeys) => {

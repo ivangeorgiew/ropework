@@ -31,14 +31,11 @@ const defaultOnError = tieImpure(
 )
 
 const getRoutingCreatorSpec = [
-    [checkFunc, "First argument must be a function"],
-    [
-        arg => checkFunc(arg) || checkNil(arg),
-        "Second argument must be a function or undefined",
-    ],
-    [checkStr, "Third argument must be string"],
-    [checkStr, "Fourth argument must be string"],
-    [checkFunc, "Fifth argument must be function"],
+    [checkFunc, "must be a function"],
+    [arg => checkFunc(arg) || checkNil(arg), "must be function or undefined"],
+    [checkStr, "must be string"],
+    [checkStr, "must be string"],
+    [checkFunc, "must be function"],
 ]
 
 export const getRoutingCreator = tieImpure(

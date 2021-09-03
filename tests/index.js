@@ -1,11 +1,29 @@
-// const { tiePure, changeOptions, globalHandleErrors } = require("../dist/test.cjs.js")
+// const {
+//     tiePure,
+//     changeOptions,
+//     globalHandleErrors,
+//     checkIdx,
+//     checkNotNil,
+//     validateArgs,
+// } = require("../dist/test.cjs.js")
 // globalHandleErrors(true)
 // changeOptions({ errorLogger: console.error, notify: () => {} })
+
+// const fibSpec = [
+//     [checkIdx, "must be positive int or 0"],
+//     [checkNotNil, "must not be undefined"],
+//     [checkNotNil, "must not be undefined"],
+//     [checkNotNil, "must not be undefined"],
+//     [checkNotNil, "must not be undefined"],
+//     [checkNotNil, "must not be undefined"],
+// ]
 
 // const fib = tiePure(
 //     "calculating fibonacci number",
 //     () => "Not a number",
 //     (n, a, b, c, d, e) => {
+//         validateArgs(fibSpec, [n, a, b, c, d, e])
+
 //         if (n <= 1) return n
 
 //         const pre = fib(n - 2, a, b, c, d, e)
@@ -24,37 +42,51 @@
 
 // d.myself = d
 
+// const ASpec = [{ a: [checkNotNil, "must not be undefined"] }]
 // const A = tiePure(
 //     "class A",
 //     () => ({}),
 //     class {
-//         constructor({ a }) {
+//         constructor(props) {
+//             validateArgs(ASpec, [props])
+
+//             const { a } = props
 //             this.a = a
 //             this.b = 6
 //         }
 //     }
 // )
 
+// const BSpec = [{ ...ASpec[0], c: [checkNotNil, "must not be undefined"] }]
 // const B = tiePure(
 //     "class B",
 //     () => ({}),
 //     class extends A {
-//         constructor({ a, b }) {
+//         constructor(props) {
+//             validateArgs(BSpec, [props])
+
+//             const { a, c } = props
 //             super({ a })
-//             this.c = b
+//             this.c = c
 //         }
 //     }
 // )
 
-// console.log(fib(500000, a, b, c, d, B))
-// console.log(fib(500000, a, b, c, d, B))
-// console.log(fib(4000, a, b, c, d, B))
-// console.log(fib(4000, a, b, c, d, B))
+// const e = new B({ a: 3, c: true })
+
+// console.log(fib(500000, a, b, c, d, e))
+// console.log(fib(500000, a, b, c, d, e))
+// console.log(fib(4000, a, b, c, d, e))
+// console.log(fib(4000, a, b, c, d, e))
+
+// const numSpec = [[checkIdx, "must be positive int or 0"]]
 
 // const asyncGen = tiePure(
 //     "asynchronous generator function test",
 //     () => 123,
 //     async function* (i) {
+//         validateArgs(numSpec, [i])
+
 //         yield i
 //         await new Promise(resolve => {
 //             setTimeout(resolve, 1000)
@@ -78,6 +110,8 @@
 //     "generator function test",
 //     () => 123,
 //     function* (i) {
+//         validateArgs(numSpec, [i])
+
 //         yield i
 //         // throw new Error("intended")
 //         return i + 10
@@ -95,6 +129,8 @@
 //     "asynchronous function test",
 //     () => "error val",
 //     async i => {
+//         validateArgs(numSpec, [i])
+
 //         // await asyncF(i + 1)
 //         await new Promise(resolve => {
 //             setTimeout(resolve, 1000)
@@ -117,13 +153,7 @@
 //     console.log(asyncF(10))
 // })()
 
-// const { checkNum, validateArgs } = require("../dist/test.cjs.js")
-
-// const addNumbersSpec = [
-//     [checkNum, "First arg must be number"],
-//     [checkNum, "Second arg must be number"],
-// ]
-
+// const addNumbersSpec = [numSpec[0], numSpec[0]]
 // const addNumbers = tiePure(
 //     "adding two numbers",
 //     () => "There was an error",

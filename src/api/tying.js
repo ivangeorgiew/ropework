@@ -2,9 +2,9 @@ import { createFunc } from "../utils/createFunc"
 import { checkFunc, checkStr, validateArgs } from "./validating"
 
 const tieSpec = [
-    [checkStr, "First argument must be the description string"],
-    [checkFunc, "Second argument must be the function called on error"],
-    [checkFunc, "Third argument must be the main function"],
+    [checkStr, "must be the description string"],
+    [checkFunc, "must be the function called on error"],
+    [checkFunc, "must be the main function"],
 ]
 
 export const tieImpure = createFunc(

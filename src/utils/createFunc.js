@@ -3,7 +3,7 @@ import {
     checkArr,
     checkBool,
     checkFunc,
-    checkInt,
+    checkIdx,
     checkNil,
     validateArgs,
     checkStr,
@@ -13,29 +13,23 @@ import { logErrorDefault } from "./helpers"
 import { logError } from "./logging"
 
 const createFuncSpec = [
-    [
-        arg => checkStr(arg) && arg.length > 2,
-        "First arg must be string longer than 2 characters",
-    ],
-    [checkFunc, "Second arg must be function"],
-    [checkFunc, "Third arg must be function"],
-    [
-        arg => checkNil(arg) || checkBool(arg),
-        "Fourth arg must be boolean or undefined",
-    ],
+    [arg => checkStr(arg) && arg.length > 2, "must be string longer than 2"],
+    [checkFunc, "must be function"],
+    [checkFunc, "must be function"],
+    [arg => checkNil(arg) || checkBool(arg), "must be boolean or undefined"],
 ]
 
 const manageCacheSpec = [
-    [arg => checkInt(arg) && arg >= 0, "First arg must be positive integer"],
-    [checkArr, "Second arg must be array"],
+    [checkIdx, "must be valid index"],
+    [checkArr, "must be array"],
 ]
 
 const innerCatchSpec = [
-    [checkArr, "First arg must be array"],
-    [arg => arg instanceof Error, "Second arg must be Error"],
+    [checkArr, "must be array"],
+    [arg => arg instanceof Error, "must be Error"],
 ]
 
-const getCurrySpec = [[checkArr, "First arg must be array"]]
+const getCurrySpec = [[checkArr, "must be array"]]
 
 export const createFunc = (descr, onError, func, isPure) => {
     try {

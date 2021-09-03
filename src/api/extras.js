@@ -3,7 +3,7 @@ import { handledFuncs } from "../utils/createFuncHelpers"
 import { options } from "../utils/helpers"
 import { checkFunc, checkObj, orThrow, validateArgs } from "./validating"
 
-const changeOptionsSpec = [[checkObj, "You must pass an object"]]
+const changeOptionsSpec = [[checkObj, "must be object"]]
 
 export const changeOptions = createFunc(
     "changing global options",
@@ -23,7 +23,7 @@ export const changeOptions = createFunc(
     }
 )
 
-const clearCacheForSpec = [[checkFunc, "You must pass a function"]]
+const clearCacheForSpec = [[checkFunc, "must be function"]]
 
 export const clearCacheFor = createFunc(
     "clear cache for a tied function",

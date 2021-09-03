@@ -39,7 +39,7 @@ const uncaughtErrorListener = createFunc(
     }
 )
 
-const globalHandleErrorsSpec = [[checkBool, "You must pass a boolean"]]
+const globalHandleErrorsSpec = [[checkBool, "must be boolean"]]
 
 export const globalHandleErrors = createFunc(
     "handling listeners for uncaught errors",

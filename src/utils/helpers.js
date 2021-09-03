@@ -37,7 +37,7 @@ const stringifyAll = data => {
     }
 }
 
-const createArgsInfoSpec = [[checkArr, "Must be passed array"]]
+const createArgsInfoSpec = [[checkArr, "must be array"]]
 
 export const createArgsInfo = args => {
     try {
@@ -79,9 +79,9 @@ export const createArgsInfo = args => {
 
 export const logErrorSpec = [
     {
-        descr: [checkStr, "`descr` must be string"],
-        args: [checkArr, "`args` must be array"],
-        error: [arg => arg instanceof Error, "`error` must be instanceof Error"],
+        descr: [checkStr, "must be string"],
+        args: [checkArr, "must be array"],
+        error: [arg => arg instanceof Error, "must be Error"],
     },
 ]
 
