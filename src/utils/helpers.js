@@ -101,12 +101,16 @@ export const logErrorDefault = props => {
         )
     } catch (error) {
         if (isTest) {
-            defaultLogger(
-                `\n Issue with: logErrorDefault\n`,
-                `Function arguments: ${createArgsInfo([props])}\n`,
-                error,
-                "\n"
-            )
+            try {
+                defaultLogger(
+                    `\n Issue with: logErrorDefault\n`,
+                    `Function arguments: ${createArgsInfo([props])}\n`,
+                    error,
+                    "\n"
+                )
+            } catch (_e) {
+                // nothing
+            }
         }
     }
 }
@@ -121,7 +125,11 @@ export const errorLogger = (...args) => {
         try {
             options.errorLogger.apply(null, args)
         } catch (error) {
-            logErrorDefault({ descr: "errorLogger", args, error })
+            try {
+                logErrorDefault({ descr: "errorLogger", args, error })
+            } catch (_e) {
+                // nothing
+            }
         }
     }
 }
@@ -130,6 +138,10 @@ export const notify = (...args) => {
     try {
         options.notify.apply(null, args)
     } catch (error) {
-        logErrorDefault({ descr: "notify", args, error })
+        try {
+            logErrorDefault({ descr: "notify", args, error })
+        } catch (_e) {
+            // nothing
+        }
     }
 }

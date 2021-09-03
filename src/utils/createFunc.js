@@ -64,11 +64,15 @@ export const createFunc = (descr, onError, func, isPure) => {
                 cacheValues[0] = value
             } catch (error) {
                 if (isTest) {
-                    logErrorDefault({
-                        descr: "manageCache",
-                        args: [_idx, key, value],
-                        error,
-                    })
+                    try {
+                        logErrorDefault({
+                            descr: "manageCache",
+                            args: [_idx, key, value],
+                            error,
+                        })
+                    } catch (_e) {
+                        // nothing
+                    }
                 }
             }
         }
@@ -94,11 +98,15 @@ export const createFunc = (descr, onError, func, isPure) => {
                 }
             } catch (error) {
                 if (isTest) {
-                    logErrorDefault({
-                        descr: "innerCatch",
-                        args: [args, error],
-                        error,
-                    })
+                    try {
+                        logErrorDefault({
+                            descr: "innerCatch",
+                            args: [args, error],
+                            error,
+                        })
+                    } catch (_e) {
+                        // nothing
+                    }
                 }
 
                 return undefined
@@ -130,7 +138,11 @@ export const createFunc = (descr, onError, func, isPure) => {
                 return result
             } catch (error) {
                 if (isTest) {
-                    logErrorDefault({ descr: "getCurry", args: [args], error })
+                    try {
+                        logErrorDefault({ descr: "getCurry", args: [args], error })
+                    } catch (_e) {
+                        // nothing
+                    }
                 }
 
                 return innerCatch(args, error)
@@ -252,11 +264,15 @@ export const createFunc = (descr, onError, func, isPure) => {
         return innerFunc
     } catch (error) {
         if (isTest) {
-            logErrorDefault({
-                descr: "createFunc",
-                args: [descr, onError, func, isPure],
-                error,
-            })
+            try {
+                logErrorDefault({
+                    descr: "createFunc",
+                    args: [descr, onError, func, isPure],
+                    error,
+                })
+            } catch (_e) {
+                // nothing
+            }
         }
 
         return () => {}
