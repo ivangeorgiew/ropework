@@ -11,7 +11,10 @@ import {
 const defaultOnError = tieImpure(
     "catching server errors",
     () => {},
-    ({ descr, error, args: [, res] }) => {
+    props => {
+        const { descr, error, args } = props
+
+        const res = args[1]
         const message = error instanceof Error ? error.message : error
         const stack = error instanceof Error ? error.stack : ""
 

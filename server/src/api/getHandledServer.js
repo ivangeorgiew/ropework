@@ -70,7 +70,12 @@ const getHandledServerSpec = [
 
 export const getHandledServer = tiePure(
     "initializing error handling for server",
-    ({ args: [server] }) => server,
+    props => {
+        const { args } = props
+        const [server] = args
+
+        return server
+    },
     (server, sockets_) => {
         validateArgs(getHandledServerSpec, [server, sockets_])
 

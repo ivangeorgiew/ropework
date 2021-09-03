@@ -39,6 +39,8 @@
         "build": "pnpm clean && rollup -c",
         "bump": "pnpm version patch",
         "bigbump": "pnpm version minor",
+        "lint": "eslint --cache \"**/!(dist)/*.js\"",
+        "format": "prettier --write \"**/!(dist)/*.{js,json,md}\"",
         "test": "NODE_ENV=test node ./tests/index.js"
     },
     "lint-staged": {
@@ -80,7 +82,7 @@
     "bugs": "https://github.com/ivangeorgiew/tied-up/issues",
     "homepage": "https://github.com/ivangeorgiew/tied-up#readme",
     "devDependencies": {
-        "@ivan_georgiew/eslint-config": "^1.0.4",
+        "@ivan_georgiew/eslint-config": "^1.0.5",
         "@ivan_georgiew/prettier-config": "^1.0.4",
         "@rollup/plugin-replace": "^3.0.0",
         "@rollup/plugin-strip": "^2.1.0",
