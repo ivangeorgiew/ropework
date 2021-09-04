@@ -1,11 +1,10 @@
 import {
     tieImpure,
     isServer,
-    orThrow,
-    validateArgs,
-    checkFunc,
+    createValidator,
     checkNil,
-    checkStr,
+    funcDef,
+    strDef,
 } from "tied-up"
 
 const defaultOnError = tieImpure(
@@ -31,20 +30,26 @@ const defaultOnError = tieImpure(
 )
 
 const getRoutingCreatorSpec = [
-    [checkFunc, "must be a function"],
-    [arg => checkFunc(arg) || checkNil(arg), "must be function or undefined"],
-    [checkStr, "must be string"],
-    [checkStr, "must be string"],
-    [checkFunc, "must be function"],
+    funcDef,
+    [
+        arg => typeof arg === "function" || checkNil(arg),
+        "must be function or undefined",
+    ],
+    strDef,
+    strDef,
+    funcDef,
 ]
+const getRoutingCreatorValidate = createValidator(getRoutingCreatorSpec)
 
 export const getRoutingCreator = tieImpure(
     "creating route for the server",
     () => {},
     (app, onError_, method, path, callback) => {
-        validateArgs(getRoutingCreatorSpec, [app, onError_, method, path, callback])
+        getRoutingCreatorValidate(app, onError_, method, path, callback)
 
-        orThrow(isServer, "This function is meant for server use")
+        if (!isServer) {
+            throw Error("This function is meant for server use")
+        }
 
         const onError = checkNil(onError_) ? defaultOnError : onError_
 

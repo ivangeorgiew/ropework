@@ -2,27 +2,21 @@
 //     tiePure,
 //     changeOptions,
 //     globalHandleErrors,
-//     checkIdx,
-//     checkNotNil,
-//     validateArgs,
+//     idxDef,
+//     notNilDef,
+//     createValidator,
 // } = require("../dist/test.cjs.js")
 // globalHandleErrors(true)
 // changeOptions({ errorLogger: console.error, notify: () => {} })
 
-// const fibSpec = [
-//     [checkIdx, "must be positive int or 0"],
-//     [checkNotNil, "must not be undefined"],
-//     [checkNotNil, "must not be undefined"],
-//     [checkNotNil, "must not be undefined"],
-//     [checkNotNil, "must not be undefined"],
-//     [checkNotNil, "must not be undefined"],
-// ]
+// const fibSpec = [idxDef, notNilDef, notNilDef, notNilDef, notNilDef, notNilDef]
+// const fibValidate = createValidator(fibSpec)
 
 // const fib = tiePure(
 //     "calculating fibonacci number",
 //     () => "Not a number",
 //     (n, a, b, c, d, e) => {
-//         validateArgs(fibSpec, [n, a, b, c, d, e])
+//         fibValidate(n, a, b, c, d, e)
 
 //         if (n <= 1) return n
 
@@ -42,13 +36,14 @@
 
 // d.myself = d
 
-// const ASpec = [{ a: [checkNotNil, "must not be undefined"] }]
+// const ASpec = [{ a: notNilDef }]
+// const AValidate = createValidator(ASpec)
 // const A = tiePure(
 //     "class A",
 //     () => ({}),
 //     class {
 //         constructor(props) {
-//             validateArgs(ASpec, [props])
+//             AValidate(props)
 
 //             const { a } = props
 //             this.a = a
@@ -57,13 +52,14 @@
 //     }
 // )
 
-// const BSpec = [{ ...ASpec[0], c: [checkNotNil, "must not be undefined"] }]
+// const BSpec = [{ ...ASpec[0], c: notNilDef }]
+// const BValidate = createValidator(BSpec)
 // const B = tiePure(
 //     "class B",
 //     () => ({}),
 //     class extends A {
 //         constructor(props) {
-//             validateArgs(BSpec, [props])
+//             BValidate(props)
 
 //             const { a, c } = props
 //             super({ a })
@@ -79,13 +75,18 @@
 // console.log(fib(4000, a, b, c, d, e))
 // console.log(fib(4000, a, b, c, d, e))
 
-// const numSpec = [[checkIdx, "must be positive int or 0"]]
+// console.time("fib")
+// fib(4000, a, b, c, d, e)
+// console.timeEnd("fib")
+
+// const numSpec = [idxDef]
+// const numValidate = createValidator(numSpec)
 
 // const asyncGen = tiePure(
 //     "asynchronous generator function test",
 //     () => 123,
 //     async function* (i) {
-//         validateArgs(numSpec, [i])
+//         numValidate(i)
 
 //         yield i
 //         await new Promise(resolve => {
@@ -110,7 +111,7 @@
 //     "generator function test",
 //     () => 123,
 //     function* (i) {
-//         validateArgs(numSpec, [i])
+//         numValidate(i)
 
 //         yield i
 //         // throw new Error("intended")
@@ -129,7 +130,7 @@
 //     "asynchronous function test",
 //     () => "error val",
 //     async i => {
-//         validateArgs(numSpec, [i])
+//         numValidate(i)
 
 //         // await asyncF(i + 1)
 //         await new Promise(resolve => {
@@ -153,13 +154,14 @@
 //     console.log(asyncF(10))
 // })()
 
-// const addNumbersSpec = [numSpec[0], numSpec[0]]
+// const addNumbersSpec = [idxDef, idxDef]
+// const addNumbersValidate = createValidator(addNumbersSpec)
 // const addNumbers = tiePure(
 //     "adding two numbers",
 //     () => "There was an error",
 //     (a, b) => {
 //         console.log("ran func")
-//         validateArgs(addNumbersSpec, [a, b])
+//         addNumbersValidate(a, b)
 
 //         return a + b
 //     }

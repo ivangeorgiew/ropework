@@ -1,14 +1,10 @@
 import { isDev, isTest } from "../api/constants"
-import {
-    checkArr,
-    checkFunc,
-    checkObj,
-    checkStr,
-    validateArgs,
-} from "../api/validating"
+import { arrDef, checkObj, createValidator, strDef } from "../api/validating"
 
 const defaultLogger =
-    isDev && checkObj(console) && checkFunc(console.error) ? console.error : () => {}
+    isDev && checkObj(console) && typeof console.error === "function"
+        ? console.error
+        : () => {}
 
 const stringifyAll = data => {
     try {
@@ -32,17 +28,31 @@ const stringifyAll = data => {
         }
 
         return JSON.stringify(data, parser, 0)
-    } catch (_e) {
+    } catch (error) {
+        if (isTest) {
+            try {
+                defaultLogger(
+                    "\n Issue with: stringifyAll\n",
+                    `Function arguments types: ${typeof data}\n`,
+                    error,
+                    "\n"
+                )
+            } catch {
+                // nothing
+            }
+        }
+
         return JSON.stringify("[unknown]")
     }
 }
 
-const createArgsInfoSpec = [[checkArr, "must be array"]]
+const createArgsInfoSpec = [arrDef]
+const createArgsInfoValidate = createValidator(createArgsInfoSpec)
 
 export const createArgsInfo = args => {
     try {
         if (isTest) {
-            validateArgs(createArgsInfoSpec, [args])
+            createArgsInfoValidate(args)
         }
 
         const argsInfo = args.reduce((acc, arg, i) => {
@@ -65,12 +75,16 @@ export const createArgsInfo = args => {
         return argsInfo === "" ? "no args" : argsInfo
     } catch (error) {
         if (isTest) {
-            defaultLogger(
-                "\n Issue with: createArgsInfo\n",
-                `Function arguments types: ${typeof args}\n`,
-                error,
-                "\n"
-            )
+            try {
+                defaultLogger(
+                    "\n Issue with: createArgsInfo\n",
+                    `Function arguments types: ${typeof args}\n`,
+                    error,
+                    "\n"
+                )
+            } catch {
+                // nothing
+            }
         }
 
         return "unknown args"
@@ -79,16 +93,17 @@ export const createArgsInfo = args => {
 
 export const logErrorSpec = [
     {
-        descr: [checkStr, "must be string"],
-        args: [checkArr, "must be array"],
+        descr: strDef,
+        args: arrDef,
         error: [arg => arg instanceof Error, "must be Error"],
     },
 ]
+export const logErrorValidate = createValidator(logErrorSpec)
 
 export const logErrorDefault = props => {
     try {
         if (isTest) {
-            validateArgs(logErrorSpec, [props])
+            logErrorValidate(props)
         }
 
         const { descr, args, error } = props

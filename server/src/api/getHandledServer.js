@@ -1,28 +1,25 @@
 import {
-    checkFunc,
     checkNil,
-    checkObj,
     isServer,
-    checkStr,
+    objDef,
+    strDef,
     isTest,
+    funcDef,
     nodeErrorEvents,
-    orThrow,
-    validateArgs,
+    createValidator,
     tieImpure,
     tiePure,
 } from "tied-up"
 
-const onConnectionSpec = [
-    [arg => arg instanceof Set, "must be Set"],
-    [checkObj, "must be object"],
-]
+const onConnectionSpec = [[arg => arg instanceof Set, "must be Set"], objDef]
+const onConnectionValidate = createValidator(onConnectionSpec)
 
 const onConnection = tieImpure(
     "adding sockets to server",
     () => {},
     (sockets, socket) => {
         if (isTest) {
-            validateArgs(onConnectionSpec, [sockets, socket])
+            onConnectionValidate(sockets, socket)
         }
 
         socket.on("close", () => {
@@ -33,18 +30,15 @@ const onConnection = tieImpure(
     }
 )
 
-const onCloseSpec = [
-    [checkObj, "must be object"],
-    [arg => arg instanceof Set, "must be Set"],
-    [checkStr, "must be string"],
-]
+const onCloseSpec = [objDef, [arg => arg instanceof Set, "must be Set"], strDef]
+const onCloseValidate = createValidator(onCloseSpec)
 
 const onClose = tieImpure(
     "handling server closing",
     () => {},
     (server, sockets, event, _) => {
         if (isTest) {
-            validateArgs(onCloseSpec, [server, sockets, event])
+            onCloseValidate(server, sockets, event)
         }
 
         server.close()
@@ -58,12 +52,10 @@ const onClose = tieImpure(
 )
 
 const getHandledServerSpec = [
-    [
-        arg => checkObj(arg) && checkFunc(arg.on) && checkFunc(arg.close),
-        "must be the server object.",
-    ],
-    [arg => checkNil(arg) || arg instanceof Set, "must be Set or undefined."],
+    { on: funcDef, close: funcDef },
+    [arg => arg instanceof Set || checkNil(arg), "must be Set or undefined."],
 ]
+const getHandledServerValidate = createValidator(getHandledServerSpec)
 
 export const getHandledServer = tiePure(
     "initializing error handling for server",
@@ -74,9 +66,11 @@ export const getHandledServer = tiePure(
         return server
     },
     (server, sockets_) => {
-        validateArgs(getHandledServerSpec, [server, sockets_])
+        getHandledServerValidate(server, sockets_)
 
-        orThrow(isServer, "This function is meant for server use")
+        if (!isServer) {
+            throw Error("This function is meant for server use")
+        }
 
         const sockets = checkNil(sockets_) ? new Set() : sockets_
 

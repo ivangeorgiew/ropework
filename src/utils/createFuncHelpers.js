@@ -1,5 +1,5 @@
 import { isTest } from "../api/constants"
-import { checkArr, validateArgs } from "../api/validating"
+import { arrDef, createValidator } from "../api/validating"
 import { logErrorDefault } from "./helpers"
 
 export const handledFuncs = new WeakMap()
@@ -15,10 +15,15 @@ const checkEqual = (a, b) => {
     try {
         if (a === b) {
             return true
-        } else if (a && b && a.constructor === b.constructor) {
-            if (a.constructor !== Object && a.constructor !== Array) {
-                return false
-            } else {
+        } else if (
+            a &&
+            b &&
+            a.constructor === b.constructor &&
+            typeof a === "object"
+        ) {
+            const ac = a.constructor
+
+            if (ac === undefined || ac === Object || ac === Array) {
                 const objKeys = toKeys(a)
                 const objKeysLen = objKeys.length
 
@@ -39,6 +44,8 @@ const checkEqual = (a, b) => {
 
                     return false
                 }
+            } else {
+                return false
             }
         } else {
             return a !== a && b !== b
@@ -56,15 +63,13 @@ const checkEqual = (a, b) => {
     }
 }
 
-const getCacheIdxSpec = [
-    [checkArr, "must be array"],
-    [checkArr, "must be array"],
-]
+const getCacheIdxSpec = [arrDef, arrDef]
+const getCacheIdxValidate = createValidator(getCacheIdxSpec)
 
 export const getCacheIdx = (args, cacheKeys) => {
     try {
         if (isTest) {
-            validateArgs(getCacheIdxSpec, [args, cacheKeys])
+            getCacheIdxValidate(args, cacheKeys)
         }
 
         const cacheKeysLen = cacheKeys.length

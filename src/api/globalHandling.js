@@ -1,7 +1,7 @@
 import { createFunc } from "../utils/createFunc"
 import { logError } from "../utils/logging"
 import { browserErrorEvents, isServer, isWeb, nodeErrorEvents } from "./constants"
-import { checkBool, validateArgs } from "./validating"
+import { boolDef, createValidator } from "./validating"
 
 const uncaughtErrorListener = createFunc(
     "listening for uncaught errors",
@@ -9,9 +9,10 @@ const uncaughtErrorListener = createFunc(
     eventOrError => {
         const descr = "unhandled error"
         const unknownMsg = "Unknown error"
+        const isEvent = eventOrError instanceof Event
 
         if (isWeb) {
-            const error = !(eventOrError instanceof Event)
+            const error = !isEvent
                 ? Error(unknownMsg)
                 : eventOrError.reason instanceof Error
                 ? eventOrError.reason
@@ -19,16 +20,17 @@ const uncaughtErrorListener = createFunc(
                 ? eventOrError.error
                 : Error(unknownMsg)
 
-            if (eventOrError instanceof Event) {
+            if (isEvent) {
                 eventOrError.stopImmediatePropagation()
                 eventOrError.preventDefault()
             }
 
             logError({ descr, args: [], error })
         } else if (isServer) {
-            const exitCode = eventOrError instanceof Error ? 1 : 0
+            const isError = eventOrError instanceof Error
+            const exitCode = isError ? 1 : 0
 
-            if (eventOrError instanceof Error) {
+            if (isError) {
                 logError({ descr, args: [], error: eventOrError })
             }
 
@@ -39,13 +41,14 @@ const uncaughtErrorListener = createFunc(
     }
 )
 
-const globalHandleErrorsSpec = [[checkBool, "must be boolean"]]
+const globalHandleErrorsSpec = [boolDef]
+const globalHandleErrorsValidate = createValidator(globalHandleErrorsSpec)
 
 export const globalHandleErrors = createFunc(
     "handling listeners for uncaught errors",
     () => {},
     shouldAdd => {
-        validateArgs(globalHandleErrorsSpec, [shouldAdd])
+        globalHandleErrorsValidate(shouldAdd)
 
         if (isWeb) {
             browserErrorEvents.forEach(event => {

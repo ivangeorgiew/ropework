@@ -87,7 +87,7 @@ const reducer = (acc, [root, name]) =>
                     "process.env.NODE_ENV": JSON.stringify("production"),
                     "__TEST__": false,
                 }),
-                strip({ functions: ["orThrow", "validateArgs"] }),
+                strip({ functions: ["*Validate", "createValidato*"] }),
                 terser(terserOpts),
             ],
         },

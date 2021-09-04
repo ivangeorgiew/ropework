@@ -1,113 +1,151 @@
-import { isTest } from "./constants"
-
-export const checkStr = val => typeof val === "string"
-export const checkNum = val => typeof val === "number"
 export const checkInt = val => Number.isInteger(val) && Number.isFinite(val)
 export const checkIdx = val => checkInt(val) && val >= 0
-export const checkBigInt = val => typeof val === "bigint"
-export const checkBool = val => typeof val === "boolean"
-export const checkSym = val => typeof val === "symbol"
 export const checkNil = val => val === undefined || val === null
 export const checkNotNil = val => !checkNil(val)
-export const checkFunc = val => typeof val === "function"
-export const checkArr = val => Array.isArray(val)
+export const checkObjType = val => val !== null && typeof val === "object"
 export const checkObj = val =>
-    !checkNil(val) && typeof val === "object" && !checkArr(val)
-export const checkErrorConstr = val =>
-    val === Error || Object.getPrototypeOf(val) === Error
+    checkObjType(val) &&
+    (val.constructor === Object || val.constructor === undefined)
 
-export const orThrow = (isValid, msg, ErrorConstr) => {
-    if (!checkBool(isValid)) {
-        throw Error("orThrow -> arguments[0] must be boolean")
-    }
-
-    if (!checkStr(msg)) {
-        throw Error("orThrow -> argumenst[1] must be string")
-    }
-
-    if (!checkNil(ErrorConstr) && !checkErrorConstr(ErrorConstr)) {
-        throw Error("orThrow -> arguments[2] must be undefined or Error constructor")
-    }
-
-    const InnerError = checkNil(ErrorConstr) ? Error : ErrorConstr
-
-    if (!isValid) {
-        throw new InnerError(msg)
+export const checkConstr = val => {
+    try {
+        Reflect.construct(String, [], val)
+        return true
+    } catch (_e) {
+        return false
     }
 }
 
-export const validateArgs = (spec, args, ErrorConstr) => {
-    orThrow(checkArr(spec), "validateArgs -> arguments[0] must be array")
-    orThrow(checkArr(args), "validateArgs -> arguments[1] must be array")
-    orThrow(
-        checkNil(ErrorConstr) || checkErrorConstr(ErrorConstr),
-        "validateArgs -> arguments[2] must be undefined or Error constructor"
-    )
+export const nilDef = [checkNil, "must be null or undefined"]
+export const notNilDef = [checkNotNil, "must not be null or undefined"]
+export const strDef = [val => typeof val === "string", "must be string"]
+export const numDef = [val => typeof val === "number", "must be number"]
+export const bigIntDef = [val => typeof val === "bigint", "must be BigInt"]
+export const boolDef = [val => typeof val === "boolean", "must be boolean"]
+export const symDef = [val => typeof val === "symbol", "must be Symbol"]
+export const funcDef = [val => typeof val === "function", "must be function"]
+export const arrDef = [Array.isArray, "must be array"]
+export const objDef = [checkObj, "must be object"]
+export const objTypeDef = [checkObj, "must be object type"]
+export const intDef = [checkInt, "must be integer"]
+export const idxDef = [checkIdx, "must be positive integer or 0"]
+export const constrDef = [checkConstr, "must be constructor function"]
 
-    const InnerError = checkNil(ErrorConstr) ? Error : ErrorConstr
+const checkErrorConstr = val => {
+    if (val === Error) return true
 
-    const validateItem = (item, idx, key) => {
-        if (isTest) {
-            orThrow(
-                (checkArr(item) && item.length === 2) || checkObj(item),
-                `validateArgs -> validateItem -> arguments[0] must be array with 2 items or object`
-            )
-            orThrow(
-                checkIdx(idx),
-                `validateArgs -> validateItem -> arguments[1] must be valid index`
-            )
-            orThrow(
-                checkStr(key) || checkNil(key),
-                `validateArgs -> validateItem -> arguments[2] must be string or undefined`
-            )
+    if (checkConstr(val)) {
+        let curr = val
+
+        for (let i = 0; i < 50; i++) {
+            curr = Object.getPrototypeOf(curr)
+
+            if (curr === null) return false
+            if (curr === Error) return true
         }
-
-        const isNested = checkStr(key)
-        const [getIsValid, msg] = isNested ? item[key] : item
-        const extra = isNested ? `[${key}]` : ""
-
-        orThrow(
-            checkFunc(getIsValid),
-            `validateArgs -> arguments[0][${idx}]${extra}[0] must be function`
-        )
-        orThrow(
-            checkStr(msg),
-            `validateArgs -> arguments[0][${idx}]${extra}[1] must be string`
-        )
-
-        const isValid = getIsValid(isNested ? args[idx][key] : args[idx])
-
-        orThrow(
-            checkBool(isValid),
-            `validateArgs -> arguments[0][${idx}]${extra}[0] must return boolean`
-        )
-
-        const wholeMsg = `arguments[${idx}]${extra} - ${msg}`
-
-        orThrow(isValid, wholeMsg, InnerError)
     }
 
-    for (let i = 0; i < spec.length; i++) {
-        const item = spec[i]
+    return false
+}
 
-        orThrow(
-            (checkArr(item) && item.length === 2) || checkObj(item),
-            `validateArgs -> arguments[0][${i}] must be array with length 2 or object`
+export const createValidatorCustom = (ErrorConstr, ...restArgs) => {
+    if (!checkErrorConstr(ErrorConstr)) {
+        throw TypeError(
+            "createValidatorCustom -> arguments[0] must be constructor which is or extends Error"
         )
+    }
 
-        if (checkArr(item)) {
-            validateItem(item, i)
-        } else {
-            orThrow(
-                checkObj(args[i]) || checkArr(args[i]),
-                `arguments[${i}] - must be object or array`
+    const createError = function (...args) {
+        try {
+            return new ErrorConstr(...args)
+        } catch (_e) {
+            throw TypeError(
+                "createValidatorCustom -> arguments[0] throws when called with `new`"
             )
+        }
+    }
 
-            const keys = Object.keys(item)
+    const validateItem = props => {
+        const { forSpec, idx, key, spec, args } = props
+        const isNested = typeof key === "string"
+        const [getIsValid, msg] = isNested ? spec[idx][key] : spec[idx]
+        const extra = isNested ? `[${key}]` : ""
 
-            for (let m = 0; m < keys.length; m++) {
-                validateItem(item, i, keys[m])
+        if (forSpec) {
+            if (typeof getIsValid !== "function") {
+                throw TypeError(
+                    `createValidator -> arguments[0][${idx}]${extra}[0] must be function`
+                )
+            }
+            if (typeof msg !== "string") {
+                throw TypeError(
+                    `createValidator -> arguments[0][${idx}]${extra}[1] must be string`
+                )
+            }
+        } else {
+            const isValid = getIsValid(isNested ? args[idx][key] : args[idx])
+
+            if (typeof isValid !== "boolean") {
+                throw TypeError(
+                    `createValidator -> arguments[0][${idx}]${extra}[0] must return boolean`
+                )
+            }
+
+            const wholeMsg = `arguments[${idx}]${extra} - ${msg}`
+
+            if (!isValid) {
+                throw createError(wholeMsg, ...restArgs)
+            }
+        }
+    }
+
+    return spec => {
+        if (!Array.isArray(spec)) {
+            throw TypeError("createValidator -> arguments[0] must be array")
+        }
+
+        for (let idx = 0; idx < spec.length; idx++) {
+            const item = spec[idx]
+            const forSpec = true
+
+            if (!(Array.isArray(item) && item.length === 2) && !checkObj(item)) {
+                throw TypeError(
+                    `createValidator -> arguments[0][${idx}] must be (array with length 2) or object`
+                )
+            }
+
+            if (Array.isArray(item)) {
+                validateItem({ forSpec, idx, spec })
+            } else {
+                const keys = Object.keys(item)
+
+                for (let m = 0; m < keys.length; m++) {
+                    validateItem({ forSpec, idx, spec, key: keys[m] })
+                }
+            }
+        }
+
+        return (...args) => {
+            for (let idx = 0; idx < spec.length; idx++) {
+                const item = spec[idx]
+                const forSpec = false
+
+                if (Array.isArray(item)) {
+                    validateItem({ forSpec, idx, spec, args })
+                } else {
+                    if (typeof args[idx] !== "object" || args[idx] === null) {
+                        throw TypeError(`arguments[${idx}] - must be of object type`)
+                    }
+
+                    const keys = Object.keys(item)
+
+                    for (let m = 0; m < keys.length; m++) {
+                        validateItem({ forSpec, idx, spec, args, key: keys[m] })
+                    }
+                }
             }
         }
     }
 }
+
+export const createValidator = createValidatorCustom(TypeError)

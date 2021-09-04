@@ -1,10 +1,9 @@
 import { isServer, isTest, isWeb } from "../api/constants"
-import { validateArgs } from "../api/validating"
 import {
     createArgsInfo,
     errorLogger,
     logErrorDefault,
-    logErrorSpec,
+    logErrorValidate,
     notify,
 } from "./helpers"
 import { errorsCache, getErrorsCacheIdx, manageErrorsCache } from "./loggingHelpers"
@@ -12,7 +11,7 @@ import { errorsCache, getErrorsCacheIdx, manageErrorsCache } from "./loggingHelp
 export const logError = props => {
     try {
         if (isTest) {
-            validateArgs(logErrorSpec, [props])
+            logErrorValidate(props)
         }
 
         const { descr, args, error } = props

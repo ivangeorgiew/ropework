@@ -1,40 +1,47 @@
 import { isDev, isTest } from "../api/constants"
 import {
-    checkArr,
-    checkBool,
-    checkFunc,
-    checkIdx,
+    arrDef,
     checkNil,
-    validateArgs,
-    checkStr,
+    createValidator,
+    funcDef,
+    idxDef,
 } from "../api/validating"
 import { getCacheIdx, handledFuncs } from "./createFuncHelpers"
 import { logErrorDefault } from "./helpers"
 import { logError } from "./logging"
 
+export const tieSpec = [
+    [
+        arg => typeof arg === "string" && arg.length > 2,
+        "must be string longer than 2",
+    ],
+    funcDef,
+    funcDef,
+]
+export const tieValidate = createValidator(tieSpec)
+
 const createFuncSpec = [
-    [arg => checkStr(arg) && arg.length > 2, "must be string longer than 2"],
-    [checkFunc, "must be function"],
-    [checkFunc, "must be function"],
-    [arg => checkNil(arg) || checkBool(arg), "must be boolean or undefined"],
+    ...tieSpec,
+    [
+        arg => checkNil(arg) || typeof arg === "boolean",
+        "must be boolean or undefined",
+    ],
 ]
+const createFuncValidate = createValidator(createFuncSpec)
 
-const manageCacheSpec = [
-    [checkIdx, "must be valid index"],
-    [checkArr, "must be array"],
-]
+const manageCacheSpec = [idxDef, arrDef]
+const manageCacheValidate = createValidator(manageCacheSpec)
 
-const innerCatchSpec = [
-    [checkArr, "must be array"],
-    [arg => arg instanceof Error, "must be Error"],
-]
+const innerCatchSpec = [arrDef, [arg => arg instanceof Error, "must be Error"]]
+const innerCatchValidate = createValidator(innerCatchSpec)
 
-const getCurrySpec = [[checkArr, "must be array"]]
+const getCurrySpec = [arrDef]
+const getCurryValidate = createValidator(getCurrySpec)
 
 export const createFunc = (descr, onError, func, isPure) => {
     try {
         if (isTest) {
-            validateArgs(createFuncSpec, [descr, onError, func, isPure])
+            createFuncValidate(descr, onError, func, isPure)
         }
 
         if (handledFuncs.has(func)) {
@@ -50,7 +57,7 @@ export const createFunc = (descr, onError, func, isPure) => {
         const manageCache = (_idx, key, value) => {
             try {
                 if (isTest) {
-                    validateArgs(manageCacheSpec, [_idx, key, value])
+                    manageCacheValidate(_idx, key, value)
                 }
 
                 let idx = _idx > 5 ? 5 : _idx
@@ -80,7 +87,7 @@ export const createFunc = (descr, onError, func, isPure) => {
         const innerCatch = (args, error) => {
             try {
                 if (isTest) {
-                    validateArgs(innerCatchSpec, [args, error])
+                    innerCatchValidate(args, error)
                 }
 
                 logError({ descr, error, args })
@@ -116,7 +123,7 @@ export const createFunc = (descr, onError, func, isPure) => {
         const getCurry = args => {
             try {
                 if (isTest) {
-                    validateArgs(getCurrySpec, [args])
+                    getCurryValidate(args)
                 }
 
                 const result = function (...newArgs) {

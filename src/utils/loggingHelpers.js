@@ -1,18 +1,16 @@
 import { isTest } from "../api/constants"
-import { checkIdx, checkStr, validateArgs } from "../api/validating"
+import { createValidator, idxDef, strDef } from "../api/validating"
 import { logErrorDefault } from "./helpers"
 
 export const errorsCache = []
 
-const getErrorsCacheIdxSpec = [
-    [checkStr, "must be string"],
-    [checkStr, "must be string"],
-]
+const getErrorsCacheIdxSpec = [strDef, strDef]
+const getErrorsCacheIdxValidate = createValidator(getErrorsCacheIdxSpec)
 
 export const getErrorsCacheIdx = (errorDescr, msg) => {
     try {
         if (isTest) {
-            validateArgs(getErrorsCacheIdxSpec, [errorDescr, msg])
+            getErrorsCacheIdxValidate(errorDescr, msg)
         }
 
         const errorsCacheLen = errorsCache.length
@@ -53,16 +51,13 @@ export const getErrorsCacheIdx = (errorDescr, msg) => {
     }
 }
 
-const manageErrorsCacheSpec = [
-    [checkIdx, "must be valid index"],
-    [checkStr, "must be string"],
-    [checkStr, "must be string"],
-]
+const manageErrorsCacheSpec = [idxDef, strDef, strDef]
+const manageErrorsCacheValidate = createValidator(manageErrorsCacheSpec)
 
 export const manageErrorsCache = (_idx, errorDescr, msg) => {
     try {
         if (isTest) {
-            validateArgs(manageErrorsCacheSpec, [_idx, errorDescr, msg])
+            manageErrorsCacheValidate(_idx, errorDescr, msg)
         }
 
         let idx = _idx > 5 ? 5 : _idx
