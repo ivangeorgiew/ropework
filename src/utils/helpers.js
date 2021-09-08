@@ -52,6 +52,7 @@ export const createValidateFunc = spec => {
 
     return (...args) => {
         const list = Array(spec.length)
+        const refs = new WeakSet()
 
         for (let i = 0; i < list.length; i++) {
             const isMain = i < spec.length
@@ -63,7 +64,11 @@ export const createValidateFunc = spec => {
 
             validateArgItem(key, specVal[0], argsVal)
 
-            if (specVal.length === 2 && checkObjType(argsVal)) {
+            if (
+                specVal.length === 2 &&
+                checkObjType(argsVal) &&
+                !refs.has(argsVal)
+            ) {
                 const propKeys = Object.keys(specVal[1])
 
                 for (let m = 0; m < propKeys.length; m++) {
@@ -74,6 +79,8 @@ export const createValidateFunc = spec => {
                         specVal[1][propKey],
                         argsVal[propKey],
                     ])
+
+                    refs.add(argsVal)
                 }
             }
         }

@@ -29,39 +29,39 @@
 // }
 // const b = new Error("blabla")
 // const c = [5, 6]
-// const d = { b: 6, a }
+// const d = { a: 3 }
 
 // d.myself = d
 
-// const ASpec = [[objDef[0], { a: definedDef }]]
+// const dDef = [objDef[0], { a: idxDef }]
+// dDef[1].myself = dDef
+
 // const A = tiePure(
 //     "class A",
-//     ASpec,
+//     [dDef],
 //     () => ({}),
 //     class {
 //         constructor(props) {
-//             const { a } = props
-//             this.a = a
+//             this.a = props.a
 //             this.b = 6
 //         }
 //     }
 // )
 
-// const BSpec = [[objDef[0], { ...ASpec[0][1], c: definedDef }]]
 // const B = tiePure(
 //     "class B",
-//     BSpec,
+//     [dDef],
 //     () => ({}),
 //     class extends A {
 //         constructor(props) {
-//             const { a, c } = props
-//             super({ a })
-//             this.c = c
+//             super(props)
+
+//             this.c = props.a + 123
 //         }
 //     }
 // )
 
-// const e = new B({ a: 3, c: true })
+// const e = new B(d)
 
 // console.log(fib(500000, a, b, c, d, e))
 // console.log(fib(500000, a, b, c, d, e))

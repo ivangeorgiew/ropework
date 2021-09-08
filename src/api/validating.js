@@ -68,6 +68,7 @@ export const specDef = makeDef(spec => {
     }
 
     const list = Array(spec.length)
+    const refs = new WeakSet()
 
     for (let i = 0; i < list.length; i++) {
         const isMain = i < spec.length
@@ -80,7 +81,7 @@ export const specDef = makeDef(spec => {
 
         if (msg !== "") return msg
 
-        if (specVal.length === 2) {
+        if (specVal.length === 2 && !refs.has(specVal[1])) {
             const propKeys = Object.keys(specVal[1])
 
             for (let m = 0; m < propKeys.length; m++) {
@@ -88,6 +89,8 @@ export const specDef = makeDef(spec => {
 
                 list.push([`${key}[${propKey}]`, specVal[1][propKey]])
             }
+
+            refs.add(specVal[1])
         }
     }
 
