@@ -2,7 +2,7 @@ import { isServer, isTest, isWeb } from "../api/constants"
 import {
     createArgsInfo,
     errorLogger,
-    logErrorDefault,
+    logErrorInner,
     logErrorValidate,
     notify,
 } from "./helpers"
@@ -69,7 +69,7 @@ export const logError = props => {
     } catch (error) {
         if (isTest) {
             try {
-                logErrorDefault({ descr: "logError", args: [props], error })
+                logErrorInner({ descr: "logError", args: [props], error })
             } catch (_e) {
                 // nothing
             }

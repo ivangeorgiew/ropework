@@ -1,10 +1,84 @@
 import { isDev, isTest } from "../api/constants"
-import { arrDef, checkObj, createValidator, strDef } from "../api/validating"
+import {
+    arrDef,
+    checkObj,
+    checkObjType,
+    objDef,
+    specDef,
+    strDef,
+} from "../api/validating"
 
 const defaultLogger =
     isDev && checkObj(console) && typeof console.error === "function"
         ? console.error
         : () => {}
+
+export const createValidateFunc = spec => {
+    if (isTest) {
+        const msg = (function () {
+            try {
+                return specDef[0](spec)
+            } catch (error) {
+                return `specDef[0] must not throw when called.\n${error.message}`
+            }
+        })()
+
+        if (msg !== "") {
+            defaultLogger(
+                "\n Issue with: createValidateFunc -> arguments[0]\n",
+                `Function arguments types: ${typeof spec}\n`,
+                `${msg}\n`
+            )
+        }
+    }
+
+    const validateArgItem = (key, getErrorMsg, argsVal) => {
+        const msg = (function () {
+            try {
+                return getErrorMsg(argsVal)
+            } catch (error) {
+                throw TypeError(
+                    `spec${key}[0] must not throw when called.\n${error.message}`
+                )
+            }
+        })()
+
+        if (typeof msg !== "string") {
+            throw TypeError(`spec${key}[0] must return a string when called`)
+        } else if (msg !== "") {
+            throw TypeError(`arguments${key} - ${msg}`)
+        }
+    }
+
+    return (...args) => {
+        const list = Array(spec.length)
+
+        for (let i = 0; i < list.length; i++) {
+            const isMain = i < spec.length
+            const item = list[i]
+
+            const key = isMain ? `[${i}]` : item[0]
+            const specVal = isMain ? spec[i] : item[1]
+            const argsVal = isMain ? args[i] : item[2]
+
+            validateArgItem(key, specVal[0], argsVal)
+
+            if (specVal.length === 2 && checkObjType(argsVal)) {
+                const propKeys = Object.keys(specVal[1])
+
+                for (let m = 0; m < propKeys.length; m++) {
+                    const propKey = propKeys[m]
+
+                    list.push([
+                        `${key}[${propKey}]`,
+                        specVal[1][propKey],
+                        argsVal[propKey],
+                    ])
+                }
+            }
+        }
+    }
+}
 
 const stringifyAll = data => {
     try {
@@ -47,7 +121,7 @@ const stringifyAll = data => {
 }
 
 const createArgsInfoSpec = [arrDef]
-const createArgsInfoValidate = createValidator(createArgsInfoSpec)
+const createArgsInfoValidate = createValidateFunc(createArgsInfoSpec)
 
 export const createArgsInfo = args => {
     try {
@@ -92,15 +166,18 @@ export const createArgsInfo = args => {
 }
 
 export const logErrorSpec = [
-    {
-        descr: strDef,
-        args: arrDef,
-        error: [arg => arg instanceof Error, "must be Error"],
-    },
+    [
+        objDef[0],
+        {
+            descr: strDef,
+            args: arrDef,
+            error: [arg => (arg instanceof Error ? "" : "must be Error")],
+        },
+    ],
 ]
-export const logErrorValidate = createValidator(logErrorSpec)
+export const logErrorValidate = createValidateFunc(logErrorSpec)
 
-export const logErrorDefault = props => {
+export const logErrorInner = props => {
     try {
         if (isTest) {
             logErrorValidate(props)
@@ -118,7 +195,7 @@ export const logErrorDefault = props => {
         if (isTest) {
             try {
                 defaultLogger(
-                    `\n Issue with: logErrorDefault\n`,
+                    `\n Issue with: logErrorInner\n`,
                     `Function arguments: ${createArgsInfo([props])}\n`,
                     error,
                     "\n"
@@ -138,10 +215,10 @@ export const options = Object.seal({
 export const errorLogger = (...args) => {
     if (isDev) {
         try {
-            options.errorLogger.apply(null, args)
+            options.errorLogger(...args)
         } catch (error) {
             try {
-                logErrorDefault({ descr: "errorLogger", args, error })
+                logErrorInner({ descr: "errorLogger", args, error })
             } catch (_e) {
                 // nothing
             }
@@ -151,10 +228,10 @@ export const errorLogger = (...args) => {
 
 export const notify = (...args) => {
     try {
-        options.notify.apply(null, args)
+        options.notify(...args)
     } catch (error) {
         try {
-            logErrorDefault({ descr: "notify", args, error })
+            logErrorInner({ descr: "notify", args, error })
         } catch (_e) {
             // nothing
         }

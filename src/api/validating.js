@@ -1,151 +1,133 @@
-export const checkInt = val => Number.isInteger(val) && Number.isFinite(val)
-export const checkIdx = val => checkInt(val) && val >= 0
-export const checkNil = val => val === undefined || val === null
-export const checkNotNil = val => !checkNil(val)
-export const checkObjType = val => val !== null && typeof val === "object"
-export const checkObj = val =>
-    checkObjType(val) &&
-    (val.constructor === Object || val.constructor === undefined)
+import { isTest } from "./constants"
 
-export const checkConstr = val => {
+const wrapCheck = func => a => {
+    if (isTest && typeof func !== "function") {
+        throw TypeError(`wrapCheck - arguments[0] must be function`)
+    }
+
     try {
-        Reflect.construct(String, [], val)
-        return true
+        return func(a)
     } catch (_e) {
         return false
     }
 }
 
-export const nilDef = [checkNil, "must be null or undefined"]
-export const notNilDef = [checkNotNil, "must not be null or undefined"]
-export const strDef = [val => typeof val === "string", "must be string"]
-export const numDef = [val => typeof val === "number", "must be number"]
-export const bigIntDef = [val => typeof val === "bigint", "must be BigInt"]
-export const boolDef = [val => typeof val === "boolean", "must be boolean"]
-export const symDef = [val => typeof val === "symbol", "must be Symbol"]
-export const funcDef = [val => typeof val === "function", "must be function"]
-export const arrDef = [Array.isArray, "must be array"]
-export const objDef = [checkObj, "must be object"]
-export const objTypeDef = [checkObj, "must be object type"]
-export const intDef = [checkInt, "must be integer"]
-export const idxDef = [checkIdx, "must be positive integer or 0"]
-export const constrDef = [checkConstr, "must be constructor function"]
+export const checkInt = wrapCheck(a => Number.isInteger(a) && Number.isFinite(a))
 
-const checkErrorConstr = val => {
-    if (val === Error) return true
+export const checkIdx = wrapCheck(a => checkInt(a) && a >= 0)
 
-    if (checkConstr(val)) {
-        let curr = val
+export const checkObjType = wrapCheck(a => {
+    const t = typeof a
 
-        for (let i = 0; i < 50; i++) {
-            curr = Object.getPrototypeOf(curr)
+    return a !== null && (t === "object" || t === "function")
+})
 
-            if (curr === null) return false
-            if (curr === Error) return true
-        }
+export const checkObj = wrapCheck(a => {
+    const c = a.constructor
+
+    return checkObjType(a) && (c === Object || c === undefined)
+})
+
+export const checkConstr = wrapCheck(a => Reflect.construct(String, [], a))
+
+const makeDef = func => {
+    if (isTest && typeof func !== "function") {
+        throw TypeError(`makeDef - arguments[0] must be function`)
     }
 
-    return false
+    return Object.freeze([func])
 }
 
-export const createValidatorCustom = (ErrorConstr, ...restArgs) => {
-    if (!checkErrorConstr(ErrorConstr)) {
-        throw TypeError(
-            "createValidatorCustom -> arguments[0] must be constructor which is or extends Error"
-        )
+export const specDef = makeDef(spec => {
+    if (!Array.isArray(spec)) {
+        return "spec must be array"
     }
 
-    const createError = function (...args) {
-        try {
-            return new ErrorConstr(...args)
-        } catch (_e) {
-            throw TypeError(
-                "createValidatorCustom -> arguments[0] throws when called with `new`"
-            )
+    const getSpecItemErrorMsg = (key, specVal) => {
+        if (!Array.isArray(specVal)) {
+            return `spec${key} must be array`
         }
+
+        const specValLen = specVal.length
+
+        if (specValLen !== 1 && specValLen !== 2) {
+            return `spec${key} must have length 1 or 2`
+        }
+
+        const [getErrorMsg, props] = specVal
+
+        if (typeof getErrorMsg !== "function") {
+            return `spec${key}[0] must be function`
+        }
+
+        if (specVal.length === 2 && !checkObj(props)) {
+            return `spec${key}[1] must be object, if provided`
+        }
+
+        return ""
     }
 
-    const validateItem = props => {
-        const { forSpec, idx, key, spec, args } = props
-        const isNested = typeof key === "string"
-        const [getIsValid, msg] = isNested ? spec[idx][key] : spec[idx]
-        const extra = isNested ? `[${key}]` : ""
+    const list = Array(spec.length)
 
-        if (forSpec) {
-            if (typeof getIsValid !== "function") {
-                throw TypeError(
-                    `createValidator -> arguments[0][${idx}]${extra}[0] must be function`
-                )
-            }
-            if (typeof msg !== "string") {
-                throw TypeError(
-                    `createValidator -> arguments[0][${idx}]${extra}[1] must be string`
-                )
-            }
-        } else {
-            const isValid = getIsValid(isNested ? args[idx][key] : args[idx])
+    for (let i = 0; i < list.length; i++) {
+        const isMain = i < spec.length
+        const item = list[i]
 
-            if (typeof isValid !== "boolean") {
-                throw TypeError(
-                    `createValidator -> arguments[0][${idx}]${extra}[0] must return boolean`
-                )
-            }
+        const key = isMain ? `[${i}]` : item[0]
+        const specVal = isMain ? spec[i] : item[1]
 
-            const wholeMsg = `arguments[${idx}]${extra} - ${msg}`
+        const msg = getSpecItemErrorMsg(key, specVal)
 
-            if (!isValid) {
-                throw createError(wholeMsg, ...restArgs)
-            }
-        }
-    }
+        if (msg !== "") return msg
 
-    return spec => {
-        if (!Array.isArray(spec)) {
-            throw TypeError("createValidator -> arguments[0] must be array")
-        }
+        if (specVal.length === 2) {
+            const propKeys = Object.keys(specVal[1])
 
-        for (let idx = 0; idx < spec.length; idx++) {
-            const item = spec[idx]
-            const forSpec = true
+            for (let m = 0; m < propKeys.length; m++) {
+                const propKey = propKeys[m]
 
-            if (!(Array.isArray(item) && item.length === 2) && !checkObj(item)) {
-                throw TypeError(
-                    `createValidator -> arguments[0][${idx}] must be (array with length 2) or object`
-                )
-            }
-
-            if (Array.isArray(item)) {
-                validateItem({ forSpec, idx, spec })
-            } else {
-                const keys = Object.keys(item)
-
-                for (let m = 0; m < keys.length; m++) {
-                    validateItem({ forSpec, idx, spec, key: keys[m] })
-                }
-            }
-        }
-
-        return (...args) => {
-            for (let idx = 0; idx < spec.length; idx++) {
-                const item = spec[idx]
-                const forSpec = false
-
-                if (Array.isArray(item)) {
-                    validateItem({ forSpec, idx, spec, args })
-                } else {
-                    if (typeof args[idx] !== "object" || args[idx] === null) {
-                        throw TypeError(`arguments[${idx}] - must be of object type`)
-                    }
-
-                    const keys = Object.keys(item)
-
-                    for (let m = 0; m < keys.length; m++) {
-                        validateItem({ forSpec, idx, spec, args, key: keys[m] })
-                    }
-                }
+                list.push([`${key}[${propKey}]`, specVal[1][propKey]])
             }
         }
     }
-}
 
-export const createValidator = createValidatorCustom(TypeError)
+    return ""
+})
+
+export const strDef = makeDef(a => (typeof a === "string" ? "" : "must be string"))
+
+export const numDef = makeDef(a => (typeof a === "number" ? "" : "must be number"))
+
+export const bigIntDef = makeDef(a =>
+    typeof a === "bigint" ? "" : "must be BigInt"
+)
+
+export const boolDef = makeDef(a =>
+    typeof a === "boolean" ? "" : "must be boolean"
+)
+
+export const symDef = makeDef(a => (typeof a === "symbol" ? "" : "must be Symbol"))
+
+export const funcDef = makeDef(a =>
+    typeof a === "function" ? "" : "must be function"
+)
+
+export const arrDef = makeDef(a => (Array.isArray(a) ? "" : "must be array"))
+
+export const definedDef = makeDef(a =>
+    a !== undefined ? "" : "must not be null or undefined"
+)
+
+export const objTypeDef = makeDef(a =>
+    checkObjType(a) ? "" : "must be of object type"
+)
+
+export const objDef = makeDef(a => (checkObj(a) ? "" : "must be object"))
+
+export const intDef = makeDef(a => (checkInt(a) ? "" : "must be integer"))
+
+export const idxDef = makeDef(a =>
+    checkIdx(a) ? "" : "must be positive integer or 0"
+)
+
+export const constrDef = makeDef(a => (checkConstr(a) ? "" : "must be constructor"))

@@ -1,53 +1,57 @@
 import { isDev, isTest } from "../api/constants"
-import {
-    arrDef,
-    checkNil,
-    createValidator,
-    funcDef,
-    idxDef,
-} from "../api/validating"
+import { arrDef, funcDef, idxDef, specDef } from "../api/validating"
 import { getCacheIdx, handledFuncs } from "./createFuncHelpers"
-import { logErrorDefault } from "./helpers"
+import { createValidateFunc, logErrorInner } from "./helpers"
 import { logError } from "./logging"
 
 export const tieSpec = [
     [
-        arg => typeof arg === "string" && arg.length > 2,
-        "must be string longer than 2",
+        arg =>
+            typeof arg !== "string"
+                ? "must be string"
+                : arg.length < 3
+                ? "must be longer than 2"
+                : "",
     ],
+    specDef,
     funcDef,
     funcDef,
 ]
-export const tieValidate = createValidator(tieSpec)
 
 const createFuncSpec = [
     ...tieSpec,
     [
-        arg => checkNil(arg) || typeof arg === "boolean",
-        "must be boolean or undefined",
+        arg =>
+            typeof arg === "boolean" || arg === undefined
+                ? ""
+                : "must be boolean or undefined",
     ],
 ]
-const createFuncValidate = createValidator(createFuncSpec)
+const createFuncValidate = createValidateFunc(createFuncSpec)
 
 const manageCacheSpec = [idxDef, arrDef]
-const manageCacheValidate = createValidator(manageCacheSpec)
+const manageCacheValidate = createValidateFunc(manageCacheSpec)
 
-const innerCatchSpec = [arrDef, [arg => arg instanceof Error, "must be Error"]]
-const innerCatchValidate = createValidator(innerCatchSpec)
+const innerCatchSpec = [
+    arrDef,
+    [arg => (arg instanceof Error ? "" : "must be Error")],
+]
+const innerCatchValidate = createValidateFunc(innerCatchSpec)
 
 const getCurrySpec = [arrDef]
-const getCurryValidate = createValidator(getCurrySpec)
+const getCurryValidate = createValidateFunc(getCurrySpec)
 
-export const createFunc = (descr, onError, func, isPure) => {
+export const createFunc = (descr, spec, onError, func, isPure) => {
     try {
         if (isTest) {
-            createFuncValidate(descr, onError, func, isPure)
+            createFuncValidate(descr, spec, onError, func, isPure)
         }
 
         if (handledFuncs.has(func)) {
             return func
         }
 
+        const validateArgs = createValidateFunc(spec)
         const funcLen = func.length
         const cacheKeys = []
         const cacheValues = []
@@ -72,7 +76,7 @@ export const createFunc = (descr, onError, func, isPure) => {
             } catch (error) {
                 if (isTest) {
                     try {
-                        logErrorDefault({
+                        logErrorInner({
                             descr: "manageCache",
                             args: [_idx, key, value],
                             error,
@@ -106,7 +110,7 @@ export const createFunc = (descr, onError, func, isPure) => {
             } catch (error) {
                 if (isTest) {
                     try {
-                        logErrorDefault({
+                        logErrorInner({
                             descr: "innerCatch",
                             args: [args, error],
                             error,
@@ -128,15 +132,19 @@ export const createFunc = (descr, onError, func, isPure) => {
 
                 const result = function (...newArgs) {
                     try {
-                        const rest =
+                        const allArgs =
                             newArgs.length === 0 && funcLen - args.length === 1
-                                ? [undefined]
-                                : newArgs
+                                ? args.concat([undefined])
+                                : args.concat(newArgs)
 
-                        // eslint-disable-next-line no-use-before-define
-                        return innerFunc.apply(this, args.concat(rest))
+                        try {
+                            // eslint-disable-next-line no-use-before-define
+                            return innerFunc.apply(this, allArgs)
+                        } catch (error) {
+                            return innerCatch(allArgs, error)
+                        }
                     } catch (error) {
-                        return innerCatch(args.concat(newArgs), error)
+                        return innerCatch(args, error)
                     }
                 }
 
@@ -146,7 +154,7 @@ export const createFunc = (descr, onError, func, isPure) => {
             } catch (error) {
                 if (isTest) {
                     try {
-                        logErrorDefault({ descr: "getCurry", args: [args], error })
+                        logErrorInner({ descr: "getCurry", args: [args], error })
                     } catch (_e) {
                         // nothing
                     }
@@ -183,9 +191,11 @@ export const createFunc = (descr, onError, func, isPure) => {
                     if (args.length < funcLen) {
                         return getCurry(args)
                     } else {
+                        if (isDev) validateArgs(...args)
                         result = func.apply(this, args)
                     }
                 } else {
+                    if (isDev) validateArgs(...args)
                     result = new func(...args)
                 }
 
@@ -272,9 +282,9 @@ export const createFunc = (descr, onError, func, isPure) => {
     } catch (error) {
         if (isTest) {
             try {
-                logErrorDefault({
+                logErrorInner({
                     descr: "createFunc",
-                    args: [descr, onError, func, isPure],
+                    args: [descr, spec, onError, func, isPure],
                     error,
                 })
             } catch (_e) {

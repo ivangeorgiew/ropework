@@ -1,11 +1,11 @@
 import { isTest } from "../api/constants"
-import { createValidator, idxDef, strDef } from "../api/validating"
-import { logErrorDefault } from "./helpers"
+import { idxDef, strDef } from "../api/validating"
+import { createValidateFunc, logErrorInner } from "./helpers"
 
 export const errorsCache = []
 
 const getErrorsCacheIdxSpec = [strDef, strDef]
-const getErrorsCacheIdxValidate = createValidator(getErrorsCacheIdxSpec)
+const getErrorsCacheIdxValidate = createValidateFunc(getErrorsCacheIdxSpec)
 
 export const getErrorsCacheIdx = (errorDescr, msg) => {
     try {
@@ -37,7 +37,7 @@ export const getErrorsCacheIdx = (errorDescr, msg) => {
     } catch (error) {
         if (isTest) {
             try {
-                logErrorDefault({
+                logErrorInner({
                     descr: "getErrorsCacheIdx",
                     args: [errorDescr, msg],
                     error,
@@ -52,7 +52,7 @@ export const getErrorsCacheIdx = (errorDescr, msg) => {
 }
 
 const manageErrorsCacheSpec = [idxDef, strDef, strDef]
-const manageErrorsCacheValidate = createValidator(manageErrorsCacheSpec)
+const manageErrorsCacheValidate = createValidateFunc(manageErrorsCacheSpec)
 
 export const manageErrorsCache = (_idx, errorDescr, msg) => {
     try {
@@ -70,7 +70,7 @@ export const manageErrorsCache = (_idx, errorDescr, msg) => {
     } catch (error) {
         if (isTest) {
             try {
-                logErrorDefault({
+                logErrorInner({
                     descr: "manageErrorsCache",
                     args: [_idx, errorDescr, msg],
                     error,

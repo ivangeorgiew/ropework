@@ -1,27 +1,23 @@
 import {
-    checkNil,
     isServer,
     objDef,
     strDef,
-    isTest,
     funcDef,
     nodeErrorEvents,
-    createValidator,
     tieImpure,
     tiePure,
 } from "tied-up"
 
-const onConnectionSpec = [[arg => arg instanceof Set, "must be Set"], objDef]
-const onConnectionValidate = createValidator(onConnectionSpec)
+const serverDef = [objDef[0], { on: funcDef, close: funcDef }]
+const setDef = [arg => (arg instanceof Set ? "" : "must be Set")]
+
+const onConnectionSpec = [setDef, objDef]
 
 const onConnection = tieImpure(
     "adding sockets to server",
+    onConnectionSpec,
     () => {},
     (sockets, socket) => {
-        if (isTest) {
-            onConnectionValidate(sockets, socket)
-        }
-
         socket.on("close", () => {
             sockets.delete(socket)
         })
@@ -30,17 +26,13 @@ const onConnection = tieImpure(
     }
 )
 
-const onCloseSpec = [objDef, [arg => arg instanceof Set, "must be Set"], strDef]
-const onCloseValidate = createValidator(onCloseSpec)
+const onCloseSpec = [serverDef, setDef, strDef]
 
 const onClose = tieImpure(
     "handling server closing",
+    onCloseSpec,
     () => {},
     (server, sockets, event, _) => {
-        if (isTest) {
-            onCloseValidate(server, sockets, event)
-        }
-
         server.close()
 
         sockets.forEach(socket => {
@@ -52,27 +44,25 @@ const onClose = tieImpure(
 )
 
 const getHandledServerSpec = [
-    { on: funcDef, close: funcDef },
-    [arg => arg instanceof Set || checkNil(arg), "must be Set or undefined."],
+    serverDef,
+    [
+        arg =>
+            arg instanceof Set || arg === undefined
+                ? ""
+                : "must be Set or undefined",
+    ],
 ]
-const getHandledServerValidate = createValidator(getHandledServerSpec)
 
 export const getHandledServer = tiePure(
     "initializing error handling for server",
-    props => {
-        const { args } = props
-        const [server] = args
-
-        return server
-    },
+    getHandledServerSpec,
+    props => props.args[0],
     (server, sockets_) => {
-        getHandledServerValidate(server, sockets_)
-
         if (!isServer) {
             throw Error("This function is meant for server use")
         }
 
-        const sockets = checkNil(sockets_) ? new Set() : sockets_
+        const sockets = sockets_ !== undefined ? sockets_ : new Set()
 
         server.on("connection", onConnection(sockets))
 

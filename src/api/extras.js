@@ -1,34 +1,30 @@
 import { createFunc } from "../utils/createFunc"
 import { handledFuncs } from "../utils/createFuncHelpers"
 import { options } from "../utils/helpers"
-import { checkNil, createValidator, funcDef } from "./validating"
+import { funcDef, objDef } from "./validating"
+
+const funcOrNilDef = [
+    arg =>
+        typeof arg === "function" || arg === undefined
+            ? ""
+            : "must be function or undefined",
+]
 
 const changeOptionsSpec = [
-    {
-        errorLogger: [
-            arg => typeof arg === "function" || checkNil(arg),
-            "must be function or undefined",
-        ],
-        notify: [
-            arg => typeof arg === "function" || checkNil(arg),
-            "must be function or undefined",
-        ],
-    },
+    [objDef[0], { errorLogger: funcOrNilDef, notify: funcOrNilDef }],
 ]
-const changeOptionsValidate = createValidator(changeOptionsSpec)
 
 export const changeOptions = createFunc(
     "changing global options",
+    changeOptionsSpec,
     () => {},
     props => {
-        changeOptionsValidate(props)
-
         Object.keys(props).forEach(key => {
             if (!(key in options)) {
                 throw Error(`There is no option "${key}"`)
             }
 
-            if (!checkNil(props[key])) {
+            if (props[key] !== undefined) {
                 options[key] = props[key]
             }
         })
@@ -36,14 +32,12 @@ export const changeOptions = createFunc(
 )
 
 const clearCacheForSpec = [funcDef]
-const clearCacheForValidate = createValidator(clearCacheForSpec)
 
 export const clearCacheFor = createFunc(
     "clear cache for a tied function",
+    clearCacheForSpec,
     () => {},
     func => {
-        clearCacheForValidate(func)
-
         if (handledFuncs.has(func)) {
             const { cacheKeys, cacheValues } = handledFuncs.get(func)
 

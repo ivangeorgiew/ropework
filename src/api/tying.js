@@ -1,41 +1,31 @@
-import { createFunc, tieValidate } from "../utils/createFunc"
+import { createFunc, tieSpec } from "../utils/createFunc"
 
 export const tieImpure = createFunc(
     "tying up impure function",
+    tieSpec,
     () => () => {},
-    (descr, onError, func) => {
-        tieValidate(descr, onError, func)
-
-        return createFunc(descr, onError, func, false)
-    }
+    (descr, spec, onError, func) => createFunc(descr, spec, onError, func, false)
 )
 
 export const tiePure = createFunc(
     "tying up pure function",
+    tieSpec,
     () => () => {},
-    (descr, onError, func) => {
-        tieValidate(descr, onError, func)
-
-        return createFunc(descr, onError, func, true)
-    }
+    (descr, spec, onError, func) => createFunc(descr, spec, onError, func, true)
 )
 
 export const tieTimeout = createFunc(
     "creating tied setTimeout",
+    tieSpec,
     () => {},
-    (descr, onError, func, delay, ...args) => {
-        tieValidate(descr, onError, func)
-
-        return setTimeout(tieImpure(descr, onError, func), delay, ...args)
-    }
+    (descr, spec, onError, func, delay, ...args) =>
+        setTimeout(tieImpure(descr, spec, onError, func), delay, ...args)
 )
 
 export const tieInterval = createFunc(
     "creating tied setInterval",
+    tieSpec,
     () => {},
-    (descr, onError, func, delay, ...args) => {
-        tieValidate(descr, onError, func)
-
-        return setInterval(tieImpure(descr, onError, func), delay, ...args)
-    }
+    (descr, spec, onError, func, delay, ...args) =>
+        setInterval(tieImpure(descr, spec, onError, func), delay, ...args)
 )

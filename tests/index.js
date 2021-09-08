@@ -3,21 +3,18 @@
 //     changeOptions,
 //     globalHandleErrors,
 //     idxDef,
-//     notNilDef,
-//     createValidator,
+//     definedDef,
+//     objDef,
 // } = require("../dist/test.cjs.js")
 // globalHandleErrors(true)
 // changeOptions({ errorLogger: console.error, notify: () => {} })
 
-// const fibSpec = [idxDef, notNilDef, notNilDef, notNilDef, notNilDef, notNilDef]
-// const fibValidate = createValidator(fibSpec)
-
+// const fibSpec = [idxDef, definedDef, definedDef, definedDef, definedDef, definedDef]
 // const fib = tiePure(
 //     "calculating fibonacci number",
+//     fibSpec,
 //     () => "Not a number",
 //     (n, a, b, c, d, e) => {
-//         fibValidate(n, a, b, c, d, e)
-
 //         if (n <= 1) return n
 
 //         const pre = fib(n - 2, a, b, c, d, e)
@@ -36,15 +33,13 @@
 
 // d.myself = d
 
-// const ASpec = [{ a: notNilDef }]
-// const AValidate = createValidator(ASpec)
+// const ASpec = [[objDef[0], { a: definedDef }]]
 // const A = tiePure(
 //     "class A",
+//     ASpec,
 //     () => ({}),
 //     class {
 //         constructor(props) {
-//             AValidate(props)
-
 //             const { a } = props
 //             this.a = a
 //             this.b = 6
@@ -52,15 +47,13 @@
 //     }
 // )
 
-// const BSpec = [{ ...ASpec[0], c: notNilDef }]
-// const BValidate = createValidator(BSpec)
+// const BSpec = [[objDef[0], { ...ASpec[0][1], c: definedDef }]]
 // const B = tiePure(
 //     "class B",
+//     BSpec,
 //     () => ({}),
 //     class extends A {
 //         constructor(props) {
-//             BValidate(props)
-
 //             const { a, c } = props
 //             super({ a })
 //             this.c = c
@@ -79,15 +72,11 @@
 // fib(4000, a, b, c, d, e)
 // console.timeEnd("fib")
 
-// const numSpec = [idxDef]
-// const numValidate = createValidator(numSpec)
-
 // const asyncGen = tiePure(
 //     "asynchronous generator function test",
+//     [idxDef],
 //     () => 123,
 //     async function* (i) {
-//         numValidate(i)
-
 //         yield i
 //         await new Promise(resolve => {
 //             setTimeout(resolve, 1000)
@@ -109,10 +98,9 @@
 
 // const gen = tiePure(
 //     "generator function test",
+//     [idxDef],
 //     () => 123,
 //     function* (i) {
-//         numValidate(i)
-
 //         yield i
 //         // throw new Error("intended")
 //         return i + 10
@@ -128,10 +116,9 @@
 
 // const asyncF = tiePure(
 //     "asynchronous function test",
+//     [idxDef],
 //     () => "error val",
 //     async i => {
-//         numValidate(i)
-
 //         // await asyncF(i + 1)
 //         await new Promise(resolve => {
 //             setTimeout(resolve, 1000)
@@ -142,26 +129,18 @@
 // )
 
 // ;(async () => {
-//     // console.log(await asyncF(10))
-//     // console.log(await asyncF(10))
-//     // console.log("\nafter the errors")
-
-//     const a = await asyncF(10)
-//     console.log(a)
-//     console.log(asyncF(10))
-//     const b = await asyncF(10)
-//     console.log(b)
-//     console.log(asyncF(10))
+//     console.log(await asyncF(10))
+//     console.log(await asyncF(10))
+//     console.log("\nafter")
 // })()
 
 // const addNumbersSpec = [idxDef, idxDef]
-// const addNumbersValidate = createValidator(addNumbersSpec)
 // const addNumbers = tiePure(
 //     "adding two numbers",
+//     addNumbersSpec,
 //     () => "There was an error",
 //     (a, b) => {
 //         console.log("ran func")
-//         addNumbersValidate(a, b)
 
 //         return a + b
 //     }
