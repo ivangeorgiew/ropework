@@ -1,41 +1,36 @@
 import { isDev, isTest } from "../api/constants"
-import { arrDef, funcDef, idxDef, specDef } from "../api/validating"
+import { arrDef, createDef, funcDef, idxDef, specDef } from "../api/validating"
 import { getCacheIdx, handledFuncs } from "./createFuncHelpers"
 import { createValidateFunc, logErrorInner } from "./helpers"
 import { logError } from "./logging"
 
-export const tieSpec = [
-    [
-        arg =>
-            typeof arg !== "string"
-                ? "must be string"
-                : arg.length < 3
-                ? "must be longer than 2"
-                : "",
-    ],
-    specDef,
-    funcDef,
-    funcDef,
-]
+const descrDef = createDef({
+    getMsg: arg =>
+        typeof arg !== "string"
+            ? "must be string"
+            : arg.length < 3
+            ? "must be longer than 2"
+            : "",
+})
+const isPureDef = createDef({
+    getMsg: arg =>
+        typeof arg !== "boolean" && arg !== undefined
+            ? "must be boolean or undefined"
+            : "",
+})
+const errorDef = createDef({
+    getMsg: arg => (!(arg instanceof Error) ? "must be error" : ""),
+})
 
-const createFuncSpec = [
-    ...tieSpec,
-    [
-        arg =>
-            typeof arg === "boolean" || arg === undefined
-                ? ""
-                : "must be boolean or undefined",
-    ],
-]
+export const tieSpec = [descrDef, specDef, funcDef, funcDef]
+
+const createFuncSpec = [...tieSpec, isPureDef]
 const createFuncValidate = createValidateFunc(createFuncSpec)
 
 const manageCacheSpec = [idxDef, arrDef]
 const manageCacheValidate = createValidateFunc(manageCacheSpec)
 
-const innerCatchSpec = [
-    arrDef,
-    [arg => (arg instanceof Error ? "" : "must be Error")],
-]
+const innerCatchSpec = [arrDef, errorDef]
 const innerCatchValidate = createValidateFunc(innerCatchSpec)
 
 const getCurrySpec = [arrDef]
@@ -276,7 +271,14 @@ export const createFunc = (descr, spec, onError, func, isPure) => {
             })
         }
 
-        handledFuncs.set(innerFunc, { cacheKeys, cacheValues })
+        handledFuncs.set(innerFunc, {
+            descr,
+            spec,
+            onError,
+            func,
+            cacheKeys,
+            cacheValues,
+        })
 
         return innerFunc
     } catch (error) {

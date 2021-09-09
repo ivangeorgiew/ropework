@@ -5,14 +5,14 @@
 //     idxDef,
 //     definedDef,
 //     objDef,
+//     createDef,
 // } = require("../dist/test.cjs.js")
-// globalHandleErrors(true)
-// changeOptions({ errorLogger: console.error, notify: () => {} })
 
-// const fibSpec = [idxDef, definedDef, definedDef, definedDef, definedDef, definedDef]
+// globalHandleErrors(true)
+
 // const fib = tiePure(
 //     "calculating fibonacci number",
-//     fibSpec,
+//     [idxDef, definedDef, definedDef, definedDef, definedDef, definedDef],
 //     () => "Not a number",
 //     (n, a, b, c, d, e) => {
 //         if (n <= 1) return n
@@ -33,8 +33,8 @@
 
 // d.myself = d
 
-// const dDef = [objDef[0], { a: idxDef }]
-// dDef[1].myself = dDef
+// const dDef = createDef({ ...objDef, strictProps: { a: idxDef } })
+// dDef.strictProps.myself = dDef
 
 // const A = tiePure(
 //     "class A",
@@ -134,10 +134,9 @@
 //     console.log("\nafter")
 // })()
 
-// const addNumbersSpec = [idxDef, idxDef]
 // const addNumbers = tiePure(
 //     "adding two numbers",
-//     addNumbersSpec,
+//     [idxDef, idxDef],
 //     () => "There was an error",
 //     (a, b) => {
 //         console.log("ran func")
@@ -157,6 +156,7 @@
 
 // console.log(copyOfAddTenTo())
 
+// changeOptions({ notify: () => {} })
 // changeOptions({ errorLogger: 5, notify: () => {} })
 // changeOptions({ errorLogger: console.error, notify: 5 })
 // changeOptions({ typo: () => {} })

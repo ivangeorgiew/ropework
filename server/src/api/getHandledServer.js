@@ -6,16 +6,24 @@ import {
     nodeErrorEvents,
     tieImpure,
     tiePure,
+    createDef,
 } from "tied-up"
 
-const serverDef = [objDef[0], { on: funcDef, close: funcDef }]
-const setDef = [arg => (arg instanceof Set ? "" : "must be Set")]
-
-const onConnectionSpec = [setDef, objDef]
+const serverDef = createDef({
+    ...objDef,
+    strictProps: { on: funcDef, close: funcDef },
+})
+const setDef = createDef({
+    getMsg: arg => (!(arg instanceof Set) ? "must be Set" : ""),
+})
+const setOrUndefDef = createDef({
+    getMsg: arg =>
+        !(arg instanceof Set) && arg !== undefined ? "must be Set or undefined" : "",
+})
 
 const onConnection = tieImpure(
     "adding sockets to server",
-    onConnectionSpec,
+    [setDef, objDef],
     () => {},
     (sockets, socket) => {
         socket.on("close", () => {
@@ -26,11 +34,9 @@ const onConnection = tieImpure(
     }
 )
 
-const onCloseSpec = [serverDef, setDef, strDef]
-
 const onClose = tieImpure(
     "handling server closing",
-    onCloseSpec,
+    [serverDef, setDef, strDef],
     () => {},
     (server, sockets, event, _) => {
         server.close()
@@ -43,19 +49,9 @@ const onClose = tieImpure(
     }
 )
 
-const getHandledServerSpec = [
-    serverDef,
-    [
-        arg =>
-            arg instanceof Set || arg === undefined
-                ? ""
-                : "must be Set or undefined",
-    ],
-]
-
 export const getHandledServer = tiePure(
     "initializing error handling for server",
-    getHandledServerSpec,
+    [serverDef, setOrUndefDef],
     props => props.args[0],
     (server, sockets_) => {
         if (!isServer) {

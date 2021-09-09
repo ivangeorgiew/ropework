@@ -3,11 +3,9 @@ import { logError } from "../utils/logging"
 import { browserErrorEvents, isServer, isWeb, nodeErrorEvents } from "./constants"
 import { boolDef } from "./validating"
 
-const uncaughtErrorListenerSpec = []
-
 const uncaughtErrorListener = createFunc(
     "listening for uncaught errors",
-    uncaughtErrorListenerSpec,
+    [],
     () => {},
     eventOrError => {
         const descr = "unhandled error"
@@ -44,11 +42,9 @@ const uncaughtErrorListener = createFunc(
     }
 )
 
-const globalHandleErrorsSpec = [boolDef]
-
 export const globalHandleErrors = createFunc(
     "handling listeners for uncaught errors",
-    globalHandleErrorsSpec,
+    [boolDef],
     () => {},
     shouldAdd => {
         if (isWeb) {

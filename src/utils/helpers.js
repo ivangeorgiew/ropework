@@ -3,7 +3,9 @@ import {
     arrDef,
     checkObj,
     checkObjType,
+    createDef,
     objDef,
+    objTypeDef,
     specDef,
     strDef,
 } from "../api/validating"
@@ -14,76 +16,92 @@ const defaultLogger =
         : () => {}
 
 export const createValidateFunc = spec => {
-    if (isTest) {
-        const msg = (function () {
-            try {
-                return specDef[0](spec)
-            } catch (error) {
-                return `specDef[0] must not throw when called.\n${error.message}`
-            }
-        })()
+    try {
+        const validateItem = (key, argsVal, getMsg) => {
+            const msg = (function () {
+                try {
+                    return getMsg(argsVal)
+                } catch (error) {
+                    throw TypeError(
+                        `spec${key}[getMsg] must not throw when called.\n` +
+                            error.message
+                    )
+                }
+            })()
 
-        if (msg !== "") {
-            defaultLogger(
-                "\n Issue with: createValidateFunc -> arguments[0]\n",
-                `Function arguments types: ${typeof spec}\n`,
-                `${msg}\n`
-            )
-        }
-    }
-
-    const validateArgItem = (key, getErrorMsg, argsVal) => {
-        const msg = (function () {
-            try {
-                return getErrorMsg(argsVal)
-            } catch (error) {
+            if (typeof msg !== "string") {
                 throw TypeError(
-                    `spec${key}[0] must not throw when called.\n${error.message}`
+                    `spec${key}[getMsg] must return a string when called`
                 )
+            } else if (msg !== "") {
+                throw TypeError(`arguments${key} - ${msg}`)
             }
-        })()
-
-        if (typeof msg !== "string") {
-            throw TypeError(`spec${key}[0] must return a string when called`)
-        } else if (msg !== "") {
-            throw TypeError(`arguments${key} - ${msg}`)
         }
-    }
 
-    return (...args) => {
-        const list = Array(spec.length)
-        const refs = new WeakSet()
+        if (isTest) {
+            validateItem("Def", spec, specDef.getMsg)
+        }
 
-        for (let i = 0; i < list.length; i++) {
-            const isMain = i < spec.length
-            const item = list[i]
+        return (...args) => {
+            const list = Array(spec.length)
+            const refs = new WeakSet()
 
-            const key = isMain ? `[${i}]` : item[0]
-            const specVal = isMain ? spec[i] : item[1]
-            const argsVal = isMain ? args[i] : item[2]
-
-            validateArgItem(key, specVal[0], argsVal)
-
-            if (
-                specVal.length === 2 &&
-                checkObjType(argsVal) &&
-                !refs.has(argsVal)
-            ) {
-                const propKeys = Object.keys(specVal[1])
+            const addProps = (key, argsVal, specVal, isStrict) => {
+                const props = isStrict ? specVal.strictProps : specVal.props
+                const propKeys = Object.keys(props)
 
                 for (let m = 0; m < propKeys.length; m++) {
                     const propKey = propKeys[m]
 
-                    list.push([
-                        `${key}[${propKey}]`,
-                        specVal[1][propKey],
-                        argsVal[propKey],
-                    ])
+                    if (isStrict || propKey in argsVal) {
+                        list.push([
+                            `${key}[${propKey}]`,
+                            props[propKey],
+                            argsVal[propKey],
+                        ])
+                    }
+                }
 
-                    refs.add(argsVal)
+                refs.add(argsVal)
+            }
+
+            for (let i = 0; i < list.length; i++) {
+                const isMain = i < spec.length
+                const item = list[i]
+
+                const key = isMain ? `[${i}]` : item[0]
+                const specVal = isMain ? spec[i] : item[1]
+                const argsVal = isMain ? args[i] : item[2]
+
+                validateItem(key, argsVal, specVal.getMsg)
+
+                if ("props" in specVal && !refs.has(argsVal)) {
+                    if (checkObjType(argsVal)) {
+                        addProps(key, argsVal, specVal, false)
+                    }
+                }
+
+                if ("strictProps" in specVal && !refs.has(argsVal)) {
+                    validateItem(key, argsVal, objTypeDef.getMsg)
+                    addProps(key, argsVal, specVal, true)
                 }
             }
         }
+    } catch (error) {
+        if (isTest) {
+            try {
+                defaultLogger(
+                    "\n Issue with: createValidateFunc\n",
+                    `Function arguments: ${spec}\n`,
+                    error,
+                    "\n"
+                )
+            } catch {
+                // nothing
+            }
+        }
+
+        return () => {}
     }
 }
 
@@ -114,7 +132,7 @@ const stringifyAll = data => {
             try {
                 defaultLogger(
                     "\n Issue with: stringifyAll\n",
-                    `Function arguments types: ${typeof data}\n`,
+                    `Function arguments: ${data}\n`,
                     error,
                     "\n"
                 )
@@ -159,7 +177,7 @@ export const createArgsInfo = args => {
             try {
                 defaultLogger(
                     "\n Issue with: createArgsInfo\n",
-                    `Function arguments types: ${typeof args}\n`,
+                    `Function arguments: ${args}\n`,
                     error,
                     "\n"
                 )
@@ -172,16 +190,18 @@ export const createArgsInfo = args => {
     }
 }
 
-export const logErrorSpec = [
-    [
-        objDef[0],
-        {
-            descr: strDef,
-            args: arrDef,
-            error: [arg => (arg instanceof Error ? "" : "must be Error")],
-        },
-    ],
-]
+const logErrorPropsDef = createDef({
+    ...objDef,
+    strictProps: {
+        descr: strDef,
+        args: arrDef,
+        error: createDef({
+            getMsg: arg => (!(arg instanceof Error) ? "must be Error" : ""),
+        }),
+    },
+})
+
+export const logErrorSpec = [logErrorPropsDef]
 export const logErrorValidate = createValidateFunc(logErrorSpec)
 
 export const logErrorInner = props => {

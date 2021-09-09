@@ -1,21 +1,15 @@
-import { tieImpure, isServer, funcDef, strDef } from "tied-up"
+import { tieImpure, isServer, createDef, funcDef, strDef } from "tied-up"
 
-const getRoutingCreatorSpec = [
-    funcDef,
-    [
-        arg =>
-            typeof arg === "function" || arg === undefined
-                ? ""
-                : "must be function or undefined",
-    ],
-    strDef,
-    strDef,
-    funcDef,
-]
+const funcOrUndefDef = createDef({
+    getMsg: arg =>
+        typeof arg !== "function" && arg !== undefined
+            ? "must be function or undefined"
+            : "",
+})
 
 export const getRoutingCreator = tieImpure(
     "creating route for the server",
-    getRoutingCreatorSpec,
+    [funcDef, funcOrUndefDef, strDef, strDef, funcDef],
     () => {},
     (app, onError_, method, path, callback) => {
         if (!isServer) {
