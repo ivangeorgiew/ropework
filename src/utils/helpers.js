@@ -110,16 +110,16 @@ const stringifyAll = data => {
         const seen = new WeakSet()
         const parser = (_key, val) => {
             if ([Infinity, NaN, null, undefined].includes(val)) {
-                return `[${String(val)}]`
+                return `#${String(val)}#`
             } else if (typeof val === "bigint") {
                 return Number(val)
             } else if (typeof val === "object" || typeof val === "function") {
                 if (seen.has(val)) {
-                    return "[$ref]"
+                    return "#$ref#"
                 } else {
                     seen.add(val)
 
-                    return typeof val === "function" ? "[f(x)]" : val
+                    return typeof val === "function" ? "#f(x)#" : val
                 }
             } else {
                 return val
@@ -164,7 +164,7 @@ export const createArgsInfo = args => {
                         ? "[large array]"
                         : `[large ${typeof arg}]`
                     : stringified.replace(
-                          /"\[(Infinity|NaN|null|undefined|f\(x\)|\$ref)\]"/g,
+                          /"#(Infinity|NaN|null|undefined|f\(x\)|\$ref)#"/g,
                           "$1"
                       )
 
