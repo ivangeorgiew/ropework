@@ -1,28 +1,27 @@
 import { isDev, isTest } from "../api/constants"
-import { arrDef, createDef, funcDef, idxDef, specDef } from "../api/validating"
+import {
+    arrDef,
+    createDef,
+    funcDef,
+    idxDef,
+    specDef,
+    strDef,
+} from "../api/validating"
 import { getCacheIdx, handledFuncs } from "./createFuncHelpers"
 import { createValidateFunc, logErrorInner } from "./helpers"
 import { logError } from "./logging"
 
-const descrDef = createDef({
-    getMsg: arg =>
-        typeof arg !== "string"
-            ? "must be string"
-            : arg.length < 3
-            ? "must be longer than 2"
-            : "",
-})
-const isPureDef = createDef({
+const isPureDef = /*#__PURE__*/ createDef({
     getMsg: arg =>
         typeof arg !== "boolean" && arg !== undefined
             ? "must be boolean or undefined"
             : "",
 })
-const errorDef = createDef({
+const errorDef = /*#__PURE__*/ createDef({
     getMsg: arg => (!(arg instanceof Error) ? "must be error" : ""),
 })
 
-export const tieSpec = [descrDef, specDef, funcDef, funcDef]
+export const tieSpec = [strDef, specDef, funcDef, funcDef]
 
 const createFuncSpec = [...tieSpec, isPureDef]
 const createFuncValidate = createValidateFunc(createFuncSpec)

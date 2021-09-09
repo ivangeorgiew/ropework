@@ -190,12 +190,12 @@ export const createArgsInfo = args => {
     }
 }
 
-const logErrorPropsDef = createDef({
+const logErrorPropsDef = /*#__PURE__*/ createDef({
     ...objDef,
     strictProps: {
         descr: strDef,
         args: arrDef,
-        error: createDef({
+        error: /*#__PURE__*/ createDef({
             getMsg: arg => (!(arg instanceof Error) ? "must be Error" : ""),
         }),
     },

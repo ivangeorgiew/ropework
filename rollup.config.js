@@ -38,6 +38,7 @@ const terserOpts = {
 }
 
 const treeshake = {
+    moduleSideEffects: false,
     propertyReadSideEffects: false,
     tryCatchDeoptimization: false,
 }
