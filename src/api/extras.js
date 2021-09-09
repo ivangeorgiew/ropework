@@ -3,7 +3,6 @@ import { handledFuncs } from "../utils/createFuncHelpers"
 import { options } from "../utils/helpers"
 import { createDef, funcDef, objDef } from "./validating"
 
-const optionsDefProps = { errorLogger: funcDef, notify: funcDef }
 const optionsDef = createDef({
     getMsg: arg => {
         const msg = objDef.getMsg(arg)
@@ -15,14 +14,20 @@ const optionsDef = createDef({
         const keys = Object.keys(arg)
 
         for (let i = 0; i < keys.length; i++) {
-            if (!(keys[i] in optionsDefProps)) {
-                return `there is no option with key ${keys[i]}`
+            if (!(keys[i] in options)) {
+                return `there is no option "${keys[i]}"`
             }
         }
 
         return ""
     },
-    props: optionsDefProps,
+    props: Object.keys(options).reduce((acc, key) => {
+        if (typeof options[key] === "function") {
+            acc[key] = funcDef
+        }
+
+        return acc
+    }, {}),
 })
 
 export const changeOptions = createFunc(
