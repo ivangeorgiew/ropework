@@ -19,32 +19,26 @@ const checkEqual = (a, b) => {
             a &&
             b &&
             a.constructor === b.constructor &&
-            typeof a === "object"
+            (a.constructor === Object || a.constructor === Array)
         ) {
-            const ac = a.constructor
+            const objKeys = toKeys(a)
+            const objKeysLen = objKeys.length
 
-            if (ac === undefined || ac === Object || ac === Array) {
-                const objKeys = toKeys(a)
-                const objKeysLen = objKeys.length
-
-                if (objKeysLen !== toKeys(b).length) {
-                    return false
-                } else if (objKeysLen === 0) {
-                    return true
-                } else if (objKeysLen === 1) {
-                    return checkSVZ(a[objKeys[0]], b[objKeys[0]])
-                } else {
-                    for (
-                        let m = 0;
-                        m < objKeysLen && checkSVZ(a[objKeys[m]], b[objKeys[m]]);
-                        m++
-                    ) {
-                        if (m === objKeysLen - 1) return true
-                    }
-
-                    return false
-                }
+            if (objKeysLen !== toKeys(b).length) {
+                return false
+            } else if (objKeysLen === 0) {
+                return true
+            } else if (objKeysLen === 1) {
+                return checkSVZ(a[objKeys[0]], b[objKeys[0]])
             } else {
+                for (
+                    let m = 0;
+                    m < objKeysLen && checkSVZ(a[objKeys[m]], b[objKeys[m]]);
+                    m++
+                ) {
+                    if (m === objKeysLen - 1) return true
+                }
+
                 return false
             }
         } else {
