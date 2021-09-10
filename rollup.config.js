@@ -1,4 +1,4 @@
-import replace from "@rollup/plugin-replace"
+import modify from "rollup-plugin-modify"
 import strip from "@rollup/plugin-strip"
 import { terser } from "rollup-plugin-terser"
 import pkg from "./package.json"
@@ -53,7 +53,7 @@ const reducer = (acc, [root, name]) =>
                 { ...commonOutOpts, format: "cjs", file: `${root}/${pkg.main}` },
                 { ...commonOutOpts, format: "esm", file: `${root}/${pkg.module}` },
             ],
-            plugins: [replace({ preventAssignment: true, __TEST__: false })],
+            plugins: [modify({ preventAssignment: true, __TEST__: false })],
         },
         {
             input: makeInput(root),
@@ -72,8 +72,7 @@ const reducer = (acc, [root, name]) =>
                 },
             ],
             plugins: [
-                replace({
-                    "preventAssignment": true,
+                modify({
                     "process.env.NODE_ENV": JSON.stringify("development"),
                     "__TEST__": true,
                 }),
@@ -106,10 +105,11 @@ const reducer = (acc, [root, name]) =>
                 },
             ],
             plugins: [
-                replace({
-                    "preventAssignment": true,
+                modify({
                     "process.env.NODE_ENV": JSON.stringify("production"),
                     "__TEST__": false,
+                    "find": /\[\s*(\w+Def(?:\s*,\s*|\s*))+\]/g,
+                    "replace": "[]",
                 }),
                 strip({ functions: ["createValidateFunc", "createDef"] }),
                 terser(terserOpts),
