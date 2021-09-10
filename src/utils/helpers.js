@@ -4,7 +4,6 @@ import {
     checkObj,
     checkObjType,
     createDef,
-    objDef,
     objTypeDef,
     specDef,
     strDef,
@@ -73,7 +72,9 @@ export const createValidateFunc = spec => {
                 const specVal = isMain ? spec[i] : item[1]
                 const argsVal = isMain ? args[i] : item[2]
 
-                validateItem(key, argsVal, specVal.getMsg)
+                if ("getMsg" in specVal) {
+                    validateItem(key, argsVal, specVal.getMsg)
+                }
 
                 if ("props" in specVal && !refs.has(argsVal)) {
                     if (checkObjType(argsVal)) {
@@ -191,7 +192,6 @@ export const createArgsInfo = args => {
 }
 
 const logErrorPropsDef = /*#__PURE__*/ createDef({
-    ...objDef,
     strictProps: {
         descr: strDef,
         args: arrDef,

@@ -26,15 +26,17 @@ export const checkConstr = wrapCheck(a => Reflect.construct(String, [], a))
 
 export const createDef = opts => {
     try {
-        const def = ["getMsg", "props", "strictProps"].reduce((acc, key) => {
-            if (opts[key] !== undefined) {
-                acc[key] = opts[key]
-            }
+        const keys = ["getMsg", "props", "strictProps"]
 
-            return acc
-        }, {})
+        return Object.freeze(
+            keys.reduce((acc, key) => {
+                if (key in opts) {
+                    acc[key] = opts[key]
+                }
 
-        return Object.freeze(def)
+                return acc
+            }, {})
+        )
     } catch (_e) {
         return Object.freeze({})
     }
@@ -46,7 +48,7 @@ export const specDef = createDef({
             return "spec must be array"
         }
 
-        const getSpecItemErrorMsg = (key, specVal) => {
+        const getSpecItemMsg = (key, specVal) => {
             if (!checkObj(specVal)) {
                 return `spec${key} must be object`
             }
@@ -84,10 +86,12 @@ export const specDef = createDef({
             const key = isMain ? `[${i}]` : item[0]
             const specVal = isMain ? spec[i] : item[1]
 
-            const msg = getSpecItemErrorMsg(key, specVal)
+            if ("getMsg" in specVal) {
+                const msg = getSpecItemMsg(key, specVal)
 
-            if (msg !== "") {
-                return msg
+                if (msg !== "") {
+                    return msg
+                }
             }
 
             if ("props" in specVal && !refs.has(specVal.props)) {

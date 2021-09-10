@@ -33,7 +33,7 @@
 
 // d.myself = d
 
-// const dDef = createDef({ ...objDef, strictProps: { a: idxDef } })
+// const dDef = createDef({ strictProps: { a: idxDef } })
 // dDef.strictProps.myself = dDef
 
 // const A = tiePure(
