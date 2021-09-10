@@ -4,7 +4,6 @@
 //     globalHandleErrors,
 //     idxDef,
 //     definedDef,
-//     objDef,
 //     createDef,
 // } = require("../dist/test.cjs.js")
 

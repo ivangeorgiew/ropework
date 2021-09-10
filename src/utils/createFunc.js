@@ -1,4 +1,4 @@
-import { isDev, isTest } from "../api/constants"
+import { isDev } from "../api/constants"
 import {
     arrDef,
     createDef,
@@ -6,9 +6,10 @@ import {
     idxDef,
     specDef,
     strDef,
-} from "../api/validating"
+} from "../api/definitions"
 import { getCacheIdx, handledFuncs } from "./createFuncHelpers"
-import { createValidateFunc, logErrorInner } from "./helpers"
+import { createValidateFunc } from "./createValidateFunc"
+import { innerLogError, isTest } from "./generics"
 import { logError } from "./logging"
 
 const isPureDef = /*#__PURE__*/ createDef({
@@ -70,12 +71,12 @@ export const createFunc = (descr, spec, onError, func, isPure) => {
             } catch (error) {
                 if (isTest) {
                     try {
-                        logErrorInner({
+                        innerLogError({
                             descr: "manageCache",
                             args: [_idx, key, value],
                             error,
                         })
-                    } catch (_e) {
+                    } catch {
                         // nothing
                     }
                 }
@@ -104,12 +105,12 @@ export const createFunc = (descr, spec, onError, func, isPure) => {
             } catch (error) {
                 if (isTest) {
                     try {
-                        logErrorInner({
+                        innerLogError({
                             descr: "innerCatch",
                             args: [args, error],
                             error,
                         })
-                    } catch (_e) {
+                    } catch {
                         // nothing
                     }
                 }
@@ -148,8 +149,8 @@ export const createFunc = (descr, spec, onError, func, isPure) => {
             } catch (error) {
                 if (isTest) {
                     try {
-                        logErrorInner({ descr: "getCurry", args: [args], error })
-                    } catch (_e) {
+                        innerLogError({ descr: "getCurry", args: [args], error })
+                    } catch {
                         // nothing
                     }
                 }
@@ -283,12 +284,12 @@ export const createFunc = (descr, spec, onError, func, isPure) => {
     } catch (error) {
         if (isTest) {
             try {
-                logErrorInner({
+                innerLogError({
                     descr: "createFunc",
                     args: [descr, spec, onError, func, isPure],
                     error,
                 })
-            } catch (_e) {
+            } catch {
                 // nothing
             }
         }

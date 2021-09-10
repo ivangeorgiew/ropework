@@ -1,16 +1,28 @@
-import { isTest } from "../api/constants"
-import { idxDef, strDef } from "../api/validating"
-import { createValidateFunc, logErrorInner } from "./helpers"
+import { idxDef, strDef } from "../api/definitions"
+import { createValidateFunc } from "./createValidateFunc"
+import { innerLogError, isTest, options } from "./generics"
+
+export const notify = (...args) => {
+    try {
+        options.notify(...args)
+    } catch (error) {
+        try {
+            innerLogError({ descr: "notify", args, error })
+        } catch {
+            // nothing
+        }
+    }
+}
 
 export const errorsCache = []
 
 const getErrorsCacheIdxSpec = [strDef, strDef]
 const getErrorsCacheIdxValidate = createValidateFunc(getErrorsCacheIdxSpec)
 
-export const getErrorsCacheIdx = (errorDescr, msg) => {
+export const getErrorsCacheIdx = (descr, msg) => {
     try {
         if (isTest) {
-            getErrorsCacheIdxValidate(errorDescr, msg)
+            getErrorsCacheIdxValidate(descr, msg)
         }
 
         const errorsCacheLen = errorsCache.length
@@ -22,7 +34,7 @@ export const getErrorsCacheIdx = (errorDescr, msg) => {
         for (let i = 0; i < errorsCacheLen; i++) {
             const item = errorsCache[i]
 
-            if (errorDescr === item.errorDescr && msg === item.msg) {
+            if (descr === item.descr && msg === item.msg) {
                 if (Date.now() - item.time < 1000) {
                     return i
                 } else {
@@ -37,12 +49,12 @@ export const getErrorsCacheIdx = (errorDescr, msg) => {
     } catch (error) {
         if (isTest) {
             try {
-                logErrorInner({
+                innerLogError({
                     descr: "getErrorsCacheIdx",
-                    args: [errorDescr, msg],
+                    args: [descr, msg],
                     error,
                 })
-            } catch (_e) {
+            } catch {
                 // nothing
             }
         }
@@ -54,10 +66,10 @@ export const getErrorsCacheIdx = (errorDescr, msg) => {
 const manageErrorsCacheSpec = [idxDef, strDef, strDef]
 const manageErrorsCacheValidate = createValidateFunc(manageErrorsCacheSpec)
 
-export const manageErrorsCache = (_idx, errorDescr, msg) => {
+export const manageErrorsCache = (_idx, descr, msg) => {
     try {
         if (isTest) {
-            manageErrorsCacheValidate(_idx, errorDescr, msg)
+            manageErrorsCacheValidate(_idx, descr, msg)
         }
 
         let idx = _idx > 5 ? 5 : _idx
@@ -66,16 +78,16 @@ export const manageErrorsCache = (_idx, errorDescr, msg) => {
             errorsCache[idx + 1] = errorsCache[idx]
         }
 
-        errorsCache[0] = { errorDescr, msg, time: Date.now() }
+        errorsCache[0] = { descr, msg, time: Date.now() }
     } catch (error) {
         if (isTest) {
             try {
-                logErrorInner({
+                innerLogError({
                     descr: "manageErrorsCache",
-                    args: [_idx, errorDescr, msg],
+                    args: [_idx, descr, msg],
                     error,
                 })
-            } catch (_e) {
+            } catch {
                 // nothing
             }
         }

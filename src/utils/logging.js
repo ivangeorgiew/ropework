@@ -1,12 +1,25 @@
-import { isServer, isTest, isWeb } from "../api/constants"
+import { isServer, isWeb } from "../api/constants"
+import { arrDef, createDef, strDef } from "../api/definitions"
+import { createValidateFunc } from "./createValidateFunc"
+import { innerLogError, isTest } from "./generics"
 import {
-    createArgsInfo,
-    errorLogger,
-    logErrorInner,
-    logErrorValidate,
+    errorsCache,
+    getErrorsCacheIdx,
+    manageErrorsCache,
     notify,
-} from "./helpers"
-import { errorsCache, getErrorsCacheIdx, manageErrorsCache } from "./loggingHelpers"
+} from "./loggingHelpers"
+
+const logErrorPropsDef = /*#__PURE__*/ createDef({
+    strictProps: {
+        descr: strDef,
+        args: arrDef,
+        error: /*#__PURE__*/ createDef({
+            getMsg: arg => (!(arg instanceof Error) ? "must be Error" : ""),
+        }),
+    },
+})
+const logErrorSpec = [logErrorPropsDef]
+const logErrorValidate = createValidateFunc(logErrorSpec)
 
 export const logError = props => {
     try {
@@ -15,34 +28,32 @@ export const logError = props => {
         }
 
         const { descr, args, error } = props
-
-        const errorDescr = `Issue with: ${descr}`
         const errorMsg = error.message
-        const cacheIdx = getErrorsCacheIdx(errorDescr, errorMsg)
+        const cacheIdx = getErrorsCacheIdx(descr, errorMsg)
 
         if (cacheIdx !== -1) {
             if (cacheIdx !== 0) {
-                manageErrorsCache(cacheIdx, errorDescr, errorMsg)
+                manageErrorsCache(cacheIdx, descr, errorMsg)
             }
 
             return
         }
 
-        const prodInfo = {
-            errorDescription: errorDescr,
+        const notifyProps = {
+            description: descr,
             arguments: args,
             date: new Date().toUTCString(),
             error,
         }
 
         if (isWeb) {
-            Object.assign(prodInfo, {
+            Object.assign(notifyProps, {
                 url: self.location.href,
                 browserInfo: self.navigator.userAgent,
                 clientOS: self.navigator.platform,
             })
         } else if (isServer) {
-            Object.assign(prodInfo, {
+            Object.assign(notifyProps, {
                 pid: process.pid,
                 filepath: process.cwd(),
                 cpuArch: process.arch,
@@ -51,26 +62,16 @@ export const logError = props => {
             })
         }
 
-        notify({
-            errorDescr,
-            args,
-            error,
-            prodInfo,
-        })
+        notify(notifyProps)
 
-        errorLogger(
-            `\n ${errorDescr}\n`,
-            `Function arguments: ${createArgsInfo(args)}\n`,
-            error,
-            "\n"
-        )
+        innerLogError({ descr, args, error })
 
-        manageErrorsCache(errorsCache.length, errorDescr, errorMsg)
+        manageErrorsCache(errorsCache.length, descr, errorMsg)
     } catch (error) {
         if (isTest) {
             try {
-                logErrorInner({ descr: "logError", args: [props], error })
-            } catch (_e) {
+                innerLogError({ descr: "logError", args: [props], error })
+            } catch {
                 // nothing
             }
         }

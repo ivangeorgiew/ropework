@@ -1,7 +1,7 @@
 import { createFunc } from "../utils/createFunc"
 import { logError } from "../utils/logging"
 import { browserErrorEvents, isServer, isWeb, nodeErrorEvents } from "./constants"
-import { boolDef } from "./validating"
+import { boolDef } from "./definitions"
 
 const uncaughtErrorListener = createFunc(
     "listening for uncaught errors",

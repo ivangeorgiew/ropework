@@ -1,7 +1,7 @@
 import { createFunc } from "../utils/createFunc"
 import { handledFuncs } from "../utils/createFuncHelpers"
-import { options } from "../utils/helpers"
-import { createDef, funcDef, objDef } from "./validating"
+import { options } from "../utils/generics"
+import { createDef, funcDef, objDef } from "./definitions"
 
 const optionsDef = createDef({
     getMsg: arg => {

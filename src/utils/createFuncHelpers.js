@@ -1,6 +1,6 @@
-import { isTest } from "../api/constants"
-import { arrDef } from "../api/validating"
-import { createValidateFunc, logErrorInner } from "./helpers"
+import { arrDef } from "../api/definitions"
+import { createValidateFunc } from "./createValidateFunc"
+import { innerLogError, isTest } from "./generics"
 
 export const handledFuncs = new WeakMap()
 
@@ -53,8 +53,8 @@ const checkEqual = (a, b) => {
     } catch (error) {
         if (isTest) {
             try {
-                logErrorInner({ descr: "checkEqual", args: [a, b], error })
-            } catch (_e) {
+                innerLogError({ descr: "checkEqual", args: [a, b], error })
+            } catch {
                 // nothing
             }
         }
@@ -100,12 +100,12 @@ export const getCacheIdx = (args, cacheKeys) => {
     } catch (error) {
         if (isTest) {
             try {
-                logErrorInner({
+                innerLogError({
                     descr: "getCacheIdx",
                     args: [args, cacheKeys],
                     error,
                 })
-            } catch (_e) {
+            } catch {
                 // nothing
             }
         }
