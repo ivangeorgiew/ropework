@@ -156,7 +156,7 @@
 // console.log(copyOfAddTenTo())
 
 // changeOptions({ notify: () => {} })
+// changeOptions({ typo: () => {} })
 // changeOptions({ errorLogger: 5, notify: () => {} })
 // changeOptions({ errorLogger: console.error, notify: 5 })
-// changeOptions({ typo: () => {} })
 // changeOptions("blabla")

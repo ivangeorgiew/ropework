@@ -4,30 +4,8 @@ import { options } from "../utils/generics"
 import { createDef, funcDef, objDef } from "./definitions"
 
 const optionsDef = createDef({
-    getMsg: arg => {
-        const msg = objDef.getMsg(arg)
-
-        if (msg !== "") {
-            return msg
-        }
-
-        const keys = Object.keys(arg)
-
-        for (let i = 0; i < keys.length; i++) {
-            if (!(keys[i] in options)) {
-                return `there is no option "${keys[i]}"`
-            }
-        }
-
-        return ""
-    },
-    props: Object.keys(options).reduce((acc, key) => {
-        if (typeof options[key] === "function") {
-            acc[key] = funcDef
-        }
-
-        return acc
-    }, {}),
+    getMsg: objDef.getMsg,
+    props: { errorLogger: funcDef, notify: funcDef },
 })
 
 export const changeOptions = createFunc(
@@ -36,7 +14,9 @@ export const changeOptions = createFunc(
     () => {},
     props => {
         Object.keys(props).forEach(key => {
-            options[key] = props[key]
+            if (key in options) {
+                options[key] = props[key]
+            }
         })
     }
 )
