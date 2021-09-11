@@ -55,13 +55,14 @@ export const createValidateFunc = spec => {
 
         const getArgsErrorMsg = args => {
             try {
-                const list = Array(spec.length)
+                const initLen = args.length < spec.length ? args.length : spec.length
+                const list = Array(initLen)
                 const refs = new WeakSet()
 
                 const addProps = (key, argsVal, specVal, isStrict) => {
                     try {
-                        const props = isStrict ? specVal.strictProps : specVal.props
-                        const propKeys = Object.keys(props)
+                        const prop = isStrict ? specVal.strictProps : specVal.props
+                        const propKeys = Object.keys(prop)
 
                         for (let m = 0; m < propKeys.length; m++) {
                             const propKey = propKeys[m]
@@ -69,7 +70,7 @@ export const createValidateFunc = spec => {
                             if (isStrict || propKey in argsVal) {
                                 list.push([
                                     `${key}[${propKey}]`,
-                                    props[propKey],
+                                    prop[propKey],
                                     argsVal[propKey],
                                 ])
                             }
@@ -92,7 +93,7 @@ export const createValidateFunc = spec => {
                 }
 
                 for (let i = 0; i < list.length; i++) {
-                    const isMain = i < spec.length
+                    const isMain = i < initLen
                     const item = list[i]
 
                     const key = isMain ? `[${i}]` : item[0]
@@ -143,7 +144,7 @@ export const createValidateFunc = spec => {
         }
 
         if (isTest) {
-            const msg = validateItem("Def", spec, specDef.getMsg)
+            const msg = validateItem("[specDef]", spec, specDef.getMsg)
 
             if (msg !== "") {
                 throw TypeError(msg)

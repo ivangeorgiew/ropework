@@ -181,16 +181,18 @@ export const createFunc = (descr, spec, onError, func, isPure) => {
                 isFirstCall = isNextCallFirst
                 isNextCallFirst = false
 
+                if (isDev) {
+                    validateArgs(...args)
+                }
+
                 // normal call or constructor
                 if (new.target === undefined) {
                     if (args.length < funcLen) {
                         return getCurry(args)
                     } else {
-                        if (isDev) validateArgs(...args)
                         result = func.apply(this, args)
                     }
                 } else {
-                    if (isDev) validateArgs(...args)
                     result = new func(...args)
                 }
 

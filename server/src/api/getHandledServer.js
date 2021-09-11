@@ -10,6 +10,7 @@ import {
 } from "tied-up"
 
 const serverDef = createDef({
+    getMsg: objDef.getMsg,
     strictProps: { on: funcDef, close: funcDef },
 })
 const setDef = createDef({
