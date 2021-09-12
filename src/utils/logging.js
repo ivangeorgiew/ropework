@@ -38,10 +38,10 @@ export const logError = props => {
         }
 
         const notifyProps = {
-            description: descr,
-            arguments: args,
-            date: new Date().toUTCString(),
+            descr,
+            args,
             error,
+            date: new Date().toUTCString(),
         }
 
         if (isWeb) {
