@@ -1,4 +1,5 @@
 import { createFunc, tieSpec } from "../utils/createFunc"
+import { idxDef } from "./definitions"
 
 export const tieImpure = createFunc(
     "tying up impure function",
@@ -16,7 +17,7 @@ export const tiePure = createFunc(
 
 export const tieTimeout = createFunc(
     "creating tied setTimeout",
-    tieSpec,
+    [...tieSpec, idxDef],
     () => {},
     (descr, spec, onError, func, delay, ...args) =>
         setTimeout(tieImpure(descr, spec, onError, func), delay, ...args)
@@ -24,7 +25,7 @@ export const tieTimeout = createFunc(
 
 export const tieInterval = createFunc(
     "creating tied setInterval",
-    tieSpec,
+    [...tieSpec, idxDef],
     () => {},
     (descr, spec, onError, func, delay, ...args) =>
         setInterval(tieImpure(descr, spec, onError, func), delay, ...args)

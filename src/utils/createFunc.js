@@ -2,6 +2,7 @@ import { isDev } from "../api/constants"
 import {
     arrDef,
     createDef,
+    errorDef,
     funcDef,
     idxDef,
     specDef,
@@ -18,9 +19,6 @@ const isPureDef = /*#__PURE__*/ createDef({
             ? "must be boolean or undefined"
             : "",
 })
-const errorDef = /*#__PURE__*/ createDef({
-    getMsg: arg => (!(arg instanceof Error) ? "must be error" : ""),
-})
 
 export const tieSpec = [strDef, specDef, funcDef, funcDef]
 
@@ -32,9 +30,6 @@ const manageCacheValidate = createValidateFunc(manageCacheSpec)
 
 const innerCatchSpec = [arrDef, errorDef]
 const innerCatchValidate = createValidateFunc(innerCatchSpec)
-
-const getCurrySpec = [arrDef]
-const getCurryValidate = createValidateFunc(getCurrySpec)
 
 export const createFunc = (descr, spec, onError, func, isPure) => {
     try {
@@ -119,48 +114,28 @@ export const createFunc = (descr, spec, onError, func, isPure) => {
             }
         }
 
-        const getCurry = args => {
-            try {
-                if (isTest) {
-                    getCurryValidate(args)
-                }
+        const getCurry = args =>
+            function (...newArgs) {
+                try {
+                    const allArgs =
+                        newArgs.length === 0 && funcLen - args.length === 1
+                            ? args.concat([undefined])
+                            : args.concat(newArgs)
 
-                const result = function (...newArgs) {
                     try {
-                        const allArgs =
-                            newArgs.length === 0 && funcLen - args.length === 1
-                                ? args.concat([undefined])
-                                : args.concat(newArgs)
-
-                        try {
-                            // eslint-disable-next-line no-use-before-define
-                            return innerFunc.apply(this, allArgs)
-                        } catch (error) {
-                            return innerCatch(allArgs, error)
-                        }
+                        // eslint-disable-next-line no-use-before-define
+                        return innerFunc.apply(this, allArgs)
                     } catch (error) {
-                        return innerCatch(args, error)
+                        return innerCatch(allArgs, error)
                     }
+                } catch (error) {
+                    return innerCatch(args, error)
                 }
-
-                manageCache(cacheKeys.length, args, result)
-
-                return result
-            } catch (error) {
-                if (isTest) {
-                    try {
-                        innerLogError({ descr: "getCurry", args: [args], error })
-                    } catch {
-                        // nothing
-                    }
-                }
-
-                return innerCatch(args, error)
             }
-        }
 
         const innerFunc = function (...args) {
             let isFirstCall
+            let shouldStore
             let result
 
             try {
@@ -188,15 +163,16 @@ export const createFunc = (descr, spec, onError, func, isPure) => {
                 // normal call or constructor
                 if (new.target === undefined) {
                     if (args.length < funcLen) {
-                        return getCurry(args)
+                        shouldStore = true
+                        result = getCurry(args)
                     } else {
+                        shouldStore = isPure
                         result = func.apply(this, args)
                     }
                 } else {
+                    shouldStore = isPure
                     result = new func(...args)
                 }
-
-                let shouldStore = true
 
                 // handle async, generator and async generator
                 if (typeof result === "object" && result !== null) {
@@ -251,7 +227,7 @@ export const createFunc = (descr, spec, onError, func, isPure) => {
                     }
                 }
 
-                if (isPure && shouldStore) {
+                if (shouldStore) {
                     manageCache(cacheKeys.length, args, result)
                 }
             } catch (error) {

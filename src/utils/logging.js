@@ -1,5 +1,5 @@
 import { isServer, isWeb } from "../api/constants"
-import { arrDef, createDef, strDef } from "../api/definitions"
+import { arrDef, createDef, errorDef, strDef } from "../api/definitions"
 import { createValidateFunc } from "./createValidateFunc"
 import { innerLogError, isTest } from "./generics"
 import {
@@ -13,9 +13,7 @@ const logErrorPropsDef = /*#__PURE__*/ createDef({
     strictProps: {
         descr: strDef,
         args: arrDef,
-        error: /*#__PURE__*/ createDef({
-            getMsg: arg => (!(arg instanceof Error) ? "must be Error" : ""),
-        }),
+        error: errorDef,
     },
 })
 const logErrorSpec = [logErrorPropsDef]

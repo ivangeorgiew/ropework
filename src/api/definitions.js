@@ -162,3 +162,7 @@ export const idxDef = createDef({
 export const constrDef = createDef({
     getMsg: a => (!checkConstr(a) ? "must be constructor" : ""),
 })
+
+export const errorDef = createDef({
+    getMsg: arg => (!(arg instanceof Error) ? "must be error" : ""),
+})
