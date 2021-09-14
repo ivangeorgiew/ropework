@@ -160,15 +160,39 @@ export const innerLogError = props => {
 }
 
 export const checkObjType = a => {
-    const t = typeof a
+    try {
+        const t = typeof a
 
-    return a !== null && (t === "object" || t === "function")
+        return a !== null && (t === "object" || t === "function")
+    } catch (error) {
+        if (isTest) {
+            try {
+                innerLogError({ descr: "checkObjType", args: [a], error })
+            } catch {
+                // nothing
+            }
+        }
+
+        return true
+    }
 }
 
 export const checkObj = a => {
-    const c = a.constructor
+    try {
+        const c = a.constructor
 
-    return checkObjType(a) && (c === Object || c === undefined)
+        return checkObjType(a) && (c === Object || c === undefined)
+    } catch (error) {
+        if (isTest) {
+            try {
+                innerLogError({ descr: "checkObj", args: [a], error })
+            } catch {
+                // nothing
+            }
+        }
+
+        return true
+    }
 }
 
 export const optsKeysGetMsg = (a, keys) => {

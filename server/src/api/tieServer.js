@@ -35,19 +35,19 @@ const onClose = tieImpure(
     "handling server closing",
     [serverDef, setDef, strDef],
     () => {},
-    (server, sockets, event, _) => {
+    (server, sockets, eventName, _) => {
         server.close()
 
         sockets.forEach(socket => {
             socket.destroy()
         })
 
-        process.removeListener(event, onClose(server, sockets, event))
+        process.removeListener(eventName, onClose(server, sockets, eventName))
     }
 )
 
-export const getHandledServer = tiePure(
-    "initializing error handling for server",
+export const tieServer = tiePure(
+    "tying server",
     [serverDef, setOrUndefDef],
     props => props.args[0],
     (server, sockets_) => {
@@ -59,8 +59,8 @@ export const getHandledServer = tiePure(
 
         server.on("connection", onConnection(sockets))
 
-        nodeErrorEvents.forEach(event => {
-            process.prependListener(event, onClose(server, sockets, event))
+        nodeErrorEvents.forEach(eventName => {
+            process.prependListener(eventName, onClose(server, sockets, eventName))
         })
 
         return server

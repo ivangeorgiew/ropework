@@ -7,7 +7,7 @@ const funcOrUndefDef = createDef({
             : "",
 })
 
-export const getRoutingCreator = tieImpure(
+export const createServerRoute = tieImpure(
     "creating route for the server",
     [funcDef, funcOrUndefDef, strDef, strDef, funcDef],
     () => {},
