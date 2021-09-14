@@ -1,5 +1,10 @@
-import { innerLogError } from "../utils/generics"
-import { checkConstr, checkIdx, checkInt, checkObj, checkObjType } from "./checkers"
+import {
+    checkObj,
+    checkObjType,
+    innerLogError,
+    isTest,
+    optsKeysGetMsg,
+} from "../utils/innerConstants"
 import { isDev } from "./constants"
 
 const defKeys = ["getMsg", "props", "strictProps"]
@@ -7,16 +12,10 @@ const defKeys = ["getMsg", "props", "strictProps"]
 export const createDef = opts => {
     try {
         if (isDev) {
-            if (!checkObj(opts)) {
-                throw TypeError("arguments[0] - must be object")
-            }
+            const msg = optsKeysGetMsg(opts, defKeys)
 
-            if (!defKeys.some(key => key in opts)) {
-                const joined = defKeys.join(", ")
-
-                throw TypeError(
-                    `arguments[0] - must contain at least one of: ${joined}`
-                )
+            if (msg !== "") {
+                throw TypeError(`arguments[0] - ${msg}`)
             }
         }
 
@@ -32,19 +31,21 @@ export const createDef = opts => {
 
         return Object.freeze(def)
     } catch (error) {
-        if (isDev) {
-            try {
-                innerLogError({
-                    descr: "createDef",
-                    args: [opts],
-                    error,
-                })
-            } catch {
-                // nothing
-            }
+        try {
+            innerLogError({
+                descr: "createDef",
+                args: [opts],
+                error,
+            })
+        } catch {
+            // nothing
         }
 
-        return Object.freeze({})
+        const def = {}
+
+        def.constructor = createDef
+
+        return def
     }
 }
 
@@ -58,15 +59,39 @@ export const specDef = createDef({
         const refs = new WeakSet()
 
         const addProps = (key, props) => {
-            const propKeys = Object.keys(props)
+            try {
+                if (isTest) {
+                    if (typeof key !== "string") {
+                        throw TypeError("arguments[0] - must be string")
+                    }
 
-            for (let m = 0; m < propKeys.length; m++) {
-                const propKey = propKeys[m]
+                    if (!checkObjType(props)) {
+                        throw TypeError("arguments[1] - must be of object type")
+                    }
+                }
 
-                list.push([`${key}[${propKey}]`, props[propKey]])
+                const propKeys = Object.keys(props)
+
+                for (let m = 0; m < propKeys.length; m++) {
+                    const propKey = propKeys[m]
+
+                    list.push([`${key}[${propKey}]`, props[propKey]])
+                }
+
+                refs.add(props)
+            } catch (error) {
+                if (isTest) {
+                    try {
+                        innerLogError({
+                            descr: "addProps",
+                            args: [key, props],
+                            error,
+                        })
+                    } catch {
+                        // nothing
+                    }
+                }
             }
-
-            refs.add(props)
         }
 
         for (let i = 0; i < list.length; i++) {
@@ -152,17 +177,37 @@ export const objDef = createDef({
 })
 
 export const intDef = createDef({
-    getMsg: a => (!checkInt(a) ? "must be integer" : ""),
+    getMsg: a =>
+        !Number.isInteger(a) || !Number.isFinite(a) ? "must be integer" : "",
 })
 
 export const idxDef = createDef({
-    getMsg: a => (!checkIdx(a) ? "must be positive integer or 0" : ""),
+    getMsg: a =>
+        !Number.isInteger(a) || !Number.isFinite(a) || a < 0
+            ? "must be positive integer or 0"
+            : "",
 })
 
 export const constrDef = createDef({
-    getMsg: a => (!checkConstr(a) ? "must be constructor" : ""),
+    getMsg: a => {
+        try {
+            Reflect.construct(String, [], a)
+
+            return ""
+        } catch {
+            return "must be constructor"
+        }
+    },
 })
 
 export const errorDef = createDef({
-    getMsg: arg => (!(arg instanceof Error) ? "must be error" : ""),
+    getMsg: arg => (!(arg instanceof Error) ? "must be instance of Error" : ""),
+})
+
+export const setDef = createDef({
+    getMsg: arg => (!(arg instanceof Set) ? "must be instance of Set" : ""),
+})
+
+export const mapDef = createDef({
+    getMsg: arg => (!(arg instanceof Map) ? "must be instance of Map" : ""),
 })

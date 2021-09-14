@@ -1,13 +1,10 @@
 import { arrDef } from "../api/definitions"
 import { createValidateFunc } from "./createValidateFunc"
-import { innerLogError, isTest } from "./generics"
+import { innerLogError, isTest } from "./innerConstants"
 
 export const handledFuncs = new WeakMap()
 
-const toKeys = a => [
-    ...Object.getOwnPropertyNames(a),
-    ...Object.getOwnPropertySymbols(a),
-]
+const toKeys = Object.getOwnPropertyNames
 
 const checkSVZ = (a, b) => a === b || (a !== a && b !== b)
 
@@ -63,7 +60,7 @@ const getCacheIdxValidate = createValidateFunc(getCacheIdxSpec)
 export const getCacheIdx = (args, cacheKeys) => {
     try {
         if (isTest) {
-            getCacheIdxValidate(args, cacheKeys)
+            getCacheIdxValidate([args, cacheKeys])
         }
 
         const cacheKeysLen = cacheKeys.length

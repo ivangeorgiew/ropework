@@ -1,6 +1,6 @@
 import { idxDef, strDef } from "../api/definitions"
 import { createValidateFunc } from "./createValidateFunc"
-import { innerLogError, isTest, options } from "./generics"
+import { innerLogError, isTest, options } from "./innerConstants"
 
 export const notify = (...args) => {
     try {
@@ -22,7 +22,7 @@ const getErrorsCacheIdxValidate = createValidateFunc(getErrorsCacheIdxSpec)
 export const getErrorsCacheIdx = (descr, msg) => {
     try {
         if (isTest) {
-            getErrorsCacheIdxValidate(descr, msg)
+            getErrorsCacheIdxValidate([descr, msg])
         }
 
         const errorsCacheLen = errorsCache.length
@@ -69,7 +69,7 @@ const manageErrorsCacheValidate = createValidateFunc(manageErrorsCacheSpec)
 export const manageErrorsCache = (_idx, descr, msg) => {
     try {
         if (isTest) {
-            manageErrorsCacheValidate(_idx, descr, msg)
+            manageErrorsCacheValidate([_idx, descr, msg])
         }
 
         let idx = _idx > 5 ? 5 : _idx

@@ -1,12 +1,27 @@
-import { checkObjType } from "../api/checkers"
 import { isDev } from "../api/constants"
 import { objTypeDef, specDef } from "../api/definitions"
-import { innerLogError, isTest } from "./generics"
+import { checkObj, checkObjType, innerLogError, isTest } from "./innerConstants"
 
 export const createValidateFunc = spec => {
     try {
-        const validateItem = (key, argsVal, getMsg) => {
+        const validateItem = opts => {
             try {
+                if (isTest) {
+                    if (!checkObj(opts)) {
+                        throw TypeError("arguments[0] - must be object")
+                    }
+
+                    if (typeof opts.key !== "string") {
+                        throw TypeError("arguments[0][key] - must be string")
+                    }
+
+                    if (typeof opts.getMsg !== "function") {
+                        throw TypeError("arguments[0][getMsg] - must be function")
+                    }
+                }
+
+                const { key, argsVal, getMsg } = opts
+
                 const msg = (function () {
                     try {
                         return getMsg(argsVal)
@@ -41,7 +56,7 @@ export const createValidateFunc = spec => {
                     try {
                         innerLogError({
                             descr: "validateItem",
-                            args: [key, argsVal, getMsg],
+                            args: [opts],
                             error,
                         })
                     } catch {
@@ -55,23 +70,51 @@ export const createValidateFunc = spec => {
 
         const getArgsErrorMsg = args => {
             try {
+                if (isTest) {
+                    if (!Array.isArray(args)) {
+                        throw TypeError("arguments[0] - must be array")
+                    }
+                }
+
                 const initLen = args.length < spec.length ? args.length : spec.length
                 const list = Array(initLen)
                 const refs = new WeakSet()
 
-                const addProps = (key, argsVal, specVal, isStrict) => {
+                const addProps = opts => {
                     try {
-                        const prop = isStrict ? specVal.strictProps : specVal.props
-                        const propKeys = Object.keys(prop)
+                        if (isTest) {
+                            if (!checkObj(opts)) {
+                                throw TypeError("arguments[0] - must be object")
+                            }
 
-                        for (let m = 0; m < propKeys.length; m++) {
-                            const propKey = propKeys[m]
+                            if (typeof opts.key !== "string") {
+                                throw TypeError("arguments[0][key] - must be string")
+                            }
 
-                            if (isStrict || propKey in argsVal) {
+                            if (!checkObj(opts.props)) {
+                                throw TypeError(
+                                    "arguments[0][props] - must be object"
+                                )
+                            }
+
+                            if (typeof opts.isStrict !== "boolean") {
+                                throw TypeError(
+                                    "arguments[0][props] - must be boolean"
+                                )
+                            }
+                        }
+
+                        const { key, props, argsVal, isStrict } = opts
+                        const propsKeys = Object.keys(props)
+
+                        for (let m = 0; m < propsKeys.length; m++) {
+                            const propsKey = propsKeys[m]
+
+                            if (isStrict || propsKey in argsVal) {
                                 list.push([
-                                    `${key}[${propKey}]`,
-                                    prop[propKey],
-                                    argsVal[propKey],
+                                    `${key}[${propsKey}]`,
+                                    props[propsKey],
+                                    argsVal[propsKey],
                                 ])
                             }
                         }
@@ -82,7 +125,7 @@ export const createValidateFunc = spec => {
                             try {
                                 innerLogError({
                                     descr: "addProps",
-                                    args: [key, argsVal, specVal, isStrict],
+                                    args: [opts],
                                     error,
                                 })
                             } catch {
@@ -101,7 +144,11 @@ export const createValidateFunc = spec => {
                     const argsVal = isMain ? args[i] : item[2]
 
                     if ("getMsg" in specVal) {
-                        const msg = validateItem(key, argsVal, specVal.getMsg)
+                        const msg = validateItem({
+                            key,
+                            argsVal,
+                            getMsg: specVal.getMsg,
+                        })
 
                         if (msg !== "") {
                             return msg
@@ -110,18 +157,32 @@ export const createValidateFunc = spec => {
 
                     if ("props" in specVal && !refs.has(argsVal)) {
                         if (checkObjType(argsVal)) {
-                            addProps(key, argsVal, specVal, false)
+                            addProps({
+                                key,
+                                props: specVal.props,
+                                argsVal,
+                                isStrict: false,
+                            })
                         }
                     }
 
                     if ("strictProps" in specVal && !refs.has(argsVal)) {
-                        const msg = validateItem(key, argsVal, objTypeDef.getMsg)
+                        const msg = validateItem({
+                            key,
+                            argsVal,
+                            getMsg: objTypeDef.getMsg,
+                        })
 
                         if (msg !== "") {
                             return msg
                         }
 
-                        addProps(key, argsVal, specVal, true)
+                        addProps({
+                            key,
+                            props: specVal.strictProps,
+                            argsVal,
+                            isStrict: true,
+                        })
                     }
                 }
 
@@ -144,14 +205,36 @@ export const createValidateFunc = spec => {
         }
 
         if (isTest) {
-            const msg = validateItem("[specDef]", spec, specDef.getMsg)
+            const msg = validateItem({
+                key: "[specDef]",
+                argsVal: spec,
+                getMsg: specDef.getMsg,
+            })
 
             if (msg !== "") {
                 throw TypeError(msg)
             }
         }
 
-        return (...args) => {
+        return args => {
+            if (isTest) {
+                try {
+                    if (!Array.isArray(args)) {
+                        throw TypeError("arguments[0] - must be array")
+                    }
+                } catch (error) {
+                    try {
+                        innerLogError({
+                            descr: "createValidateFunc",
+                            args: [spec],
+                            error,
+                        })
+                    } catch {
+                        // nothing
+                    }
+                }
+            }
+
             const msg = getArgsErrorMsg(args)
 
             if (msg !== "") {

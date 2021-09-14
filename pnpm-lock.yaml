@@ -1,7 +1,7 @@
 lockfileVersion: 5.3
 
 specifiers:
-  '@ivan_georgiew/eslint-config': ^1.0.6
+  '@ivan_georgiew/eslint-config': ^1.0.8
   '@ivan_georgiew/prettier-config': ^1.0.4
   '@rollup/plugin-strip': ^2.1.0
   eslint: ^7.32.0
@@ -13,7 +13,7 @@ specifiers:
   rollup-plugin-terser: ^7.0.2
 
 devDependencies:
-  '@ivan_georgiew/eslint-config': 1.0.6_eslint@7.32.0
+  '@ivan_georgiew/eslint-config': 1.0.8_eslint@7.32.0
   '@ivan_georgiew/prettier-config': 1.0.4_prettier@2.3.2
   '@rollup/plugin-strip': 2.1.0_rollup@2.56.0
   eslint: 7.32.0
@@ -85,8 +85,8 @@ packages:
     resolution: {integrity: sha512-wdppn25U8z/2yiaT6YGquE6X8sSv7hNMWSXYSSU1jGv/yd6XqjXgTDJ8KP4NgjTXfJ3GbRjeeb8RTV7a/VpM+w==}
     dev: true
 
-  /@ivan_georgiew/eslint-config/1.0.6_eslint@7.32.0:
-    resolution: {integrity: sha512-1d5wQKupg8yf2lJqUKUuLMJmKVkYeKQsUtY9/QrNws0MJ+Bp/9zYn++63P6LHcmDYd6x67K74rEEx1yOYyMg/Q==}
+  /@ivan_georgiew/eslint-config/1.0.8_eslint@7.32.0:
+    resolution: {integrity: sha512-B4+mIOfx3kSdAMb0wnPV9RO+9ggtN/E/dKtiVxMmRl5QtWpYIdAfvWMoHxWQh0uXlv8NWwBQzRm1QCWAlhsuVw==}
     engines: {node: '>=12.22.0'}
     requiresBuild: true
     peerDependencies:

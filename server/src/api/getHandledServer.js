@@ -6,15 +6,12 @@ import {
     nodeErrorEvents,
     tieImpure,
     tiePure,
+    setDef,
     createDef,
 } from "tied-up"
 
 const serverDef = createDef({
-    getMsg: objDef.getMsg,
     strictProps: { on: funcDef, close: funcDef },
-})
-const setDef = createDef({
-    getMsg: arg => (!(arg instanceof Set) ? "must be Set" : ""),
 })
 const setOrUndefDef = createDef({
     getMsg: arg =>

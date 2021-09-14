@@ -1,5 +1,4 @@
 export * from "./api/constants"
-export * from "./api/checkers"
 export * from "./api/definitions"
 export * from "./api/tying"
 export * from "./api/extras"

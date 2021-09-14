@@ -158,3 +158,62 @@ export const innerLogError = props => {
         }
     }
 }
+
+export const checkObjType = a => {
+    const t = typeof a
+
+    return a !== null && (t === "object" || t === "function")
+}
+
+export const checkObj = a => {
+    const c = a.constructor
+
+    return checkObjType(a) && (c === Object || c === undefined)
+}
+
+export const optsKeysGetMsg = (a, keys) => {
+    try {
+        if (isTest) {
+            if (!Array.isArray(keys)) {
+                throw TypeError("arguments[1] - must be array")
+            }
+        }
+
+        if (!checkObj(a)) {
+            return "must be object"
+        }
+
+        const aKeys = Object.keys(a)
+        let hasValidKeys = false
+
+        for (let i = 0; i < aKeys.length; i++) {
+            const aKey = aKeys[i]
+
+            if (keys.indexOf(aKey) === -1) {
+                return `has invalid property name: ${aKey}`
+            } else if (!hasValidKeys) {
+                hasValidKeys = true
+            }
+        }
+
+        if (!hasValidKeys) {
+            return `should contain at least one of: ${keys.join(", ")}`
+        }
+
+        return ""
+    } catch (error) {
+        if (isTest) {
+            try {
+                innerLogError({
+                    descr: "optsKeysGetMsg",
+                    args: [a, keys],
+                    error,
+                })
+            } catch {
+                // nothing
+            }
+        }
+
+        return ""
+    }
+}

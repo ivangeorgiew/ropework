@@ -1,7 +1,7 @@
 import { isServer, isWeb } from "../api/constants"
 import { arrDef, createDef, errorDef, strDef } from "../api/definitions"
 import { createValidateFunc } from "./createValidateFunc"
-import { innerLogError, isTest } from "./generics"
+import { innerLogError, isTest } from "./innerConstants"
 import {
     errorsCache,
     getErrorsCacheIdx,
@@ -22,7 +22,7 @@ const logErrorValidate = createValidateFunc(logErrorSpec)
 export const logError = props => {
     try {
         if (isTest) {
-            logErrorValidate(props)
+            logErrorValidate([props])
         }
 
         const { descr, args, error } = props

@@ -54,9 +54,6 @@
         ],
         "globals": {
             "__TEST__": "readonly"
-        },
-        "rules": {
-            "ecmalist/no-modules": "off"
         }
     },
     "browserslist": [
@@ -82,7 +79,7 @@
     "bugs": "https://github.com/ivangeorgiew/tied-up/issues",
     "homepage": "https://github.com/ivangeorgiew/tied-up#readme",
     "devDependencies": {
-        "@ivan_georgiew/eslint-config": "^1.0.6",
+        "@ivan_georgiew/eslint-config": "^1.0.8",
         "@ivan_georgiew/prettier-config": "^1.0.4",
         "@rollup/plugin-strip": "^2.1.0",
         "eslint": "^7.32.0",
