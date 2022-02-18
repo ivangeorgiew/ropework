@@ -19,36 +19,36 @@ const optionsDef = createDef({
 export const changeOptions = createFunc(
     "changing global options",
     [optionsDef],
-    () => {},
     props => {
         Object.keys(props).forEach(key => {
             options[key] = props[key]
         })
-    }
+    },
+    () => {}
 )
 
 export const clearCacheOf = createFunc(
     "clear cache of a tied function",
     [funcDef],
-    () => {},
     tiedFunc => {
         if (handledFuncs.has(tiedFunc)) {
             const { cacheKeys, cacheValues } = handledFuncs.get(tiedFunc)
 
             cacheKeys.length = cacheValues.length = 0
         }
-    }
+    },
+    () => {}
 )
 
 export const getPropsOf = createFunc(
     "getting props of a tied function",
     [funcDef],
-    () => ({}),
     tiedFunc => {
         if (handledFuncs.has(tiedFunc)) {
             return handledFuncs.get(tiedFunc)
         }
 
         return {}
-    }
+    },
+    () => ({})
 )

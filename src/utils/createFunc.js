@@ -31,10 +31,10 @@ const manageCacheValidate = createValidateFunc(manageCacheSpec)
 const innerCatchSpec = [arrDef, errorDef]
 const innerCatchValidate = createValidateFunc(innerCatchSpec)
 
-export const createFunc = (descr, spec, onError, func, isPure) => {
+export const createFunc = (descr, spec, func, onError, isPure) => {
     try {
         if (isTest) {
-            createFuncValidate([descr, spec, onError, func, isPure])
+            createFuncValidate([descr, spec, func, onError, isPure])
         }
 
         if (handledFuncs.has(func)) {
@@ -254,8 +254,8 @@ export const createFunc = (descr, spec, onError, func, isPure) => {
         handledFuncs.set(innerFunc, {
             descr,
             spec,
-            onError,
             func,
+            onError,
             cacheKeys,
             cacheValues,
         })
@@ -266,7 +266,7 @@ export const createFunc = (descr, spec, onError, func, isPure) => {
             try {
                 innerLogError({
                     descr: "createFunc",
-                    args: [descr, spec, onError, func, isPure],
+                    args: [descr, spec, func, onError, isPure],
                     error,
                 })
             } catch {

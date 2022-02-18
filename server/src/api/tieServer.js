@@ -21,20 +21,19 @@ const setOrUndefDef = createDef({
 const onConnection = tieImpure(
     "adding sockets to server",
     [setDef, objDef],
-    () => {},
     (sockets, socket) => {
         socket.on("close", () => {
             sockets.delete(socket)
         })
 
         sockets.add(socket)
-    }
+    },
+    () => {}
 )
 
 const onClose = tieImpure(
     "handling server closing",
     [serverDef, setDef, strDef],
-    () => {},
     (server, sockets, eventName, _) => {
         server.close()
 
@@ -43,13 +42,13 @@ const onClose = tieImpure(
         })
 
         process.removeListener(eventName, onClose(server, sockets, eventName))
-    }
+    },
+    () => {}
 )
 
 export const tieServer = tiePure(
     "tying server",
     [serverDef, setOrUndefDef],
-    props => props.args[0],
     (server, sockets_) => {
         if (!isServer) {
             throw Error("This function is meant for server use")
@@ -62,6 +61,11 @@ export const tieServer = tiePure(
         nodeErrorEvents.forEach(eventName => {
             process.prependListener(eventName, onClose(server, sockets, eventName))
         })
+
+        return server
+    },
+    props => {
+        const [server] = props.args
 
         return server
     }

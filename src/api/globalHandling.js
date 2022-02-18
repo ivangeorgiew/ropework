@@ -6,7 +6,6 @@ import { boolDef } from "./definitions"
 const uncaughtErrorListener = createFunc(
     "listening for uncaught errors",
     [],
-    () => {},
     eventOrError => {
         const descr = "unhandled error"
         const unknownMsg = "Unknown error"
@@ -39,13 +38,13 @@ const uncaughtErrorListener = createFunc(
                 process.exit(exitCode)
             }, 500).unref()
         }
-    }
+    },
+    () => {}
 )
 
 export const globalHandleErrors = createFunc(
     "handling listeners for uncaught errors",
     [boolDef],
-    () => {},
     shouldAdd => {
         if (isWeb) {
             browserErrorEvents.forEach(event => {
@@ -64,5 +63,6 @@ export const globalHandleErrors = createFunc(
                 }
             })
         }
-    }
+    },
+    () => {}
 )
