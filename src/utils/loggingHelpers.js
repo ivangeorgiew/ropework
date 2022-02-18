@@ -1,6 +1,7 @@
+import { isTest } from "../api/constants"
 import { idxDef, strDef } from "../api/definitions"
 import { createValidateFunc } from "./createValidateFunc"
-import { innerLogError, isTest, options } from "./innerConstants"
+import { innerLogError, options } from "./innerConstants"
 
 export const notify = (...args) => {
     try {

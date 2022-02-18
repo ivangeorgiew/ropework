@@ -1,7 +1,7 @@
-import { isServer, isWeb } from "../api/constants"
+import { isServer, isTest, isWeb } from "../api/constants"
 import { arrDef, createDef, errorDef, strDef } from "../api/definitions"
 import { createValidateFunc } from "./createValidateFunc"
-import { innerLogError, isTest } from "./innerConstants"
+import { innerLogError } from "./innerConstants"
 import {
     errorsCache,
     getErrorsCacheIdx,

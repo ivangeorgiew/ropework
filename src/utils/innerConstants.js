@@ -1,6 +1,4 @@
-import { isDev } from "../api/constants"
-
-export const isTest = __TEST__
+import { isDev, isTest } from "../api/constants"
 
 const defaultLogger =
     isDev && console instanceof Object && typeof console.error === "function"

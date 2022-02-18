@@ -41,7 +41,7 @@
         "bigbump": "pnpm version minor",
         "lint": "eslint \"**/!(dist)/*.js\"",
         "format": "prettier --write \"**/!(dist)/*.{js,json,md}\"",
-        "test": "NODE_ENV=test node ./tests/index.js"
+        "test": "NODE_ENV=testing node ./tests/index.js"
     },
     "lint-staged": {
         "*.js": "eslint --fix",
@@ -51,10 +51,7 @@
     "eslintConfig": {
         "extends": [
             "@ivan_georgiew/eslint-config"
-        ],
-        "globals": {
-            "__TEST__": "readonly"
-        }
+        ]
     },
     "browserslist": [
         "defaults",

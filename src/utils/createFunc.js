@@ -1,4 +1,4 @@
-import { isDev } from "../api/constants"
+import { isDev, isTest } from "../api/constants"
 import {
     arrDef,
     createDef,
@@ -10,7 +10,7 @@ import {
 } from "../api/definitions"
 import { getCacheIdx, handledFuncs } from "./createFuncHelpers"
 import { createValidateFunc } from "./createValidateFunc"
-import { innerLogError, isTest } from "./innerConstants"
+import { innerLogError } from "./innerConstants"
 import { logError } from "./logging"
 
 const isPureDef = /*#__PURE__*/ createDef({

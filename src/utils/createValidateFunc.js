@@ -1,6 +1,6 @@
-import { isDev } from "../api/constants"
+import { isDev, isTest } from "../api/constants"
 import { objTypeDef, specDef } from "../api/definitions"
-import { checkObj, checkObjType, innerLogError, isTest } from "./innerConstants"
+import { checkObj, checkObjType, innerLogError } from "./innerConstants"
 
 export const createValidateFunc = spec => {
     try {

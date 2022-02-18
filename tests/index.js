@@ -5,14 +5,13 @@
 //     idxDef,
 //     definedDef,
 //     createDef,
-// } = require("../dist/test.cjs.js")
+// } = require("../dist/index.cjs.js")
 
 // globalHandleErrors(true)
 
 // const fib = tiePure(
 //     "calculating fibonacci number",
 //     [idxDef, definedDef, definedDef, definedDef, definedDef, definedDef],
-//     () => "Not a number",
 //     (n, a, b, c, d, e) => {
 //         if (n <= 1) return n
 
@@ -20,7 +19,8 @@
 //         const prepre = fib(n - 1, a, b, c, d, e)
 
 //         return pre + prepre
-//     }
+//     },
+//     () => Infinity
 // )
 
 // const a = () => {
@@ -38,26 +38,26 @@
 // const A = tiePure(
 //     "class A",
 //     [dDef],
-//     () => ({}),
 //     class {
 //         constructor(props) {
 //             this.a = props.a
 //             this.b = 6
 //         }
-//     }
+//     },
+//     () => ({})
 // )
 
 // const B = tiePure(
 //     "class B",
 //     [dDef],
-//     () => ({}),
 //     class extends A {
 //         constructor(props) {
 //             super(props)
 
 //             this.c = props.a + 123
 //         }
-//     }
+//     },
+//     () => ({})
 // )
 
 // const e = new B(d)
@@ -67,6 +67,8 @@
 // console.log(fib(4000, a, b, c, d, e))
 // console.log(fib(4000, a, b, c, d, e))
 
+// RUN WITH: NODE_ENV=production node ./tests/index.js
+// Args validation takes its toll on time!
 // console.time("fib")
 // fib(4000, a, b, c, d, e)
 // console.timeEnd("fib")
@@ -74,7 +76,6 @@
 // const asyncGen = tiePure(
 //     "asynchronous generator function test",
 //     [idxDef],
-//     () => 123,
 //     async function* (i) {
 //         yield i
 //         await new Promise(resolve => {
@@ -82,7 +83,8 @@
 //         })
 //         // throw new Error("intended")
 //         return i + 10
-//     }
+//     },
+//     () => 123
 // )
 
 // ;(async () => {
@@ -98,12 +100,12 @@
 // const gen = tiePure(
 //     "generator function test",
 //     [idxDef],
-//     () => 123,
 //     function* (i) {
 //         yield i
 //         // throw new Error("intended")
 //         return i + 10
-//     }
+//     },
+//     () => 123
 // )
 
 // const g1 = gen(10)
@@ -116,7 +118,6 @@
 // const asyncF = tiePure(
 //     "asynchronous function test",
 //     [idxDef],
-//     () => "error val",
 //     async i => {
 //         // await asyncF(i + 1)
 //         await new Promise(resolve => {
@@ -124,24 +125,25 @@
 //         })
 //         // throw new Error("intended")
 //         return i
-//     }
+//     },
+//     () => "error val"
 // )
 
 // ;(async () => {
 //     console.log(await asyncF(10))
 //     console.log(await asyncF(10))
-//     console.log("\nafter")
+//     console.log("after")
 // })()
 
 // const addNumbers = tiePure(
 //     "adding two numbers",
 //     [idxDef, idxDef],
-//     () => "There was an error",
 //     (a, b) => {
 //         console.log("ran func")
 
 //         return a + b
-//     }
+//     },
+//     () => "There was an error"
 // )
 
 // const addSupTo = addNumbers("sup")
@@ -152,8 +154,6 @@
 // console.log(addTenTo(5))
 // console.log(copyOfAddTenTo(5))
 // console.log(copyOfAddTenTo("bla"))
-
-// console.log(copyOfAddTenTo())
 
 // changeOptions({ notify: () => {} })
 // changeOptions({ typo: () => {} })

@@ -2,10 +2,9 @@ import {
     checkObj,
     checkObjType,
     innerLogError,
-    isTest,
     optsKeysGetMsg,
 } from "../utils/innerConstants"
-import { isDev } from "./constants"
+import { isDev, isTest } from "./constants"
 
 const defKeys = ["getMsg", "props", "strictProps"]
 

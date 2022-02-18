@@ -1,6 +1,7 @@
+import { isTest } from "../api/constants"
 import { arrDef } from "../api/definitions"
 import { createValidateFunc } from "./createValidateFunc"
-import { innerLogError, isTest } from "./innerConstants"
+import { innerLogError } from "./innerConstants"
 
 export const handledFuncs = new WeakMap()
 

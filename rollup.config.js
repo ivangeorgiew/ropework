@@ -53,30 +53,6 @@ const reducer = (acc, [root, name]) =>
                 { ...commonOutOpts, format: "cjs", file: `${root}/${pkg.main}` },
                 { ...commonOutOpts, format: "esm", file: `${root}/${pkg.module}` },
             ],
-            plugins: [modify({ preventAssignment: true, __TEST__: false })],
-        },
-        {
-            input: makeInput(root),
-            external,
-            treeshake,
-            output: [
-                {
-                    ...commonOutOpts,
-                    format: "cjs",
-                    file: `${root}/${pkg.main.replace("index", "test")}`,
-                },
-                {
-                    ...commonOutOpts,
-                    format: "esm",
-                    file: `${root}/${pkg.module.replace("index", "test")}`,
-                },
-            ],
-            plugins: [
-                modify({
-                    "process.env.NODE_ENV": JSON.stringify("development"),
-                    "__TEST__": true,
-                }),
-            ],
         },
         {
             input: makeInput(root),
@@ -107,7 +83,6 @@ const reducer = (acc, [root, name]) =>
             plugins: [
                 modify({
                     "process.env.NODE_ENV": JSON.stringify("production"),
-                    "__TEST__": false,
                     "find": /\[\s*(\w+Def(?:\s*,\s*|\s*))+\]/g,
                     "replace": "[]",
                 }),
