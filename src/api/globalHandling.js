@@ -42,7 +42,7 @@ const uncaughtErrorListener = createFunc(
     () => {}
 )
 
-export const globalHandleErrors = createFunc(
+export const handleGlobalErrors = createFunc(
     "handling listeners for uncaught errors",
     [boolDef],
     shouldAdd => {

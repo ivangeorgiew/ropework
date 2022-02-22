@@ -22,14 +22,9 @@ const isPureDef = /*#__PURE__*/ createDef({
 
 export const tieSpec = [strDef, specDef, funcDef, funcDef]
 
-const createFuncSpec = [...tieSpec, isPureDef]
-const createFuncValidate = createValidateFunc(createFuncSpec)
-
-const manageCacheSpec = [idxDef, arrDef]
-const manageCacheValidate = createValidateFunc(manageCacheSpec)
-
-const innerCatchSpec = [arrDef, errorDef]
-const innerCatchValidate = createValidateFunc(innerCatchSpec)
+const createFuncValidate = createValidateFunc([...tieSpec, isPureDef])
+const manageCacheValidate = createValidateFunc([idxDef, arrDef])
+const innerCatchValidate = createValidateFunc([arrDef, errorDef])
 
 export const createFunc = (descr, spec, func, onError, isPure) => {
     try {

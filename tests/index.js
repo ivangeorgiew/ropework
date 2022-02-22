@@ -1,13 +1,13 @@
 // const {
 //     tiePure,
 //     changeOptions,
-//     globalHandleErrors,
+//     handleGlobalErrors,
 //     idxDef,
 //     definedDef,
 //     createDef,
 // } = require("../dist/index.cjs.js")
 
-// globalHandleErrors(true)
+// handleGlobalErrors(true)
 
 // const fib = tiePure(
 //     "calculating fibonacci number",
@@ -20,7 +20,7 @@
 
 //         return pre + prepre
 //     },
-//     () => Infinity
+//     () => "There was an error"
 // )
 
 // const a = () => {
@@ -84,7 +84,7 @@
 //         // throw new Error("intended")
 //         return i + 10
 //     },
-//     () => 123
+//     () => "There was an error"
 // )
 
 // ;(async () => {
@@ -105,7 +105,7 @@
 //         // throw new Error("intended")
 //         return i + 10
 //     },
-//     () => 123
+//     () => "There was an error"
 // )
 
 // const g1 = gen(10)
@@ -126,7 +126,7 @@
 //         // throw new Error("intended")
 //         return i
 //     },
-//     () => "error val"
+//     () => "There was an error"
 // )
 
 // ;(async () => {

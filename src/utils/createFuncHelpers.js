@@ -55,8 +55,7 @@ const checkEqual = (a, b) => {
     }
 }
 
-const getCacheIdxSpec = [arrDef, arrDef]
-const getCacheIdxValidate = createValidateFunc(getCacheIdxSpec)
+const getCacheIdxValidate = createValidateFunc([arrDef, arrDef])
 
 export const getCacheIdx = (args, cacheKeys) => {
     try {

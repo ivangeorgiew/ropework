@@ -16,8 +16,7 @@ const logErrorPropsDef = /*#__PURE__*/ createDef({
         error: errorDef,
     },
 })
-const logErrorSpec = [logErrorPropsDef]
-const logErrorValidate = createValidateFunc(logErrorSpec)
+const logErrorValidate = createValidateFunc([logErrorPropsDef])
 
 export const logError = props => {
     try {

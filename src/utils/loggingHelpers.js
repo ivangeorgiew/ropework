@@ -17,8 +17,7 @@ export const notify = (...args) => {
 
 export const errorsCache = []
 
-const getErrorsCacheIdxSpec = [strDef, strDef]
-const getErrorsCacheIdxValidate = createValidateFunc(getErrorsCacheIdxSpec)
+const getErrorsCacheIdxValidate = createValidateFunc([strDef, strDef])
 
 export const getErrorsCacheIdx = (descr, msg) => {
     try {
@@ -64,8 +63,7 @@ export const getErrorsCacheIdx = (descr, msg) => {
     }
 }
 
-const manageErrorsCacheSpec = [idxDef, strDef, strDef]
-const manageErrorsCacheValidate = createValidateFunc(manageErrorsCacheSpec)
+const manageErrorsCacheValidate = createValidateFunc([idxDef, strDef, strDef])
 
 export const manageErrorsCache = (_idx, descr, msg) => {
     try {
