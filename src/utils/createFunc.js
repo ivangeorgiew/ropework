@@ -26,18 +26,18 @@ const createFuncValidate = createValidateFunc([...tieSpec, isPureDef])
 const manageCacheValidate = createValidateFunc([idxDef, arrDef])
 const innerCatchValidate = createValidateFunc([arrDef, errorDef])
 
-export const createFunc = (descr, spec, func, onError, isPure) => {
+export const createFunc = (descr, spec, onTry, onCatch, isPure) => {
     try {
         if (isTest) {
-            createFuncValidate([descr, spec, func, onError, isPure])
+            createFuncValidate([descr, spec, onTry, onCatch, isPure])
         }
 
-        if (handledFuncs.has(func)) {
-            return func
+        if (handledFuncs.has(onTry)) {
+            return onTry
         }
 
         const validateArgs = createValidateFunc(spec)
-        const funcLen = func.length
+        const funcLen = onTry.length
         const cacheKeys = []
         const cacheValues = []
 
@@ -96,7 +96,7 @@ export const createFunc = (descr, spec, func, onError, isPure) => {
                 logError({ descr, error, args })
 
                 try {
-                    return onError({ descr, args, error })
+                    return onCatch({ descr, args, error })
                 } catch (error) {
                     logError({
                         descr: `handling errors for [${descr}]`,
@@ -162,13 +162,13 @@ export const createFunc = (descr, spec, func, onError, isPure) => {
                         if (isDev) validateArgs(args)
 
                         shouldStore = isPure
-                        result = func.apply(this, args)
+                        result = onTry.apply(this, args)
                     }
                 } else {
                     if (isDev) validateArgs(args)
 
                     shouldStore = isPure
-                    result = new func(...args)
+                    result = new onTry(...args)
                 }
 
                 // handle async, generator and async generator
@@ -249,8 +249,8 @@ export const createFunc = (descr, spec, func, onError, isPure) => {
         handledFuncs.set(innerFunc, {
             descr,
             spec,
-            func,
-            onError,
+            onTry,
+            onCatch,
             cacheKeys,
             cacheValues,
         })
@@ -261,7 +261,7 @@ export const createFunc = (descr, spec, func, onError, isPure) => {
             try {
                 innerLogError({
                     descr: "createFunc",
-                    args: [descr, spec, func, onError, isPure],
+                    args: [descr, spec, onTry, onCatch, isPure],
                     error,
                 })
             } catch {
