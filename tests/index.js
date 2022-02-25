@@ -9,6 +9,29 @@
 
 // handleGlobalErrors(true)
 
+// const retryFunc = tiePure(
+//     "retry function",
+//     [],
+//     n => {
+//         if (n < 5) {
+//             throw Error("Test Error")
+//         } else {
+//             return n + 10
+//         }
+//     },
+//     props => {
+//         const { args } = props
+//         const [n] = args
+
+//         console.log(n)
+//         return retryFunc(n + 1)
+//     }
+// )
+
+// console.log(retryFunc(4)) // success
+// console.log()
+// console.log(retryFunc(4)) // failed more than once
+
 // const fib = tiePure(
 //     "calculating fibonacci number",
 //     [idxDef, definedDef, definedDef, definedDef, definedDef, definedDef],
@@ -67,10 +90,10 @@
 // console.log(fib(4000, a, b, c, d, e))
 // console.log(fib(4000, a, b, c, d, e))
 
-// RUN WITH: NODE_ENV=production node ./tests/index.js
 // Args validation takes its toll on time!
+// RUN WITH: NODE_ENV=production node ./tests/index.js
 // console.time("fib")
-// fib(4000, a, b, c, d, e)
+// fib(4000, a, b, c, d, e) // around 13ms is normal for 4000
 // console.timeEnd("fib")
 
 // const asyncGen = tiePure(
