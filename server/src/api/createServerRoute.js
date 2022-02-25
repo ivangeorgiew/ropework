@@ -7,15 +7,15 @@ const funcOrUndefDef = createDef({
             : "",
 })
 
-export const createServerRoute = tieImpure(
-    "creating route for the server",
-    [funcDef, funcOrUndefDef, strDef, strDef, funcDef],
-    (app, onError_, method, path, callback) => {
+export const createServerRoute = tieImpure({
+    descr: "creating route for the server",
+    spec: [funcDef, funcOrUndefDef, strDef, strDef, funcDef],
+    onTry: (app, onCatch_, method, path, callback) => {
         if (!isServer) {
             throw Error("This function is meant for server use")
         }
 
-        const defaultOnError = props => {
+        const defaultOnCatch = props => {
             const { descr, error, args } = props
 
             const res = args[1]
@@ -33,17 +33,14 @@ export const createServerRoute = tieImpure(
             }
         }
 
-        const onError = onError_ !== undefined ? onError_ : defaultOnError
-
         app[method](
             path,
-            tieImpure(
-                `${method.toUpperCase()} ${path}`,
-                [objTypeDef, objTypeDef],
-                callback,
-                onError
-            )
+            tieImpure({
+                descr: `${method.toUpperCase()} ${path}`,
+                spec: [objTypeDef, objTypeDef],
+                onTry: callback,
+                onCatch: onCatch_ !== undefined ? onCatch_ : defaultOnCatch,
+            })
         )
     },
-    () => {}
-)
+})

@@ -18,23 +18,22 @@ const setOrUndefDef = createDef({
         !(arg instanceof Set) && arg !== undefined ? "must be Set or undefined" : "",
 })
 
-const onConnection = tieImpure(
-    "adding sockets to server",
-    [setDef, objDef],
-    (sockets, socket) => {
+const onConnection = tieImpure({
+    descr: "adding sockets to server",
+    spec: [setDef, objDef],
+    onTry: (sockets, socket) => {
         socket.on("close", () => {
             sockets.delete(socket)
         })
 
         sockets.add(socket)
     },
-    () => {}
-)
+})
 
-const onClose = tieImpure(
-    "handling server closing",
-    [serverDef, setDef, strDef],
-    (server, sockets, eventName, _) => {
+const onClose = tieImpure({
+    descr: "handling server closing",
+    spec: [serverDef, setDef, strDef],
+    onTry: (server, sockets, eventName, _) => {
         server.close()
 
         sockets.forEach(socket => {
@@ -43,13 +42,12 @@ const onClose = tieImpure(
 
         process.removeListener(eventName, onClose(server, sockets, eventName))
     },
-    () => {}
-)
+})
 
-export const tieServer = tiePure(
-    "tying server",
-    [serverDef, setOrUndefDef],
-    (server, sockets_) => {
+export const tieServer = tiePure({
+    descr: "tying server",
+    spec: [serverDef, setOrUndefDef],
+    onTry: (server, sockets_) => {
         if (!isServer) {
             throw Error("This function is meant for server use")
         }
@@ -64,9 +62,9 @@ export const tieServer = tiePure(
 
         return server
     },
-    props => {
+    onCatch: props => {
         const [server] = props.args
 
         return server
-    }
-)
+    },
+})

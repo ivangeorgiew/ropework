@@ -13,23 +13,37 @@ import { createValidateFunc } from "./createValidateFunc"
 import { innerLogError } from "./innerConstants"
 import { logError } from "./logging"
 
-const isPureDef = /*#__PURE__*/ createDef({
+const isPureDef = createDef({
     getMsg: arg =>
         typeof arg !== "boolean" && arg !== undefined
             ? "must be boolean or undefined"
             : "",
 })
 
-export const tieSpec = [strDef, specDef, funcDef, funcDef]
+export const tieSpec = [
+    createDef({
+        strictProps: {
+            descr: strDef,
+            onTry: funcDef,
+        },
+        props: {
+            onCatch: funcDef,
+            spec: specDef,
+            isPure: isPureDef,
+        },
+    }),
+]
 
 const createFuncValidate = createValidateFunc([...tieSpec, isPureDef])
 const manageCacheValidate = createValidateFunc([idxDef, arrDef])
 const innerCatchValidate = createValidateFunc([arrDef, errorDef])
 
-export const createFunc = (descr, spec, onTry, onCatch, isPure) => {
+export const createFunc = props => {
     try {
+        const { descr, onTry, onCatch = () => {}, spec = [], isPure = false } = props
+
         if (isTest) {
-            createFuncValidate([descr, spec, onTry, onCatch, isPure])
+            createFuncValidate([props])
         }
 
         if (handledFuncs.has(onTry)) {
@@ -246,14 +260,7 @@ export const createFunc = (descr, spec, onTry, onCatch, isPure) => {
             })
         }
 
-        handledFuncs.set(innerFunc, {
-            descr,
-            spec,
-            onTry,
-            onCatch,
-            cacheKeys,
-            cacheValues,
-        })
+        handledFuncs.set(innerFunc, { ...props })
 
         return innerFunc
     } catch (error) {
@@ -261,7 +268,7 @@ export const createFunc = (descr, spec, onTry, onCatch, isPure) => {
             try {
                 innerLogError({
                     descr: "createFunc",
-                    args: [descr, spec, onTry, onCatch, isPure],
+                    args: [props],
                     error,
                 })
             } catch {

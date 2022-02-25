@@ -9,14 +9,15 @@ import {
     notify,
 } from "./loggingHelpers"
 
-const logErrorPropsDef = /*#__PURE__*/ createDef({
-    strictProps: {
-        descr: strDef,
-        args: arrDef,
-        error: errorDef,
-    },
-})
-const logErrorValidate = createValidateFunc([logErrorPropsDef])
+const logErrorValidate = createValidateFunc([
+    createDef({
+        strictProps: {
+            descr: strDef,
+            args: arrDef,
+            error: errorDef,
+        },
+    }),
+])
 
 export const logError = props => {
     try {

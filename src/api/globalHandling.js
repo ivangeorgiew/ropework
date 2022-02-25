@@ -3,10 +3,9 @@ import { logError } from "../utils/logging"
 import { browserErrorEvents, isServer, isWeb, nodeErrorEvents } from "./constants"
 import { boolDef } from "./definitions"
 
-const uncaughtErrorListener = createFunc(
-    "listening for uncaught errors",
-    [],
-    eventOrError => {
+const uncaughtErrorListener = createFunc({
+    descr: "listening for uncaught errors",
+    onTry: eventOrError => {
         const descr = "unhandled error"
         const unknownMsg = "Unknown error"
 
@@ -39,13 +38,12 @@ const uncaughtErrorListener = createFunc(
             }, 500).unref()
         }
     },
-    () => {}
-)
+})
 
-export const handleGlobalErrors = createFunc(
-    "handling listeners for uncaught errors",
-    [boolDef],
-    shouldAdd => {
+export const handleGlobalErrors = createFunc({
+    descr: "handling listeners for uncaught errors",
+    spec: [boolDef],
+    onTry: shouldAdd => {
         if (isWeb) {
             browserErrorEvents.forEach(event => {
                 self.removeEventListener(event, uncaughtErrorListener, true)
@@ -64,5 +62,4 @@ export const handleGlobalErrors = createFunc(
             })
         }
     },
-    () => {}
-)
+})
