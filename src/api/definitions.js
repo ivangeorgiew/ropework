@@ -4,18 +4,16 @@ import {
     innerLogError,
     optsKeysGetMsg,
 } from "../utils/innerConstants"
-import { isDev, isTest } from "./constants"
+import { isTest } from "./constants"
 
 const defKeys = ["getMsg", "props", "strictProps"]
 
 export const createDef = opts => {
     try {
-        if (isDev) {
-            const msg = optsKeysGetMsg(opts, defKeys)
+        const msg = optsKeysGetMsg(opts, defKeys)
 
-            if (msg !== "") {
-                throw TypeError(`arguments[0] - ${msg}`)
-            }
+        if (msg !== "") {
+            throw TypeError(`arguments[0] - ${msg}`)
         }
 
         const def = defKeys.reduce((acc, key) => {

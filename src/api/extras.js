@@ -1,13 +1,14 @@
 import { createFunc } from "../utils/createFunc"
 import { handledFuncs } from "../utils/createFuncHelpers"
 import { options, optsKeysGetMsg } from "../utils/innerConstants"
-import { createDef, funcDef } from "./definitions"
+import { boolDef, createDef, funcDef } from "./definitions"
 
 const optionsDef = createDef({
     getMsg: arg => optsKeysGetMsg(arg, Object.keys(options)),
     props: {
         errorLogger: funcDef,
         notify: funcDef,
+        shouldValidate: boolDef,
     },
 })
 

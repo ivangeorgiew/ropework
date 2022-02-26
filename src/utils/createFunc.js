@@ -10,7 +10,7 @@ import {
 } from "../api/definitions"
 import { getCacheIdx, handledFuncs } from "./createFuncHelpers"
 import { createValidateFunc } from "./createValidateFunc"
-import { innerLogError } from "./innerConstants"
+import { innerLogError, options } from "./innerConstants"
 import { logError } from "./logging"
 
 const isPureDef = createDef({
@@ -159,28 +159,24 @@ export const createFunc = props => {
                 isFirstCall = isNextCallFirst
                 isNextCallFirst = false
 
+                if (isDev && options.shouldValidate) {
+                    try {
+                        validateArgs(args)
+                    } catch (error) {
+                        logError({ descr, error, args })
+                    }
+                }
+
                 // normal call or constructor
                 if (new.target === undefined) {
                     if (args.length < funcLen) {
-                        if (isDev) {
-                            try {
-                                validateArgs(args)
-                            } catch (error) {
-                                logError({ descr, error, args })
-                            }
-                        }
-
                         shouldStore = true
                         result = getCurry(args)
                     } else {
-                        if (isDev) validateArgs(args)
-
                         shouldStore = isPure
                         result = onTry.apply(this, args)
                     }
                 } else {
-                    if (isDev) validateArgs(args)
-
                     shouldStore = isPure
                     result = new onTry(...args)
                 }

@@ -9,29 +9,6 @@
 
 // handleGlobalErrors(true)
 
-// const retryFunc = tiePure({
-//     descr: "retry function",
-//     spec: [idxDef],
-//     onTry: n => {
-//         if (n < 5) {
-//             throw Error("Test Error")
-//         } else {
-//             return n + 10
-//         }
-//     },
-//     onCatch: props => {
-//         const { args } = props
-//         const [n] = args
-
-//         console.log(n)
-//         return retryFunc(n + 1)
-//     },
-// })
-
-// console.log(retryFunc(4)) // success
-// console.log()
-// console.log(retryFunc(4)) // failed more than once
-
 // const fib = tiePure({
 //     descr: "calculating fibonacci number",
 //     spec: [idxDef, definedDef, definedDef, definedDef, definedDef, definedDef],
@@ -182,3 +159,26 @@
 // changeOptions({ errorLogger: 5, notify: () => {} })
 // changeOptions({ errorLogger: console.error, notify: 5 })
 // changeOptions("blabla")
+
+// const retryFunc = tiePure({
+//     descr: "retry function",
+//     spec: [idxDef],
+//     onTry: n => {
+//         if (n < 5) {
+//             throw Error("Test Error")
+//         } else {
+//             return n + 10
+//         }
+//     },
+//     onCatch: props => {
+//         const { args } = props
+//         const [n] = args
+
+//         console.log(n)
+//         return retryFunc(n + 1)
+//     },
+// })
+
+// console.log(retryFunc(4)) // success
+// console.log()
+// console.log(retryFunc(4)) // failed more than once

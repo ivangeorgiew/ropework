@@ -1,4 +1,4 @@
-import { isDev, isTest } from "../api/constants"
+import { isTest } from "../api/constants"
 import { objTypeDef, specDef } from "../api/definitions"
 import { checkObj, checkObjType, innerLogError } from "./innerConstants"
 
@@ -26,16 +26,14 @@ export const createValidateFunc = spec => {
                     try {
                         return getMsg(argsVal)
                     } catch (error) {
-                        if (isDev) {
-                            try {
-                                innerLogError({
-                                    descr: `spec${key}[getMsg]`,
-                                    args: [argsVal],
-                                    error,
-                                })
-                            } catch {
-                                // nothing
-                            }
+                        try {
+                            innerLogError({
+                                descr: `spec${key}[getMsg]`,
+                                args: [argsVal],
+                                error,
+                            })
+                        } catch {
+                            // nothing
                         }
 
                         return ""
