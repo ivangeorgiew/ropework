@@ -164,10 +164,10 @@
 //     descr: "retry function",
 //     spec: [idxDef],
 //     onTry: n => {
-//         if (n < 5) {
+//         if (n < 10) {
 //             throw Error("Test Error")
 //         } else {
-//             return n + 10
+//             return "correct result"
 //         }
 //     },
 //     onCatch: props => {
@@ -179,6 +179,4 @@
 //     },
 // })
 
-// console.log(retryFunc(4)) // success
-// console.log()
-// console.log(retryFunc(4)) // failed more than once
+// console.log(retryFunc(1))

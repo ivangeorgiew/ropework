@@ -196,6 +196,9 @@ export const createFunc = props => {
                                 return res
                             } catch (error) {
                                 if (!isFirstCall) throw error
+
+                                isNextCallFirst = true
+
                                 return innerCatch(args, error)
                             }
                         })(result)
@@ -212,6 +215,9 @@ export const createFunc = props => {
                                 return res
                             } catch (error) {
                                 if (!isFirstCall) throw error
+
+                                isNextCallFirst = true
+
                                 return innerCatch(args, error)
                             }
                         })(result)
@@ -228,6 +234,9 @@ export const createFunc = props => {
                                 return res
                             } catch (error) {
                                 if (!isFirstCall) throw error
+
+                                isNextCallFirst = true
+
                                 return innerCatch(args, error)
                             }
                         })(result)
@@ -239,6 +248,8 @@ export const createFunc = props => {
                 }
             } catch (error) {
                 if (!isFirstCall) throw error
+
+                isNextCallFirst = true
                 result = innerCatch(args, error)
             }
 
