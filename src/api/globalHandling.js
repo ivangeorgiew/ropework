@@ -1,10 +1,11 @@
 import { createFunc } from "../utils/createFunc"
 import { logError } from "../utils/logging"
 import { browserErrorEvents, isServer, isWeb, nodeErrorEvents } from "./constants"
-import { boolDef } from "./definitions"
+import { anyDef, boolDef } from "./definitions"
 
 const uncaughtErrorListener = createFunc({
     descr: "listening for uncaught errors",
+    spec: [anyDef],
     onTry: eventOrError => {
         const descr = "unhandled error"
         const unknownMsg = "Unknown error"
@@ -38,6 +39,7 @@ const uncaughtErrorListener = createFunc({
             }, 500).unref()
         }
     },
+    onCatch: () => {},
 })
 
 export const handleGlobalErrors = createFunc({
@@ -62,4 +64,5 @@ export const handleGlobalErrors = createFunc({
             })
         }
     },
+    onCatch: () => {},
 })

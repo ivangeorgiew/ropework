@@ -43,4 +43,5 @@ export const createServerRoute = tieImpure({
             })
         )
     },
+    onCatch: () => {},
 })

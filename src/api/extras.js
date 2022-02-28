@@ -20,6 +20,7 @@ export const changeOptions = createFunc({
             options[key] = props[key]
         })
     },
+    onCatch: () => {},
 })
 
 export const clearCacheOf = createFunc({
@@ -32,6 +33,7 @@ export const clearCacheOf = createFunc({
             cacheKeys.length = cacheValues.length = 0
         }
     },
+    onCatch: () => {},
 })
 
 export const getPropsOf = createFunc({
