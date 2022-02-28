@@ -76,7 +76,7 @@ export const createArgsInfo = args => {
             return i === 0 ? parsedArg : `${acc} , ${parsedArg}`
         }, "")
 
-        return argsInfo === "" ? "no args" : argsInfo
+        return argsInfo === "" ? "[no args]" : argsInfo
     } catch (error) {
         if (isTest) {
             try {
@@ -91,7 +91,7 @@ export const createArgsInfo = args => {
             }
         }
 
-        return "unknown args"
+        return "[unknown args]"
     }
 }
 

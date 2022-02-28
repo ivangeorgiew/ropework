@@ -88,25 +88,25 @@ export const createFunc = props => {
         }
 
         const innerCatch = (args, error) => {
-            try {
-                if (isTest) {
+            if (isTest) {
+                try {
+                    innerCatchValidate([args, error])
+                } catch (e) {
                     try {
-                        innerCatchValidate([args, error])
-                    } catch (e) {
-                        try {
-                            innerLogError({
-                                descr: "innerCatch",
-                                args: [args, error],
-                                error: e,
-                            })
-                        } catch {
-                            // nothing
-                        }
-
-                        return undefined
+                        innerLogError({
+                            descr: "innerCatch",
+                            args: [args, error],
+                            error: e,
+                        })
+                    } catch {
+                        // nothing
                     }
-                }
 
+                    throw error
+                }
+            }
+
+            try {
                 logError({ descr, error, args })
 
                 try {
@@ -118,7 +118,7 @@ export const createFunc = props => {
                         error: e,
                     })
 
-                    return undefined
+                    throw error
                 }
             } catch {
                 throw error
