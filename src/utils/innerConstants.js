@@ -1,5 +1,7 @@
 import { isDev, isTest } from "../api/constants"
 
+export const LIBRARY = "tied-up"
+
 const defaultLogger =
     isDev && console instanceof Object && typeof console.error === "function"
         ? console.error
@@ -34,17 +36,15 @@ const stringifyAll = data => {
 
         return JSON.stringify(data, parser, 0)
     } catch (error) {
-        if (isTest) {
-            try {
-                defaultLogger(
-                    "\n Issue with: stringifyAll\n",
-                    `Function arguments: ${data}\n`,
-                    error,
-                    "\n"
-                )
-            } catch {
-                // nothing
-            }
+        try {
+            defaultLogger(
+                `\n Issue with: stringifyAll in library ${LIBRARY}\n`,
+                `Function arguments: ${data}\n`,
+                error,
+                "\n"
+            )
+        } catch {
+            // nothing
         }
 
         return JSON.stringify("[unknown]")
@@ -78,17 +78,15 @@ export const createArgsInfo = args => {
 
         return argsInfo === "" ? "[no args]" : argsInfo
     } catch (error) {
-        if (isTest) {
-            try {
-                defaultLogger(
-                    "\n Issue with: createArgsInfo\n",
-                    `Function arguments: ${args}\n`,
-                    error,
-                    "\n"
-                )
-            } catch {
-                // nothing
-            }
+        try {
+            defaultLogger(
+                `\n Issue with: createArgsInfo in library ${LIBRARY}\n`,
+                `Function arguments: ${args}\n`,
+                error,
+                "\n"
+            )
+        } catch {
+            // nothing
         }
 
         return "[unknown args]"
@@ -143,17 +141,15 @@ export const innerLogError = props => {
             "\n"
         )
     } catch (error) {
-        if (isTest) {
-            try {
-                errorLogger(
-                    `\n Issue with: innerLogError\n`,
-                    `Function arguments: ${createArgsInfo([props])}\n`,
-                    error,
-                    "\n"
-                )
-            } catch {
-                // nothing
-            }
+        try {
+            errorLogger(
+                `\n Issue with: innerLogError in library ${LIBRARY}\n`,
+                `Function arguments: ${createArgsInfo([props])}\n`,
+                error,
+                "\n"
+            )
+        } catch {
+            // nothing
         }
     }
 }
@@ -164,12 +160,14 @@ export const checkObjType = a => {
 
         return a !== null && (t === "object" || t === "function")
     } catch (error) {
-        if (isTest) {
-            try {
-                innerLogError({ descr: "checkObjType", args: [a], error })
-            } catch {
-                // nothing
-            }
+        try {
+            innerLogError({
+                descr: `checkObjType in library ${LIBRARY}`,
+                args: [a],
+                error,
+            })
+        } catch {
+            // nothing
         }
 
         return true
@@ -182,12 +180,14 @@ export const checkObj = a => {
 
         return checkObjType(a) && (c === Object || c === undefined)
     } catch (error) {
-        if (isTest) {
-            try {
-                innerLogError({ descr: "checkObj", args: [a], error })
-            } catch {
-                // nothing
-            }
+        try {
+            innerLogError({
+                descr: `checkObj in library ${LIBRARY}`,
+                args: [a],
+                error,
+            })
+        } catch {
+            // nothing
         }
 
         return true
@@ -225,16 +225,14 @@ export const optsKeysGetMsg = (a, keys) => {
 
         return ""
     } catch (error) {
-        if (isTest) {
-            try {
-                innerLogError({
-                    descr: "optsKeysGetMsg",
-                    args: [a, keys],
-                    error,
-                })
-            } catch {
-                // nothing
-            }
+        try {
+            innerLogError({
+                descr: `optsKeysGetMsg in library ${LIBRARY}`,
+                args: [a, keys],
+                error,
+            })
+        } catch {
+            // nothing
         }
 
         return ""

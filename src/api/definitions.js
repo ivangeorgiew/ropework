@@ -1,4 +1,5 @@
 import {
+    LIBRARY,
     checkObj,
     checkObjType,
     innerLogError,
@@ -77,16 +78,14 @@ export const specDef = createDef({
 
                 refs.add(props)
             } catch (error) {
-                if (isTest) {
-                    try {
-                        innerLogError({
-                            descr: "addProps",
-                            args: [key, props],
-                            error,
-                        })
-                    } catch {
-                        // nothing
-                    }
+                try {
+                    innerLogError({
+                        descr: `addProps in library ${LIBRARY}`,
+                        args: [key, props],
+                        error,
+                    })
+                } catch {
+                    // nothing
                 }
             }
         }

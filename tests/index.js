@@ -5,7 +5,7 @@
 //     idxDef,
 //     definedDef,
 //     createDef,
-// } = require("../dist/index.cjs.js")
+// } = require("../dist/index.cjs.test.js")
 
 // handleGlobalErrors(true)
 
@@ -68,7 +68,7 @@
 // console.log(fib(4000, a, b, c, d, e))
 
 // // Args validation takes its toll on time!
-// // RUN WITH: NODE_ENV=production node ./tests/index.js
+// // CHANGE IMPORT TO: "../dist/index.cjs.prod.js"
 // console.time("fib")
 // fib(4000, a, b, c, d, e) // around 13ms is normal for 4000
 // console.timeEnd("fib")
@@ -164,6 +164,7 @@
 //     descr: "retry function",
 //     spec: [idxDef],
 //     onTry: n => {
+//         // if (n < 10000) {
 //         if (n < 10) {
 //             throw Error("Test Error")
 //         } else {

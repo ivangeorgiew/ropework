@@ -51,7 +51,10 @@
     "eslintConfig": {
         "extends": [
             "@ivan_georgiew/eslint-config"
-        ]
+        ],
+        "globals": {
+            "__TEST__": "readonly"
+        }
     },
     "browserslist": [
         "defaults",

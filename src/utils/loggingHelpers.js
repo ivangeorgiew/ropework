@@ -1,7 +1,7 @@
 import { isTest } from "../api/constants"
 import { idxDef, strDef } from "../api/definitions"
 import { createValidateFunc } from "./createValidateFunc"
-import { innerLogError, options } from "./innerConstants"
+import { LIBRARY, innerLogError, options } from "./innerConstants"
 
 export const notify = (...args) => {
     try {
@@ -47,16 +47,14 @@ export const getErrorsCacheIdx = (descr, msg) => {
 
         return -1
     } catch (error) {
-        if (isTest) {
-            try {
-                innerLogError({
-                    descr: "getErrorsCacheIdx",
-                    args: [descr, msg],
-                    error,
-                })
-            } catch {
-                // nothing
-            }
+        try {
+            innerLogError({
+                descr: `getErrorsCacheIdx in library ${LIBRARY}`,
+                args: [descr, msg],
+                error,
+            })
+        } catch {
+            // nothing
         }
 
         return -1
@@ -79,16 +77,14 @@ export const manageErrorsCache = (_idx, descr, msg) => {
 
         errorsCache[0] = { descr, msg, time: Date.now() }
     } catch (error) {
-        if (isTest) {
-            try {
-                innerLogError({
-                    descr: "manageErrorsCache",
-                    args: [_idx, descr, msg],
-                    error,
-                })
-            } catch {
-                // nothing
-            }
+        try {
+            innerLogError({
+                descr: `manageErrorsCache in library ${LIBRARY}`,
+                args: [_idx, descr, msg],
+                error,
+            })
+        } catch {
+            // nothing
         }
     }
 }

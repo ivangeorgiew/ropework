@@ -1,7 +1,7 @@
 import { isServer, isTest, isWeb } from "../api/constants"
 import { arrDef, createDef, errorDef, strDef } from "../api/definitions"
 import { createValidateFunc } from "./createValidateFunc"
-import { innerLogError } from "./innerConstants"
+import { LIBRARY, innerLogError } from "./innerConstants"
 import {
     errorsCache,
     getErrorsCacheIdx,
@@ -66,12 +66,14 @@ export const logError = props => {
 
         manageErrorsCache(errorsCache.length, descr, errorMsg)
     } catch (error) {
-        if (isTest) {
-            try {
-                innerLogError({ descr: "logError", args: [props], error })
-            } catch {
-                // nothing
-            }
+        try {
+            innerLogError({
+                descr: `logError in library ${LIBRARY}`,
+                args: [props],
+                error,
+            })
+        } catch {
+            // nothing
         }
     }
 }

@@ -1,6 +1,6 @@
 import { isTest } from "../api/constants"
 import { objTypeDef, specDef } from "../api/definitions"
-import { checkObj, checkObjType, innerLogError } from "./innerConstants"
+import { LIBRARY, checkObj, checkObjType, innerLogError } from "./innerConstants"
 
 export const createValidateFunc = spec => {
     try {
@@ -50,16 +50,14 @@ export const createValidateFunc = spec => {
 
                 return ""
             } catch (error) {
-                if (isTest) {
-                    try {
-                        innerLogError({
-                            descr: "validateItem",
-                            args: [opts],
-                            error,
-                        })
-                    } catch {
-                        // nothing
-                    }
+                try {
+                    innerLogError({
+                        descr: `validateItem in library ${LIBRARY}`,
+                        args: [opts],
+                        error,
+                    })
+                } catch {
+                    // nothing
                 }
 
                 return ""
@@ -119,16 +117,14 @@ export const createValidateFunc = spec => {
 
                         refs.add(argsVal)
                     } catch (error) {
-                        if (isTest) {
-                            try {
-                                innerLogError({
-                                    descr: "addProps",
-                                    args: [opts],
-                                    error,
-                                })
-                            } catch {
-                                // nothing
-                            }
+                        try {
+                            innerLogError({
+                                descr: `addProps in library ${LIBRARY}`,
+                                args: [opts],
+                                error,
+                            })
+                        } catch {
+                            // nothing
                         }
                     }
                 }
@@ -186,16 +182,14 @@ export const createValidateFunc = spec => {
 
                 return ""
             } catch (error) {
-                if (isTest) {
-                    try {
-                        innerLogError({
-                            descr: "getArgsErrorMsg",
-                            args: [args],
-                            error,
-                        })
-                    } catch {
-                        // nothing
-                    }
+                try {
+                    innerLogError({
+                        descr: `getArgsErrorMsg in library ${LIBRARY}`,
+                        args: [args],
+                        error,
+                    })
+                } catch {
+                    // nothing
                 }
 
                 return ""
@@ -223,7 +217,7 @@ export const createValidateFunc = spec => {
                 } catch (error) {
                     try {
                         innerLogError({
-                            descr: "createValidateFunc",
+                            descr: `validation function in library ${LIBRARY}`,
                             args: [spec],
                             error,
                         })
@@ -240,18 +234,16 @@ export const createValidateFunc = spec => {
             }
         }
     } catch (error) {
-        if (isTest) {
-            try {
-                innerLogError({
-                    descr: "createValidateFunc",
-                    args: [spec],
-                    error,
-                })
-            } catch {
-                // nothing
-            }
+        try {
+            innerLogError({
+                descr: `createValidateFunc in library ${LIBRARY}`,
+                args: [spec],
+                error,
+            })
+        } catch {
+            // nothing
         }
 
-        return () => {}
+        return () => () => {}
     }
 }

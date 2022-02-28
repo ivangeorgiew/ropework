@@ -10,7 +10,7 @@ import {
 } from "../api/definitions"
 import { getCacheIdx, handledFuncs } from "./createFuncHelpers"
 import { createValidateFunc } from "./createValidateFunc"
-import { innerLogError, options } from "./innerConstants"
+import { LIBRARY, innerLogError, options } from "./innerConstants"
 import { logError } from "./logging"
 
 const isPureDef = createDef({
@@ -73,16 +73,14 @@ export const createFunc = props => {
                 cacheKeys[0] = key
                 cacheValues[0] = value
             } catch (error) {
-                if (isTest) {
-                    try {
-                        innerLogError({
-                            descr: "manageCache",
-                            args: [_idx, key, value],
-                            error,
-                        })
-                    } catch {
-                        // nothing
-                    }
+                try {
+                    innerLogError({
+                        descr: `manageCache in library ${LIBRARY}`,
+                        args: [_idx, key, value],
+                        error,
+                    })
+                } catch {
+                    // nothing
                 }
             }
         }
@@ -94,7 +92,7 @@ export const createFunc = props => {
                 } catch (e) {
                     try {
                         innerLogError({
-                            descr: "innerCatch",
+                            descr: `innerCatch in library ${LIBRARY}`,
                             args: [args, error],
                             error: e,
                         })
@@ -262,16 +260,14 @@ export const createFunc = props => {
 
         return innerFunc
     } catch (error) {
-        if (isTest) {
-            try {
-                innerLogError({
-                    descr: "createFunc",
-                    args: [props],
-                    error,
-                })
-            } catch {
-                // nothing
-            }
+        try {
+            innerLogError({
+                descr: `createFunc in library ${LIBRARY}`,
+                args: [props],
+                error,
+            })
+        } catch {
+            // nothing
         }
 
         return () => {}
