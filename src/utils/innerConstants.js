@@ -100,7 +100,7 @@ const errorLogger = (...args) => {
         } catch (error) {
             try {
                 defaultLogger(
-                    `\n Issue with: errorLogger\n`,
+                    `\n Issue with: errorLogger in library ${LIBRARY}\n`,
                     `Function arguments: ${createArgsInfo(args)}\n`,
                     error,
                     "\n"
@@ -118,7 +118,7 @@ export const notify = (...args) => {
     } catch (error) {
         try {
             errorLogger(
-                "\n Issue with: notify\n",
+                `\n Issue with: notify in library ${LIBRARY}\n`,
                 `Function arguments: ${createArgsInfo(args)}\n`,
                 error,
                 "\n"
