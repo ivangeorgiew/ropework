@@ -40,11 +40,11 @@ const innerCatchValidate = createValidateFunc([arrDef, errorDef])
 
 export const createFunc = props => {
     try {
-        const { descr, onTry, onCatch = () => {}, spec = [], isPure = false } = props
-
         if (isTest) {
             createFuncValidate([props])
         }
+
+        const { descr, onTry, onCatch = () => {}, spec = [], isPure = false } = props
 
         if (handledFuncs.has(onTry)) {
             return onTry
@@ -102,27 +102,18 @@ export const createFunc = props => {
                         // nothing
                     }
 
-                    throw error
+                    throw e
                 }
             }
 
             try {
                 logError({ descr, error, args })
-
-                try {
-                    return onCatch({ descr, args, error })
-                } catch (e) {
-                    logError({
-                        descr: `handling errors for [${descr}]`,
-                        args: [{ descr, args, error }],
-                        error: e,
-                    })
-
-                    throw error
-                }
             } catch {
-                throw error
+                // nothing
             }
+
+            // ability to throw from onCatch when no proper result can be given
+            return onCatch({ descr, args, error })
         }
 
         const getCurry = oldArgs =>

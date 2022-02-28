@@ -20,7 +20,7 @@
 
 //         return pre + prepre
 //     },
-//     onCatch: () => "There was an error",
+//     onCatch: () => NaN,
 // })
 
 // const a = () => {
@@ -84,7 +84,7 @@
 //         // throw new Error("intended")
 //         return i + 10
 //     },
-//     onCatch: () => "There was an error",
+//     onCatch: () => NaN,
 // })
 
 // ;(async () => {
@@ -105,7 +105,7 @@
 //         // throw new Error("intended")
 //         return i + 10
 //     },
-//     onCatch: () => "There was an error",
+//     onCatch: () => NaN,
 // })
 
 // const g1 = gen(10)
@@ -126,7 +126,7 @@
 //         // throw new Error("intended")
 //         return i
 //     },
-//     onCatch: () => "There was an error",
+//     onCatch: () => NaN,
 // })
 
 // ;(async () => {
@@ -142,7 +142,7 @@
 
 //         return a + b
 //     },
-//     onCatch: () => "There was an error",
+//     onCatch: () => NaN,
 // })
 
 // const addSupTo = addNumbers("sup")
@@ -167,14 +167,13 @@
 //         if (n < 10) {
 //             throw Error("Test Error")
 //         } else {
-//             return "correct result"
+//             return n
 //         }
 //     },
 //     onCatch: props => {
 //         const { args } = props
 //         const [n] = args
 
-//         console.log(n)
 //         return retryFunc(n + 1)
 //     },
 // })
