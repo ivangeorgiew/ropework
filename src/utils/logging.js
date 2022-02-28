@@ -1,13 +1,7 @@
 import { isServer, isTest, isWeb } from "../api/constants"
 import { arrDef, createDef, errorDef, strDef } from "../api/definitions"
 import { createValidateFunc } from "./createValidateFunc"
-import { LIBRARY, innerLogError } from "./innerConstants"
-import {
-    errorsCache,
-    getErrorsCacheIdx,
-    manageErrorsCache,
-    notify,
-} from "./loggingHelpers"
+import { LIBRARY, innerLogError, notify } from "./innerConstants"
 
 const logErrorValidate = createValidateFunc([
     createDef({
@@ -26,16 +20,6 @@ export const logError = props => {
         }
 
         const { descr, args, error } = props
-        const errorMsg = error.message
-        const cacheIdx = getErrorsCacheIdx(descr, errorMsg)
-
-        if (cacheIdx !== -1) {
-            if (cacheIdx !== 0) {
-                manageErrorsCache(cacheIdx, descr, errorMsg)
-            }
-
-            return
-        }
 
         const notifyProps = {
             descr,
@@ -63,8 +47,6 @@ export const logError = props => {
         notify(notifyProps)
 
         innerLogError({ descr, args, error })
-
-        manageErrorsCache(errorsCache.length, descr, errorMsg)
     } catch (error) {
         try {
             innerLogError({

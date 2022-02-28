@@ -47,7 +47,7 @@ const stringifyAll = data => {
             // nothing
         }
 
-        return JSON.stringify("[unknown]")
+        return '"[unknown]"'
     }
 }
 
@@ -112,6 +112,111 @@ const errorLogger = (...args) => {
     }
 }
 
+export const notify = (...args) => {
+    try {
+        options.notify(...args)
+    } catch (error) {
+        try {
+            errorLogger(
+                "\n Issue with: notify\n",
+                `Function arguments: ${createArgsInfo(args)}\n`,
+                error,
+                "\n"
+            )
+        } catch {
+            // nothing
+        }
+    }
+}
+
+const errorsCache = []
+
+export const getErrorsCacheIdx = (descr, msg) => {
+    try {
+        if (isTest) {
+            if (typeof descr !== "string") {
+                throw TypeError("arguments[0] - must be string")
+            }
+
+            if (typeof msg !== "string") {
+                throw TypeError("arguments[1] - must be string")
+            }
+        }
+
+        const errorsCacheLen = errorsCache.length
+
+        if (errorsCacheLen === 0) {
+            return -1
+        }
+
+        for (let i = 0; i < errorsCacheLen; i++) {
+            const item = errorsCache[i]
+
+            if (descr === item.descr && msg === item.msg) {
+                if (Date.now() - item.time < 1000) {
+                    return i
+                } else {
+                    errorsCache.splice(i, 1)
+
+                    return -1
+                }
+            }
+        }
+
+        return -1
+    } catch (error) {
+        try {
+            errorLogger(
+                `\n Issue with: getErrorsCacheIdx in library ${LIBRARY}\n`,
+                `Function arguments: ${createArgsInfo([descr, msg])}\n`,
+                error,
+                "\n"
+            )
+        } catch {
+            // nothing
+        }
+
+        return -1
+    }
+}
+
+export const manageErrorsCache = (_idx, descr, msg) => {
+    try {
+        if (isTest) {
+            if (!Number.isInteger(_idx) || !Number.isFinite(_idx) || _idx < 0) {
+                throw TypeError("arguments[0] - must be positive integer or 0")
+            }
+
+            if (typeof descr !== "string") {
+                throw TypeError("arguments[1] - must be string")
+            }
+
+            if (typeof msg !== "string") {
+                throw TypeError("arguments[2] - must be string")
+            }
+        }
+
+        let idx = _idx > 5 ? 5 : _idx
+
+        while (idx--) {
+            errorsCache[idx + 1] = errorsCache[idx]
+        }
+
+        errorsCache[0] = { descr, msg, time: Date.now() }
+    } catch (error) {
+        try {
+            errorLogger(
+                `\n Issue with: manageErrorsCache in library ${LIBRARY}\n`,
+                `Function arguments: ${createArgsInfo([_idx, descr, msg])}\n`,
+                error,
+                "\n"
+            )
+        } catch {
+            // nothing
+        }
+    }
+}
+
 export const innerLogError = props => {
     try {
         if (isTest) {
@@ -133,6 +238,16 @@ export const innerLogError = props => {
         }
 
         const { descr, args, error } = props
+        const errorMsg = error.message
+        const cacheIdx = getErrorsCacheIdx(descr, errorMsg)
+
+        if (cacheIdx !== -1) {
+            if (cacheIdx !== 0) {
+                manageErrorsCache(cacheIdx, descr, errorMsg)
+            }
+
+            return
+        }
 
         errorLogger(
             `\n Issue with: ${descr}\n`,
@@ -140,6 +255,8 @@ export const innerLogError = props => {
             error,
             "\n"
         )
+
+        manageErrorsCache(errorsCache.length, descr, errorMsg)
     } catch (error) {
         try {
             errorLogger(
@@ -170,7 +287,7 @@ export const checkObjType = a => {
             // nothing
         }
 
-        return true
+        throw error
     }
 }
 
@@ -190,7 +307,7 @@ export const checkObj = a => {
             // nothing
         }
 
-        return true
+        throw error
     }
 }
 
