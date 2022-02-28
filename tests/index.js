@@ -175,9 +175,17 @@
 //         const { args } = props
 //         const [n] = args
 
-//         console.log(n)
 //         return retryFunc(n + 1)
 //     },
 // })
 
-// console.log(retryFunc(1))
+// const parentFunc = tiePure({
+//     descr: "parent function",
+//     spec: [],
+//     onTry: () => {
+//         console.log(retryFunc(1))
+//         console.log("ran after retryFunc")
+//     },
+// })
+
+// parentFunc()
