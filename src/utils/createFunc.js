@@ -25,9 +25,9 @@ export const tieSpec = [
         strictProps: {
             descr: strDef,
             onTry: funcDef,
-            onCatch: funcDef,
         },
         props: {
+            onCatch: funcDef,
             spec: specDef,
             isPure: isPureDef,
         },
@@ -44,7 +44,7 @@ export const createFunc = props => {
             createFuncValidate([props])
         }
 
-        const { descr, onTry, onCatch, spec, isPure = false } = props
+        const { descr, spec, onTry, onCatch = () => {}, isPure = false } = props
 
         if (handledFuncs.has(onTry)) {
             return onTry
@@ -111,7 +111,7 @@ export const createFunc = props => {
                 // nothing
             }
 
-            // ability to throw from onCatch when no proper result can be given
+            // ability to manually throw from onCatch
             return onCatch({ descr, args, error })
         }
 

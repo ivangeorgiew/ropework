@@ -39,7 +39,6 @@ const uncaughtErrorListener = createFunc({
             }, 500).unref()
         }
     },
-    onCatch: () => {},
 })
 
 export const handleGlobalErrors = createFunc({
@@ -64,5 +63,4 @@ export const handleGlobalErrors = createFunc({
             })
         }
     },
-    onCatch: () => {},
 })
