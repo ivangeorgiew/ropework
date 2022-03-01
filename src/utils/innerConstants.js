@@ -10,7 +10,6 @@ const defaultLogger =
 export const options = Object.seal({
     errorLogger: defaultLogger,
     notify: () => {},
-    shouldValidate: isDev,
 })
 
 const stringifyAll = data => {

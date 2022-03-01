@@ -10,7 +10,7 @@ import {
 } from "../api/definitions"
 import { getCacheIdx, handledFuncs } from "./createFuncHelpers"
 import { createValidateFunc } from "./createValidateFunc"
-import { LIBRARY, innerLogError, options } from "./innerConstants"
+import { LIBRARY, innerLogError } from "./innerConstants"
 import { logError } from "./logging"
 
 const isPureDef = createDef({
@@ -34,7 +34,7 @@ export const tieSpec = [
     }),
 ]
 
-const createFuncValidate = createValidateFunc([...tieSpec, isPureDef])
+const createFuncValidate = createValidateFunc(tieSpec)
 const manageCacheValidate = createValidateFunc([idxDef, arrDef])
 const innerCatchValidate = createValidateFunc([arrDef, errorDef])
 
@@ -44,13 +44,14 @@ export const createFunc = props => {
             createFuncValidate([props])
         }
 
-        const { descr, onTry, onCatch, spec = [], isPure = false } = props
+        const { descr, onTry, onCatch, spec, isPure = false } = props
 
         if (handledFuncs.has(onTry)) {
             return onTry
         }
 
-        const validateArgs = createValidateFunc(spec)
+        const shouldValidate = spec !== undefined
+        const validateArgs = shouldValidate ? createValidateFunc(spec) : () => {}
         const funcLen = onTry.length
         const cacheKeys = []
         const cacheValues = []
@@ -148,12 +149,8 @@ export const createFunc = props => {
                 isFirstCall = isNextCallFirst
                 isNextCallFirst = false
 
-                if (isDev && options.shouldValidate) {
-                    try {
-                        validateArgs(args)
-                    } catch (error) {
-                        logError({ descr, error, args })
-                    }
+                if (isDev && shouldValidate) {
+                    validateArgs(args)
                 }
 
                 // normal call or constructor
