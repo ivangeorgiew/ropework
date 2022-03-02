@@ -44,14 +44,14 @@ export const createFunc = props => {
             createFuncValidate([props])
         }
 
-        const { descr, spec, onTry, onCatch = () => {}, isPure = false } = props
+        const { descr, onTry, onCatch = () => {}, spec = [], isPure = false } = props
 
         if (handledFuncs.has(onTry)) {
             return onTry
         }
 
-        const shouldValidate = spec !== undefined
-        const validateArgs = shouldValidate ? createValidateFunc(spec) : () => {}
+        const shouldValidate = spec.length > 0
+        const validateArgs = createValidateFunc(spec)
         const funcLen = onTry.length
         const cacheKeys = []
         const cacheValues = []
