@@ -50,7 +50,6 @@ export const createFunc = props => {
             return onTry
         }
 
-        const shouldValidate = spec.length > 0
         const validateArgs = createValidateFunc(spec)
         const funcLen = onTry.length
         const cacheKeys = []
@@ -58,17 +57,15 @@ export const createFunc = props => {
 
         let isNextCallFirst = true
 
-        const manageCache = (_idx, key, value) => {
+        const manageCache = (idx, key, value) => {
             try {
                 if (isTest) {
-                    manageCacheValidate([_idx, key, value])
+                    manageCacheValidate([idx, key, value])
                 }
 
-                let idx = _idx > 5 ? 5 : _idx
-
-                while (idx--) {
-                    cacheKeys[idx + 1] = cacheKeys[idx]
-                    cacheValues[idx + 1] = cacheValues[idx]
+                for (let i = idx > 4 ? 4 : idx; i--; ) {
+                    cacheKeys[i + 1] = cacheKeys[i]
+                    cacheValues[i + 1] = cacheValues[i]
                 }
 
                 cacheKeys[0] = key
@@ -77,7 +74,7 @@ export const createFunc = props => {
                 try {
                     innerLogError({
                         descr: `manageCache in library ${LIBRARY}`,
-                        args: [_idx, key, value],
+                        args: [idx, key, value],
                         error,
                     })
                 } catch {
@@ -149,7 +146,7 @@ export const createFunc = props => {
                 isFirstCall = isNextCallFirst
                 isNextCallFirst = false
 
-                if (isDev && shouldValidate) {
+                if (isDev && spec.length > 0) {
                     validateArgs(args)
                 }
 
@@ -253,7 +250,7 @@ export const createFunc = props => {
             })
         }
 
-        handledFuncs.set(innerFunc, { ...props })
+        handledFuncs.set(innerFunc, { ...props, cacheKeys, cacheValues })
 
         return innerFunc
     } catch (error) {

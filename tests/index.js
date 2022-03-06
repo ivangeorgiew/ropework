@@ -20,7 +20,7 @@
 
 //         return pre + prepre
 //     },
-//     onCatch: () => NaN,
+//     onCatch: props => (props.args[0] > 4000 ? Infinity : NaN),
 // })
 
 // const a = () => {

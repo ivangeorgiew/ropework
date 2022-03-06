@@ -179,10 +179,10 @@ export const getErrorsCacheIdx = (descr, msg) => {
     }
 }
 
-export const manageErrorsCache = (_idx, descr, msg) => {
+export const manageErrorsCache = (idx, descr, msg) => {
     try {
         if (isTest) {
-            if (!Number.isInteger(_idx) || !Number.isFinite(_idx) || _idx < 0) {
+            if (!Number.isInteger(idx) || !Number.isFinite(idx) || idx < 0) {
                 throw TypeError("arguments[0] - must be positive integer or 0")
             }
 
@@ -195,10 +195,8 @@ export const manageErrorsCache = (_idx, descr, msg) => {
             }
         }
 
-        let idx = _idx > 5 ? 5 : _idx
-
-        while (idx--) {
-            errorsCache[idx + 1] = errorsCache[idx]
+        for (let i = idx > 4 ? 4 : idx; i--; ) {
+            errorsCache[i + 1] = errorsCache[i]
         }
 
         errorsCache[0] = { descr, msg, time: Date.now() }
@@ -206,7 +204,7 @@ export const manageErrorsCache = (_idx, descr, msg) => {
         try {
             errorLogger(
                 `\n Error at: manageErrorsCache in library ${LIBRARY}\n`,
-                `Function arguments: ${createArgsInfo([_idx, descr, msg])}\n`,
+                `Function arguments: ${createArgsInfo([idx, descr, msg])}\n`,
                 error,
                 "\n"
             )
