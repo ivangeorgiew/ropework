@@ -63,4 +63,5 @@ export const handleGlobalErrors = createFunc({
             })
         }
     },
+    onCatch: () => null,
 })

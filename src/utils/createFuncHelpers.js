@@ -1,7 +1,7 @@
 import { isTest } from "../api/constants"
 import { arrDef } from "../api/definitions"
 import { createValidateFunc } from "./createValidateFunc"
-import { LIBRARY, innerLogError } from "./innerConstants"
+import { innerLogError } from "./innerConstants"
 
 export const handledFuncs = new WeakMap()
 
@@ -45,7 +45,7 @@ const checkEqual = (a, b) => {
     } catch (error) {
         try {
             innerLogError({
-                descr: `checkEqual in library ${LIBRARY}`,
+                descr: "checkEqual from the library",
                 args: [a, b],
                 error,
             })
@@ -93,7 +93,7 @@ export const getCacheIdx = (args, cacheKeys) => {
     } catch (error) {
         try {
             innerLogError({
-                descr: `getCacheIdx in library ${LIBRARY}`,
+                descr: "getCacheIdx from the library",
                 args: [args, cacheKeys],
                 error,
             })

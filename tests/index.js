@@ -192,6 +192,7 @@
 //         console.log(retryFunc(1))
 //         console.log("ran after retryFunc")
 //     },
+//     onCatch: () => null
 // })
 
 // parentFunc()

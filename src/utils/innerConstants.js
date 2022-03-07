@@ -1,6 +1,4 @@
-import { isDev, isTest } from "../api/constants"
-
-export const LIBRARY = "tied-up"
+import { SpecError, isDev, isTest } from "../api/constants"
 
 const defaultLogger =
     isDev && console instanceof Object && typeof console.error === "function"
@@ -37,7 +35,7 @@ const stringifyAll = data => {
     } catch (error) {
         try {
             defaultLogger(
-                `\n Error at: stringifyAll in library ${LIBRARY}\n`,
+                "\n Error at: stringifyAll from the library",
                 `Function arguments: ${data}\n`,
                 error,
                 "\n"
@@ -50,11 +48,11 @@ const stringifyAll = data => {
     }
 }
 
-export const createArgsInfo = args => {
+const createArgsInfo = args => {
     try {
         if (isTest) {
             if (!Array.isArray(args)) {
-                throw TypeError("arguments[0] - must be array")
+                throw SpecError("arguments[0] - must be array")
             }
         }
 
@@ -79,7 +77,7 @@ export const createArgsInfo = args => {
     } catch (error) {
         try {
             defaultLogger(
-                `\n Error at: createArgsInfo in library ${LIBRARY}\n`,
+                "\n Error at: createArgsInfo from the library",
                 `Function arguments: ${args}\n`,
                 error,
                 "\n"
@@ -99,7 +97,7 @@ const errorLogger = (...args) => {
         } catch (error) {
             try {
                 defaultLogger(
-                    `\n Error at: errorLogger in library ${LIBRARY}\n`,
+                    "\n Error at: errorLogger from the library",
                     `Function arguments: ${createArgsInfo(args)}\n`,
                     error,
                     "\n"
@@ -117,7 +115,7 @@ export const notify = (...args) => {
     } catch (error) {
         try {
             errorLogger(
-                `\n Error at: notify in library ${LIBRARY}\n`,
+                "\n Error at: notify from the library",
                 `Function arguments: ${createArgsInfo(args)}\n`,
                 error,
                 "\n"
@@ -134,11 +132,11 @@ export const getErrorsCacheIdx = (descr, msg) => {
     try {
         if (isTest) {
             if (typeof descr !== "string") {
-                throw TypeError("arguments[0] - must be string")
+                throw SpecError("arguments[0] - must be string")
             }
 
             if (typeof msg !== "string") {
-                throw TypeError("arguments[1] - must be string")
+                throw SpecError("arguments[1] - must be string")
             }
         }
 
@@ -166,7 +164,7 @@ export const getErrorsCacheIdx = (descr, msg) => {
     } catch (error) {
         try {
             errorLogger(
-                `\n Error at: getErrorsCacheIdx in library ${LIBRARY}\n`,
+                "\n Error at: getErrorsCacheIdx from the library",
                 `Function arguments: ${createArgsInfo([descr, msg])}\n`,
                 error,
                 "\n"
@@ -183,15 +181,15 @@ export const manageErrorsCache = (idx, descr, msg) => {
     try {
         if (isTest) {
             if (!Number.isInteger(idx) || !Number.isFinite(idx) || idx < 0) {
-                throw TypeError("arguments[0] - must be positive integer or 0")
+                throw SpecError("arguments[0] - must be positive integer or 0")
             }
 
             if (typeof descr !== "string") {
-                throw TypeError("arguments[1] - must be string")
+                throw SpecError("arguments[1] - must be string")
             }
 
             if (typeof msg !== "string") {
-                throw TypeError("arguments[2] - must be string")
+                throw SpecError("arguments[2] - must be string")
             }
         }
 
@@ -203,7 +201,7 @@ export const manageErrorsCache = (idx, descr, msg) => {
     } catch (error) {
         try {
             errorLogger(
-                `\n Error at: manageErrorsCache in library ${LIBRARY}\n`,
+                "\n Error at: manageErrorsCache from the library",
                 `Function arguments: ${createArgsInfo([idx, descr, msg])}\n`,
                 error,
                 "\n"
@@ -218,19 +216,19 @@ export const innerLogError = props => {
     try {
         if (isTest) {
             if (!(props instanceof Object)) {
-                throw TypeError("arguments[0] - must be object")
+                throw SpecError("arguments[0] - must be object")
             }
 
             if (typeof props.descr !== "string") {
-                throw TypeError("arguments[0][descr] - must be string")
+                throw SpecError("arguments[0][descr] - must be string")
             }
 
             if (!Array.isArray(props.args)) {
-                throw TypeError("arguments[0][args] - must be array")
+                throw SpecError("arguments[0][args] - must be array")
             }
 
             if (!(props.error instanceof Error)) {
-                throw TypeError("arguments[0][error] - must be error")
+                throw SpecError("arguments[0][error] - must be error")
             }
         }
 
@@ -257,7 +255,7 @@ export const innerLogError = props => {
     } catch (error) {
         try {
             errorLogger(
-                `\n Error at: innerLogError in library ${LIBRARY}\n`,
+                "\n Error at: innerLogError from the library",
                 `Function arguments: ${createArgsInfo([props])}\n`,
                 error,
                 "\n"
@@ -276,7 +274,7 @@ export const checkObjType = a => {
     } catch (error) {
         try {
             innerLogError({
-                descr: `checkObjType in library ${LIBRARY}`,
+                descr: "checkObjType from the library",
                 args: [a],
                 error,
             })
@@ -296,7 +294,7 @@ export const checkObj = a => {
     } catch (error) {
         try {
             innerLogError({
-                descr: `checkObj in library ${LIBRARY}`,
+                descr: "checkObj from the library",
                 args: [a],
                 error,
             })
@@ -312,7 +310,7 @@ export const optsKeysGetMsg = (a, keys) => {
     try {
         if (isTest) {
             if (!Array.isArray(keys)) {
-                throw TypeError("arguments[1] - must be array")
+                throw SpecError("arguments[1] - must be array")
             }
         }
 
@@ -341,7 +339,7 @@ export const optsKeysGetMsg = (a, keys) => {
     } catch (error) {
         try {
             innerLogError({
-                descr: `optsKeysGetMsg in library ${LIBRARY}`,
+                descr: "optsKeysGetMsg from the library",
                 args: [a, keys],
                 error,
             })

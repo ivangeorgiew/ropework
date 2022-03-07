@@ -18,13 +18,14 @@ export const isServer = typeof global === "object" && globalThis === global
 export const FriendlyError = class extends Error {
     constructor(...args) {
         super(...args)
+        this.name = this.constructor.name
+    }
+}
 
-        // V8 only
-        if (typeof Error.captureStackTrace === "function") {
-            Error.captureStackTrace(this, FriendlyError)
-        }
-
-        this.name = "FriendlyError"
+export const SpecError = class extends Error {
+    constructor(...args) {
+        super(...args)
+        this.name = this.constructor.name
     }
 }
 

@@ -1,11 +1,10 @@
 import {
-    LIBRARY,
     checkObj,
     checkObjType,
     innerLogError,
     optsKeysGetMsg,
 } from "../utils/innerConstants"
-import { isTest } from "./constants"
+import { SpecError, isTest } from "./constants"
 
 const defKeys = ["getMsg", "props", "strictProps"]
 
@@ -14,7 +13,7 @@ export const createDef = opts => {
         const msg = optsKeysGetMsg(opts, defKeys)
 
         if (msg !== "") {
-            throw TypeError(`arguments[0] - ${msg}`)
+            throw SpecError(`arguments[0] - ${msg}`)
         }
 
         const def = defKeys.reduce((acc, key) => {
@@ -60,11 +59,11 @@ export const specDef = createDef({
             try {
                 if (isTest) {
                     if (typeof key !== "string") {
-                        throw TypeError("arguments[0] - must be string")
+                        throw SpecError("arguments[0] - must be string")
                     }
 
                     if (!checkObjType(props)) {
-                        throw TypeError("arguments[1] - must be of object type")
+                        throw SpecError("arguments[1] - must be of object type")
                     }
                 }
 
@@ -80,7 +79,7 @@ export const specDef = createDef({
             } catch (error) {
                 try {
                     innerLogError({
-                        descr: `addProps in library ${LIBRARY}`,
+                        descr: "addProps from the library",
                         args: [key, props],
                         error,
                     })

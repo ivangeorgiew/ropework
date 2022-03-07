@@ -28,6 +28,7 @@ const onConnection = tieImpure({
 
         sockets.add(socket)
     },
+    onCatch: () => null,
 })
 
 const onClose = tieImpure({
@@ -42,6 +43,7 @@ const onClose = tieImpure({
 
         process.removeListener(eventName, onClose(server, sockets, eventName))
     },
+    onCatch: () => null,
 })
 
 export const tieServer = tiePure({

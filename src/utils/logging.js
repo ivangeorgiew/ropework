@@ -1,7 +1,7 @@
 import { isServer, isTest, isWeb } from "../api/constants"
 import { arrDef, createDef, errorDef, strDef } from "../api/definitions"
 import { createValidateFunc } from "./createValidateFunc"
-import { LIBRARY, innerLogError, notify } from "./innerConstants"
+import { innerLogError, notify } from "./innerConstants"
 
 const logErrorValidate = createValidateFunc([
     createDef({
@@ -50,7 +50,7 @@ export const logError = props => {
     } catch (error) {
         try {
             innerLogError({
-                descr: `logError in library ${LIBRARY}`,
+                descr: "logError from the library",
                 args: [props],
                 error,
             })

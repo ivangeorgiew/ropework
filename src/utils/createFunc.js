@@ -10,7 +10,7 @@ import {
 } from "../api/definitions"
 import { getCacheIdx, handledFuncs } from "./createFuncHelpers"
 import { createValidateFunc } from "./createValidateFunc"
-import { LIBRARY, innerLogError } from "./innerConstants"
+import { innerLogError } from "./innerConstants"
 import { logError } from "./logging"
 
 const isPureDef = createDef({
@@ -44,7 +44,9 @@ export const createFunc = props => {
             createFuncValidate([props])
         }
 
-        const { descr, onTry, onCatch = () => {}, spec = [], isPure = false } = props
+        // prettier-ignore
+        const { descr, onTry, onCatch = p => { throw p.error } } = props
+        const { spec = [], isPure = false } = props
 
         if (handledFuncs.has(onTry)) {
             return onTry
@@ -73,7 +75,7 @@ export const createFunc = props => {
             } catch (error) {
                 try {
                     innerLogError({
-                        descr: `manageCache in library ${LIBRARY}`,
+                        descr: "manageCache from the library",
                         args: [idx, key, value],
                         error,
                     })
@@ -90,7 +92,7 @@ export const createFunc = props => {
                 } catch (e) {
                     try {
                         innerLogError({
-                            descr: `innerCatch in library ${LIBRARY}`,
+                            descr: "innerCatch from the library",
                             args: [args, error],
                             error: e,
                         })
@@ -256,7 +258,7 @@ export const createFunc = props => {
     } catch (error) {
         try {
             innerLogError({
-                descr: `createFunc in library ${LIBRARY}`,
+                descr: "createFunc from the library",
                 args: [props],
                 error,
             })

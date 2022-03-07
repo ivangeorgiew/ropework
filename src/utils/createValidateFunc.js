@@ -1,6 +1,6 @@
-import { isTest } from "../api/constants"
+import { SpecError, isTest } from "../api/constants"
 import { objTypeDef, specDef } from "../api/definitions"
-import { LIBRARY, checkObj, checkObjType, innerLogError } from "./innerConstants"
+import { checkObj, checkObjType, innerLogError } from "./innerConstants"
 
 export const createValidateFunc = spec => {
     try {
@@ -8,15 +8,15 @@ export const createValidateFunc = spec => {
             try {
                 if (isTest) {
                     if (!checkObj(opts)) {
-                        throw TypeError("arguments[0] - must be object")
+                        throw SpecError("arguments[0] - must be object")
                     }
 
                     if (typeof opts.key !== "string") {
-                        throw TypeError("arguments[0][key] - must be string")
+                        throw SpecError("arguments[0][key] - must be string")
                     }
 
                     if (typeof opts.getMsg !== "function") {
-                        throw TypeError("arguments[0][getMsg] - must be function")
+                        throw SpecError("arguments[0][getMsg] - must be function")
                     }
                 }
 
@@ -52,7 +52,7 @@ export const createValidateFunc = spec => {
             } catch (error) {
                 try {
                     innerLogError({
-                        descr: `validateItem in library ${LIBRARY}`,
+                        descr: "validateItem from the library",
                         args: [opts],
                         error,
                     })
@@ -68,7 +68,7 @@ export const createValidateFunc = spec => {
             try {
                 if (isTest) {
                     if (!Array.isArray(args)) {
-                        throw TypeError("arguments[0] - must be array")
+                        throw SpecError("arguments[0] - must be array")
                     }
                 }
 
@@ -80,21 +80,21 @@ export const createValidateFunc = spec => {
                     try {
                         if (isTest) {
                             if (!checkObj(opts)) {
-                                throw TypeError("arguments[0] - must be object")
+                                throw SpecError("arguments[0] - must be object")
                             }
 
                             if (typeof opts.key !== "string") {
-                                throw TypeError("arguments[0][key] - must be string")
+                                throw SpecError("arguments[0][key] - must be string")
                             }
 
                             if (!checkObj(opts.props)) {
-                                throw TypeError(
+                                throw SpecError(
                                     "arguments[0][props] - must be object"
                                 )
                             }
 
                             if (typeof opts.isStrict !== "boolean") {
-                                throw TypeError(
+                                throw SpecError(
                                     "arguments[0][props] - must be boolean"
                                 )
                             }
@@ -119,7 +119,7 @@ export const createValidateFunc = spec => {
                     } catch (error) {
                         try {
                             innerLogError({
-                                descr: `addProps in library ${LIBRARY}`,
+                                descr: "addProps from the library",
                                 args: [opts],
                                 error,
                             })
@@ -184,7 +184,7 @@ export const createValidateFunc = spec => {
             } catch (error) {
                 try {
                     innerLogError({
-                        descr: `getArgsErrorMsg in library ${LIBRARY}`,
+                        descr: "getArgsErrorMsg from the library",
                         args: [args],
                         error,
                     })
@@ -204,7 +204,7 @@ export const createValidateFunc = spec => {
             })
 
             if (msg !== "") {
-                throw TypeError(msg)
+                throw SpecError(msg)
             }
         }
 
@@ -212,12 +212,12 @@ export const createValidateFunc = spec => {
             if (isTest) {
                 try {
                     if (!Array.isArray(args)) {
-                        throw TypeError("arguments[0] - must be array")
+                        throw SpecError("arguments[0] - must be array")
                     }
                 } catch (error) {
                     try {
                         innerLogError({
-                            descr: `validation function in library ${LIBRARY}`,
+                            descr: "validation function from the library",
                             args: [spec],
                             error,
                         })
@@ -230,13 +230,13 @@ export const createValidateFunc = spec => {
             const msg = getArgsErrorMsg(args)
 
             if (msg !== "") {
-                throw TypeError(msg)
+                throw SpecError(msg)
             }
         }
     } catch (error) {
         try {
             innerLogError({
-                descr: `createValidateFunc in library ${LIBRARY}`,
+                descr: "createValidateFunc from the library",
                 args: [spec],
                 error,
             })
