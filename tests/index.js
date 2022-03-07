@@ -20,7 +20,13 @@
 
 //         return pre + prepre
 //     },
-//     onCatch: props => (props.args[0] > 4000 ? Infinity : NaN),
+//     onCatch: props => {
+//         const { args, error } = props
+
+//         return args[0] > 4000 && error.message.includes("Maximum call stack")
+//             ? Infinity
+//             : NaN
+//     },
 // })
 
 // const a = () => {

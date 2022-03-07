@@ -169,7 +169,7 @@ export const objTypeDef = createDef({
 })
 
 export const objDef = createDef({
-    getMsg: a => (!checkObj(a) ? "must be object" : ""),
+    getMsg: a => (!checkObj(a) ? "must be regular object" : ""),
 })
 
 export const intDef = createDef({
@@ -206,4 +206,12 @@ export const setDef = createDef({
 
 export const mapDef = createDef({
     getMsg: arg => (!(arg instanceof Map) ? "must be instance of Map" : ""),
+})
+
+export const weakSetDef = createDef({
+    getMsg: arg => (!(arg instanceof WeakSet) ? "must be instance of WeakSet" : ""),
+})
+
+export const weakMapDef = createDef({
+    getMsg: arg => (!(arg instanceof WeakMap) ? "must be instance of WeakMap" : ""),
 })
