@@ -74,7 +74,7 @@
 // console.log(fib(4000, a, b, c, d, e))
 
 // // Args validation takes its toll on time!
-// // CHANGE IMPORT TO: "../dist/index.cjs.prod.js"
+// changeOptions({ shouldValidate: false })
 // console.time("fib")
 // fib(4000, a, b, c, d, e) // around 13ms is normal for 4000
 // console.timeEnd("fib")

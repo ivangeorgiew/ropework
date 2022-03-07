@@ -10,7 +10,7 @@ import {
 } from "../api/definitions"
 import { getCacheIdx, handledFuncs } from "./createFuncHelpers"
 import { createValidateFunc } from "./createValidateFunc"
-import { innerLogError } from "./innerConstants"
+import { innerLogError, options } from "./innerConstants"
 import { logError } from "./logging"
 
 const isPureDef = createDef({
@@ -148,7 +148,7 @@ export const createFunc = props => {
                 isFirstCall = isNextCallFirst
                 isNextCallFirst = false
 
-                if (isDev && spec.length > 0) {
+                if (options.shouldValidate && spec.length > 0) {
                     validateArgs(args)
                 }
 

@@ -82,13 +82,13 @@ const reducer = (acc, [root, name]) =>
                     ...commonOutOpts,
                     sourcemap: true,
                     format: "cjs",
-                    file: `${root}/${pkg.main.replace(".js", ".prod.js")}`,
+                    file: `${root}/${pkg.main.replace(".js", ".min.js")}`,
                 },
                 {
                     ...commonOutOpts,
                     sourcemap: true,
                     format: "esm",
-                    file: `${root}/${pkg.module.replace(".js", ".prod.js")}`,
+                    file: `${root}/${pkg.module.replace(".js", ".min.js")}`,
                 },
                 {
                     ...commonOutOpts,
