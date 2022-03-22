@@ -43,5 +43,5 @@ export const createServerRoute = tie({
             })
         )
     },
-    onCatch: () => null,
+    onCatch: () => {},
 })

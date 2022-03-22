@@ -1,7 +1,7 @@
 import { options, optsKeysGetMsg } from "../utils/innerConstants"
-import { handledFuncs } from "../utils/tyingHelpers"
+import { handledFuncs, tieSpec } from "../utils/tyingHelpers"
 import { boolDef, createDef, funcDef, idxDef } from "./definitions"
-import { tie, tieSpec } from "./tying"
+import { tie } from "./tying"
 
 const optionsDef = createDef({
     getMsg: arg => optsKeysGetMsg(arg, Object.keys(options)),
@@ -20,7 +20,7 @@ export const changeOptions = tie({
             options[key] = props[key]
         })
     },
-    onCatch: () => null,
+    onCatch: () => {},
 })
 
 export const clearCacheOf = tie({
@@ -33,7 +33,7 @@ export const clearCacheOf = tie({
             cacheKeys.length = cacheValues.length = 0
         }
     },
-    onCatch: () => null,
+    onCatch: () => {},
 })
 
 export const getPropsOf = tie({

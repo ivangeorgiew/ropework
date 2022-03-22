@@ -1,38 +1,9 @@
 import { createValidateFunc } from "../utils/createValidateFunc"
 import { innerLogError, options } from "../utils/innerConstants"
 import { logError } from "../utils/logging"
-import { getCacheIdx, handledFuncs } from "../utils/tyingHelpers"
+import { getCacheIdx, handledFuncs, tieSpec } from "../utils/tyingHelpers"
 import { isDev, isTest } from "./constants"
-import {
-    arrDef,
-    createDef,
-    errorDef,
-    funcDef,
-    idxDef,
-    specDef,
-    strDef,
-} from "./definitions"
-
-const isPureDef = createDef({
-    getMsg: arg =>
-        typeof arg !== "boolean" && arg !== undefined
-            ? "must be boolean or undefined"
-            : "",
-})
-
-export const tieSpec = [
-    createDef({
-        strictProps: {
-            descr: strDef,
-            onTry: funcDef,
-        },
-        props: {
-            spec: specDef,
-            isPure: isPureDef,
-            onCatch: funcDef,
-        },
-    }),
-]
+import { arrDef, errorDef, idxDef } from "./definitions"
 
 const tieValidate = createValidateFunc(tieSpec)
 const manageCacheValidate = createValidateFunc([idxDef, arrDef])
@@ -44,9 +15,7 @@ export const tie = props => {
             tieValidate([props])
         }
 
-        // prettier-ignore
-        const { descr, onTry, onCatch = p => { throw p.error } } = props
-        const { spec = [], isPure = false } = props
+        const { descr, onTry, onCatch, spec = [], isPure = false } = props
 
         if (handledFuncs.has(onTry)) {
             return onTry

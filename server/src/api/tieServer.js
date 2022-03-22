@@ -27,7 +27,7 @@ const onConnection = tie({
 
         sockets.add(socket)
     },
-    onCatch: () => null,
+    onCatch: () => {},
 })
 
 const onClose = tie({
@@ -42,7 +42,7 @@ const onClose = tie({
 
         process.removeListener(eventName, onClose(server, sockets, eventName))
     },
-    onCatch: () => null,
+    onCatch: () => {},
 })
 
 export const tieServer = tie({

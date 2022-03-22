@@ -1,5 +1,5 @@
 import { isTest } from "../api/constants"
-import { arrDef } from "../api/definitions"
+import { arrDef, createDef, funcDef, specDef, strDef } from "../api/definitions"
 import { createValidateFunc } from "./createValidateFunc"
 import { innerLogError } from "./innerConstants"
 
@@ -104,3 +104,24 @@ export const getCacheIdx = (args, cacheKeys) => {
         return -1
     }
 }
+
+const isPureDef = createDef({
+    getMsg: arg =>
+        typeof arg !== "boolean" && arg !== undefined
+            ? "must be boolean or undefined"
+            : "",
+})
+
+export const tieSpec = [
+    createDef({
+        strictProps: {
+            descr: strDef,
+            onTry: funcDef,
+            onCatch: funcDef,
+        },
+        props: {
+            spec: specDef,
+            isPure: isPureDef,
+        },
+    }),
+]

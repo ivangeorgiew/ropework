@@ -39,6 +39,7 @@ const uncaughtErrorListener = tie({
             }, 500).unref()
         }
     },
+    onCatch: () => {},
 })
 
 export const handleGlobalErrors = tie({
@@ -63,5 +64,5 @@ export const handleGlobalErrors = tie({
             })
         }
     },
-    onCatch: () => null,
+    onCatch: () => {},
 })
