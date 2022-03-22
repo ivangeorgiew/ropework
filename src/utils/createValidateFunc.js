@@ -52,7 +52,7 @@ export const createValidateFunc = spec => {
             } catch (error) {
                 try {
                     innerLogError({
-                        descr: "validateItem from the library",
+                        descr: "[validateItem] from the library",
                         args: [opts],
                         error,
                     })
@@ -119,7 +119,7 @@ export const createValidateFunc = spec => {
                     } catch (error) {
                         try {
                             innerLogError({
-                                descr: "addProps from the library",
+                                descr: "[addProps] from the library",
                                 args: [opts],
                                 error,
                             })
@@ -184,7 +184,7 @@ export const createValidateFunc = spec => {
             } catch (error) {
                 try {
                     innerLogError({
-                        descr: "getArgsErrorMsg from the library",
+                        descr: "[getArgsErrorMsg] from the library",
                         args: [args],
                         error,
                     })
@@ -217,7 +217,7 @@ export const createValidateFunc = spec => {
                 } catch (error) {
                     try {
                         innerLogError({
-                            descr: "validation function from the library",
+                            descr: "[validation function] from the library",
                             args: [spec],
                             error,
                         })
@@ -236,7 +236,7 @@ export const createValidateFunc = spec => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "createValidateFunc from the library",
+                descr: "[createValidateFunc] from the library",
                 args: [spec],
                 error,
             })

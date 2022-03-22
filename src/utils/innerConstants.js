@@ -36,7 +36,7 @@ const stringifyAll = data => {
     } catch (error) {
         try {
             defaultLogger(
-                "\n Error at: stringifyAll from the library",
+                "\n Error at: [stringifyAll] from the library",
                 `Function arguments: ${data}\n`,
                 error,
                 "\n"
@@ -78,7 +78,7 @@ const createArgsInfo = args => {
     } catch (error) {
         try {
             defaultLogger(
-                "\n Error at: createArgsInfo from the library",
+                "\n Error at: [createArgsInfo] from the library",
                 `Function arguments: ${args}\n`,
                 error,
                 "\n"
@@ -98,7 +98,7 @@ const errorLogger = (...args) => {
         } catch (error) {
             try {
                 defaultLogger(
-                    "\n Error at: errorLogger from the library",
+                    "\n Error at: [errorLogger] from the library",
                     `Function arguments: ${createArgsInfo(args)}\n`,
                     error,
                     "\n"
@@ -116,7 +116,7 @@ export const notify = (...args) => {
     } catch (error) {
         try {
             errorLogger(
-                "\n Error at: notify from the library",
+                "\n Error at: [notify] from the library",
                 `Function arguments: ${createArgsInfo(args)}\n`,
                 error,
                 "\n"
@@ -165,7 +165,7 @@ export const getErrorsCacheIdx = (descr, msg) => {
     } catch (error) {
         try {
             errorLogger(
-                "\n Error at: getErrorsCacheIdx from the library",
+                "\n Error at: [getErrorsCacheIdx] from the library",
                 `Function arguments: ${createArgsInfo([descr, msg])}\n`,
                 error,
                 "\n"
@@ -202,7 +202,7 @@ export const manageErrorsCache = (idx, descr, msg) => {
     } catch (error) {
         try {
             errorLogger(
-                "\n Error at: manageErrorsCache from the library",
+                "\n Error at: [manageErrorsCache] from the library",
                 `Function arguments: ${createArgsInfo([idx, descr, msg])}\n`,
                 error,
                 "\n"
@@ -256,7 +256,7 @@ export const innerLogError = props => {
     } catch (error) {
         try {
             errorLogger(
-                "\n Error at: innerLogError from the library",
+                "\n Error at: [innerLogError] from the library",
                 `Function arguments: ${createArgsInfo([props])}\n`,
                 error,
                 "\n"
@@ -275,7 +275,7 @@ export const checkObjType = a => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "checkObjType from the library",
+                descr: "[checkObjType] from the library",
                 args: [a],
                 error,
             })
@@ -295,7 +295,7 @@ export const checkObj = a => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "checkObj from the library",
+                descr: "[checkObj] from the library",
                 args: [a],
                 error,
             })
@@ -340,7 +340,7 @@ export const optsKeysGetMsg = (a, keys) => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "optsKeysGetMsg from the library",
+                descr: "[optsKeysGetMsg] from the library",
                 args: [a, keys],
                 error,
             })

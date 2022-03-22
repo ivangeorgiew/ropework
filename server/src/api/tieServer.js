@@ -4,8 +4,7 @@ import {
     strDef,
     funcDef,
     nodeErrorEvents,
-    tieImpure,
-    tiePure,
+    tie,
     setDef,
     createDef,
 } from "tied-up"
@@ -18,7 +17,7 @@ const setOrUndefDef = createDef({
         !(arg instanceof Set) && arg !== undefined ? "must be Set or undefined" : "",
 })
 
-const onConnection = tieImpure({
+const onConnection = tie({
     descr: "adding sockets to server",
     spec: [setDef, objDef],
     onTry: (sockets, socket) => {
@@ -31,7 +30,7 @@ const onConnection = tieImpure({
     onCatch: () => null,
 })
 
-const onClose = tieImpure({
+const onClose = tie({
     descr: "handling server closing",
     spec: [serverDef, setDef, strDef],
     onTry: (server, sockets, eventName, _) => {
@@ -46,9 +45,10 @@ const onClose = tieImpure({
     onCatch: () => null,
 })
 
-export const tieServer = tiePure({
+export const tieServer = tie({
     descr: "tying server",
     spec: [serverDef, setOrUndefDef],
+    isPure: true,
     onTry: (server, sockets_) => {
         if (!isServer) {
             throw Error("This function is meant for server use")

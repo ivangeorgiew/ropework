@@ -1,4 +1,4 @@
-import { createDef, funcDef, isServer, objTypeDef, strDef, tieImpure } from "tied-up"
+import { createDef, funcDef, isServer, objTypeDef, strDef, tie } from "tied-up"
 
 const funcOrUndefDef = createDef({
     getMsg: arg =>
@@ -7,7 +7,7 @@ const funcOrUndefDef = createDef({
             : "",
 })
 
-export const createServerRoute = tieImpure({
+export const createServerRoute = tie({
     descr: "creating route for the server",
     spec: [funcDef, funcOrUndefDef, strDef, strDef, funcDef],
     onTry: (app, onCatch_, method, path, callback) => {
@@ -35,7 +35,7 @@ export const createServerRoute = tieImpure({
 
         app[method](
             path,
-            tieImpure({
+            tie({
                 descr: `${method.toUpperCase()} ${path}`,
                 spec: [objTypeDef, objTypeDef],
                 onTry: callback,

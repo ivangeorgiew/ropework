@@ -1,5 +1,5 @@
 // const {
-//     tiePure,
+//     tie,
 //     changeOptions,
 //     handleGlobalErrors,
 //     idxDef,
@@ -9,9 +9,10 @@
 
 // handleGlobalErrors(true)
 
-// const fib = tiePure({
+// const fib = tie({
 //     descr: "calculating fibonacci number",
 //     spec: [idxDef, definedDef, definedDef, definedDef, definedDef, definedDef],
+//     isPure: true,
 //     onTry: (n, a, b, c, d, e) => {
 //         if (n <= 1) return n
 
@@ -41,9 +42,10 @@
 // const dDef = createDef({ strictProps: { a: idxDef } })
 // dDef.strictProps.myself = dDef
 
-// const A = tiePure({
+// const A = tie({
 //     descr: "class A",
 //     spec: [dDef],
+//     isPure: true,
 //     onTry: class {
 //         constructor(props) {
 //             this.a = props.a
@@ -53,9 +55,10 @@
 //     onCatch: () => ({}),
 // })
 
-// const B = tiePure({
+// const B = tie({
 //     descr: "class B",
 //     spec: [dDef],
+//     isPure: true,
 //     onTry: class extends A {
 //         constructor(props) {
 //             super(props)
@@ -73,15 +76,17 @@
 // console.log(fib(4000, a, b, c, d, e))
 // console.log(fib(4000, a, b, c, d, e))
 
+// // Change the import to index.cjs.test.js
 // // Args validation takes its toll on time!
 // changeOptions({ shouldValidate: false })
 // console.time("fib")
 // fib(4000, a, b, c, d, e) // around 13ms is normal for 4000
 // console.timeEnd("fib")
 
-// const asyncGen = tiePure({
+// const asyncGen = tie({
 //     descr: "asynchronous generator function test",
 //     spec: [idxDef],
+//     isPure: true,
 //     onTry: async function* (i) {
 //         yield i
 //         await new Promise(resolve => {
@@ -103,9 +108,10 @@
 //     console.log(await g2.next())
 // })()
 
-// const gen = tiePure({
+// const gen = tie({
 //     descr: "generator function test",
 //     spec: [idxDef],
+//     isPure: true,
 //     onTry: function* (i) {
 //         yield i
 //         // throw new Error("intended")
@@ -121,9 +127,10 @@
 // const g2 = gen(10)
 // console.log(g2.next())
 
-// const asyncF = tiePure({
+// const asyncF = tie({
 //     descr: "asynchronous function test",
 //     spec: [idxDef],
+//     isPure: true,
 //     onTry: async i => {
 //         // await asyncF(i + 1)
 //         await new Promise(resolve => {
@@ -140,9 +147,10 @@
 //     console.log(await asyncF(10))
 // })()
 
-// const addNumbers = tiePure({
+// const addNumbers = tie({
 //     descr: "adding two numbers",
 //     spec: [idxDef, idxDef],
+//     isPure: true,
 //     onTry: (a, b) => {
 //         console.log("ran func")
 
@@ -166,9 +174,10 @@
 // changeOptions({ errorLogger: console.error, notify: 5 })
 // changeOptions("blabla")
 
-// const retryFunc = tiePure({
+// const retryFunc = tie({
 //     descr: "retry function",
 //     spec: [idxDef],
+//     isPure: true,
 //     onTry: n => {
 //         // if (n < 10000) {
 //         if (n < 10) {
@@ -185,14 +194,14 @@
 //     },
 // })
 
-// const parentFunc = tiePure({
+// const parentFunc = tie({
 //     descr: "parent function",
-//     spec: [],
+//     isPure: true,
 //     onTry: () => {
 //         console.log(retryFunc(1))
 //         console.log("ran after retryFunc")
 //     },
-//     onCatch: () => null
+//     onCatch: () => null,
 // })
 
 // parentFunc()

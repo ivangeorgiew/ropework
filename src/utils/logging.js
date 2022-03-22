@@ -50,7 +50,7 @@ export const logError = props => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "logError from the library",
+                descr: "[logError] from the library",
                 args: [props],
                 error,
             })

@@ -45,7 +45,7 @@ const checkEqual = (a, b) => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "checkEqual from the library",
+                descr: "[checkEqual] from the library",
                 args: [a, b],
                 error,
             })
@@ -93,7 +93,7 @@ export const getCacheIdx = (args, cacheKeys) => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "getCacheIdx from the library",
+                descr: "[getCacheIdx] from the library",
                 args: [args, cacheKeys],
                 error,
             })

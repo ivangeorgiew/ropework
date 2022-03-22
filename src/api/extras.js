@@ -1,7 +1,7 @@
-import { createFunc } from "../utils/createFunc"
-import { handledFuncs } from "../utils/createFuncHelpers"
 import { options, optsKeysGetMsg } from "../utils/innerConstants"
-import { boolDef, createDef, funcDef } from "./definitions"
+import { handledFuncs } from "../utils/tyingHelpers"
+import { boolDef, createDef, funcDef, idxDef } from "./definitions"
+import { tie, tieSpec } from "./tying"
 
 const optionsDef = createDef({
     getMsg: arg => optsKeysGetMsg(arg, Object.keys(options)),
@@ -12,7 +12,7 @@ const optionsDef = createDef({
     },
 })
 
-export const changeOptions = createFunc({
+export const changeOptions = tie({
     descr: "changing global options",
     spec: [optionsDef],
     onTry: props => {
@@ -23,7 +23,7 @@ export const changeOptions = createFunc({
     onCatch: () => null,
 })
 
-export const clearCacheOf = createFunc({
+export const clearCacheOf = tie({
     descr: "clear cache of a tied function",
     spec: [funcDef],
     onTry: tiedFunc => {
@@ -36,7 +36,7 @@ export const clearCacheOf = createFunc({
     onCatch: () => null,
 })
 
-export const getPropsOf = createFunc({
+export const getPropsOf = tie({
     descr: "getting props of a tied function",
     spec: [funcDef],
     onTry: tiedFunc => {
@@ -47,4 +47,18 @@ export const getPropsOf = createFunc({
         return {}
     },
     onCatch: () => ({}),
+})
+
+export const tieTimeout = tie({
+    descr: "creating tied setTimeout",
+    spec: [...tieSpec, idxDef],
+    onTry: (props, delay, ...args) => setTimeout(tie(props), delay, ...args),
+    onCatch: () => -1,
+})
+
+export const tieInterval = tie({
+    descr: "creating tied setInterval",
+    spec: [...tieSpec, idxDef],
+    onTry: (props, delay, ...args) => setInterval(tie(props), delay, ...args),
+    onCatch: () => -1,
 })
