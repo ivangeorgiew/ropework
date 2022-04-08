@@ -27,6 +27,7 @@ export const tie = props => {
         const cacheValues = []
 
         let isNextCallFirst = true
+        let areArgsValid = true
 
         const manageCache = (idx, key, value) => {
             try {
@@ -80,7 +81,7 @@ export const tie = props => {
             }
 
             // ability to manually throw from onCatch
-            return onCatch({ descr, args, error })
+            return onCatch({ descr, args, error, areArgsValid })
         }
 
         const getCurry = oldArgs =>
@@ -118,7 +119,9 @@ export const tie = props => {
                 isNextCallFirst = false
 
                 if (options.shouldValidate && spec.length > 0) {
+                    areArgsValid = false
                     validateArgs(args)
+                    areArgsValid = true
                 }
 
                 // normal call or constructor

@@ -65,8 +65,10 @@ export const tieServer = tie({
         return server
     },
     onCatch: props => {
-        const [server] = props.args
+        const { areArgsValid, args, error } = props
 
-        return server
+        if (areArgsValid) return args[0]
+
+        throw error
     },
 })

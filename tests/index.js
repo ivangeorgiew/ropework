@@ -22,9 +22,9 @@
 //         return pre + prepre
 //     },
 //     onCatch: props => {
-//         const { args, error } = props
+//         const { areArgsValid, args, error } = props
 
-//         return args[0] > 4000 && error.message.includes("Maximum call stack")
+//         return areArgsValid && args[0] > 4000 && error.message.includes("Maximum call stack")
 //             ? Infinity
 //             : NaN
 //     },
@@ -76,7 +76,7 @@
 // console.log(fib(4000, a, b, c, d, e))
 // console.log(fib(4000, a, b, c, d, e))
 
-// // Change the import to index.cjs.test.js
+// // Change the import to index.cjs.js
 // // Args validation takes its toll on time!
 // changeOptions({ shouldValidate: false })
 // console.time("fib")
@@ -187,10 +187,11 @@
 //         }
 //     },
 //     onCatch: props => {
-//         const { args } = props
-//         const [n] = args
+//         const { areArgsValid, args, error } = props
 
-//         return retryFunc(n + 1)
+//         if (areArgsValid) return retryFunc(args[0] + 1)
+
+//         throw error
 //     },
 // })
 
