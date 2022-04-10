@@ -5,6 +5,7 @@
 //     idxDef,
 //     definedDef,
 //     createDef,
+//     SpecError,
 // } = require("../dist/index.cjs.test.js")
 
 // handleGlobalErrors(true)
@@ -177,27 +178,25 @@
 // const retryFunc = tie({
 //     descr: "retry function",
 //     spec: [idxDef],
-//     isPure: true,
 //     onTry: n => {
 //         // if (n < 10000) {
 //         if (n < 10) {
-//             throw Error("Test Error")
+//             throw new Error("Test Error")
 //         } else {
 //             return n
 //         }
 //     },
 //     onCatch: props => {
-//         const { areArgsValid, args, error } = props
+//         const { descr, areArgsValid, args, error } = props
 
 //         if (areArgsValid) return retryFunc(args[0] + 1)
 
-//         throw error
+//         throw new SpecError(`at [${descr}], ${error.message}`)
 //     },
 // })
 
 // const parentFunc = tie({
 //     descr: "parent function",
-//     isPure: true,
 //     onTry: () => {
 //         console.log(retryFunc(1))
 //         console.log("ran after retryFunc")

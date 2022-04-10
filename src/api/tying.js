@@ -126,7 +126,7 @@ export const tie = props => {
 
                 // normal call or constructor
                 if (new.target === undefined) {
-                    if (args.length < funcLen) {
+                    if (funcLen > 1 && args.length < funcLen) {
                         shouldStore = true
                         result = getCurry(args)
                     } else {

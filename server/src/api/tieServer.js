@@ -1,12 +1,13 @@
 import {
-    isServer,
-    objDef,
-    strDef,
-    funcDef,
-    nodeErrorEvents,
-    tie,
-    setDef,
+    SpecError,
     createDef,
+    funcDef,
+    isServer,
+    nodeErrorEvents,
+    objDef,
+    setDef,
+    strDef,
+    tie,
 } from "tied-up"
 
 const serverDef = createDef({
@@ -51,7 +52,7 @@ export const tieServer = tie({
     isPure: true,
     onTry: (server, sockets_) => {
         if (!isServer) {
-            throw Error("This function is meant for server use")
+            throw new Error("This function is meant for server use")
         }
 
         const sockets = sockets_ !== undefined ? sockets_ : new Set()
@@ -65,10 +66,10 @@ export const tieServer = tie({
         return server
     },
     onCatch: props => {
-        const { areArgsValid, args, error } = props
+        const { areArgsValid, descr, args, error } = props
 
         if (areArgsValid) return args[0]
 
-        throw error
+        throw new SpecError(`at [${descr}], ${error.message}`)
     },
 })

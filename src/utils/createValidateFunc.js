@@ -8,15 +8,17 @@ export const createValidateFunc = spec => {
             try {
                 if (isTest) {
                     if (!checkObj(opts)) {
-                        throw SpecError("arguments[0] - must be object")
+                        throw new SpecError("arguments[0] - must be object")
                     }
 
                     if (typeof opts.key !== "string") {
-                        throw SpecError("arguments[0][key] - must be string")
+                        throw new SpecError("arguments[0][key] - must be string")
                     }
 
                     if (typeof opts.getMsg !== "function") {
-                        throw SpecError("arguments[0][getMsg] - must be function")
+                        throw new SpecError(
+                            "arguments[0][getMsg] - must be function"
+                        )
                     }
                 }
 
@@ -68,11 +70,15 @@ export const createValidateFunc = spec => {
             try {
                 if (isTest) {
                     if (!Array.isArray(args)) {
-                        throw SpecError("arguments[0] - must be array")
+                        throw new SpecError("arguments[0] - must be array")
                     }
                 }
 
-                const initLen = args.length < spec.length ? args.length : spec.length
+                const initLen =
+                    spec.length > 1 && args.length < spec.length
+                        ? args.length
+                        : spec.length
+
                 const list = Array(initLen)
                 const refs = new WeakSet()
 
@@ -80,21 +86,23 @@ export const createValidateFunc = spec => {
                     try {
                         if (isTest) {
                             if (!checkObj(opts)) {
-                                throw SpecError("arguments[0] - must be object")
+                                throw new SpecError("arguments[0] - must be object")
                             }
 
                             if (typeof opts.key !== "string") {
-                                throw SpecError("arguments[0][key] - must be string")
+                                throw new SpecError(
+                                    "arguments[0][key] - must be string"
+                                )
                             }
 
                             if (!checkObj(opts.props)) {
-                                throw SpecError(
+                                throw new SpecError(
                                     "arguments[0][props] - must be object"
                                 )
                             }
 
                             if (typeof opts.isStrict !== "boolean") {
-                                throw SpecError(
+                                throw new SpecError(
                                     "arguments[0][props] - must be boolean"
                                 )
                             }
@@ -204,7 +212,7 @@ export const createValidateFunc = spec => {
             })
 
             if (msg !== "") {
-                throw SpecError(msg)
+                throw new SpecError(msg)
             }
         }
 
@@ -212,7 +220,7 @@ export const createValidateFunc = spec => {
             if (isTest) {
                 try {
                     if (!Array.isArray(args)) {
-                        throw SpecError("arguments[0] - must be array")
+                        throw new SpecError("arguments[0] - must be array")
                     }
                 } catch (error) {
                     try {
@@ -230,7 +238,7 @@ export const createValidateFunc = spec => {
             const msg = getArgsErrorMsg(args)
 
             if (msg !== "") {
-                throw SpecError(msg)
+                throw new SpecError(msg)
             }
         }
     } catch (error) {

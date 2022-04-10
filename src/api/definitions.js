@@ -13,7 +13,7 @@ export const createDef = opts => {
         const msg = optsKeysGetMsg(opts, defKeys)
 
         if (msg !== "") {
-            throw SpecError(`arguments[0] - ${msg}`)
+            throw new SpecError(`arguments[0] - ${msg}`)
         }
 
         const def = defKeys.reduce((acc, key) => {
@@ -59,11 +59,11 @@ export const specDef = createDef({
             try {
                 if (isTest) {
                     if (typeof key !== "string") {
-                        throw SpecError("arguments[0] - must be string")
+                        throw new SpecError("arguments[0] - must be string")
                     }
 
                     if (!checkObjType(props)) {
-                        throw SpecError("arguments[1] - must be of object type")
+                        throw new SpecError("arguments[1] - must be of object type")
                     }
                 }
 

@@ -53,7 +53,7 @@ const createArgsInfo = args => {
     try {
         if (isTest) {
             if (!Array.isArray(args)) {
-                throw SpecError("arguments[0] - must be array")
+                throw new SpecError("arguments[0] - must be array")
             }
         }
 
@@ -133,11 +133,11 @@ export const getErrorsCacheIdx = (descr, msg) => {
     try {
         if (isTest) {
             if (typeof descr !== "string") {
-                throw SpecError("arguments[0] - must be string")
+                throw new SpecError("arguments[0] - must be string")
             }
 
             if (typeof msg !== "string") {
-                throw SpecError("arguments[1] - must be string")
+                throw new SpecError("arguments[1] - must be string")
             }
         }
 
@@ -182,15 +182,15 @@ export const manageErrorsCache = (idx, descr, msg) => {
     try {
         if (isTest) {
             if (!Number.isInteger(idx) || !Number.isFinite(idx) || idx < 0) {
-                throw SpecError("arguments[0] - must be positive integer or 0")
+                throw new SpecError("arguments[0] - must be positive integer or 0")
             }
 
             if (typeof descr !== "string") {
-                throw SpecError("arguments[1] - must be string")
+                throw new SpecError("arguments[1] - must be string")
             }
 
             if (typeof msg !== "string") {
-                throw SpecError("arguments[2] - must be string")
+                throw new SpecError("arguments[2] - must be string")
             }
         }
 
@@ -217,19 +217,19 @@ export const innerLogError = props => {
     try {
         if (isTest) {
             if (!(props instanceof Object)) {
-                throw SpecError("arguments[0] - must be object")
+                throw new SpecError("arguments[0] - must be object")
             }
 
             if (typeof props.descr !== "string") {
-                throw SpecError("arguments[0][descr] - must be string")
+                throw new SpecError("arguments[0][descr] - must be string")
             }
 
             if (!Array.isArray(props.args)) {
-                throw SpecError("arguments[0][args] - must be array")
+                throw new SpecError("arguments[0][args] - must be array")
             }
 
             if (!(props.error instanceof Error)) {
-                throw SpecError("arguments[0][error] - must be error")
+                throw new SpecError("arguments[0][error] - must be error")
             }
         }
 
@@ -311,7 +311,7 @@ export const optsKeysGetMsg = (a, keys) => {
     try {
         if (isTest) {
             if (!Array.isArray(keys)) {
-                throw SpecError("arguments[1] - must be array")
+                throw new SpecError("arguments[1] - must be array")
             }
         }
 

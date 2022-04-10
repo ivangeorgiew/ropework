@@ -1,4 +1,12 @@
-import { createDef, funcDef, isServer, objTypeDef, strDef, tie } from "tied-up"
+import {
+    SpecError,
+    createDef,
+    funcDef,
+    isServer,
+    objTypeDef,
+    strDef,
+    tie,
+} from "tied-up"
 
 const funcOrUndefDef = createDef({
     getMsg: arg =>
@@ -12,7 +20,7 @@ export const createServerRoute = tie({
     spec: [funcDef, funcOrUndefDef, strDef, strDef, funcDef],
     onTry: (app, onCatch_, method, path, callback) => {
         if (!isServer) {
-            throw Error("This function is meant for server use")
+            throw new Error("This function is meant for server use")
         }
 
         const defaultOnCatch = props => {
@@ -34,7 +42,7 @@ export const createServerRoute = tie({
                 }
             }
 
-            throw error
+            throw new SpecError(`at [${descr}], ${error.message}`)
         }
 
         app[method](
