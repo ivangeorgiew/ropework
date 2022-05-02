@@ -5,7 +5,6 @@
 //     idxDef,
 //     definedDef,
 //     createDef,
-//     SpecError,
 // } = require("../dist/index.cjs.test.js")
 
 // handleGlobalErrors(true)
@@ -25,7 +24,9 @@
 //     onCatch: props => {
 //         const { areArgsValid, args, error } = props
 
-//         return areArgsValid && args[0] > 4000 && error.message.includes("Maximum call stack")
+//         return areArgsValid &&
+//             args[0] > 4000 &&
+//             error.message.includes("Maximum call stack")
 //             ? Infinity
 //             : NaN
 //     },
@@ -187,11 +188,9 @@
 //         }
 //     },
 //     onCatch: props => {
-//         const { descr, areArgsValid, args, error } = props
+//         const n = props.args[0]
 
-//         if (areArgsValid) return retryFunc(args[0] + 1)
-
-//         throw new SpecError(`at [${descr}], ${error.message}`)
+//         return retryFunc(n + 1)
 //     },
 // })
 
@@ -199,9 +198,9 @@
 //     descr: "parent function",
 //     onTry: () => {
 //         console.log(retryFunc(1))
-//         console.log("ran after retryFunc")
 //     },
 //     onCatch: () => {},
 // })
 
 // parentFunc()
+// console.log("ran after parentFunc")

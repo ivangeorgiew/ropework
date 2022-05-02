@@ -235,11 +235,7 @@ export const createValidateFunc = spec => {
                 }
             }
 
-            const msg = getArgsErrorMsg(args)
-
-            if (msg !== "") {
-                throw new SpecError(msg)
-            }
+            return getArgsErrorMsg(args)
         }
     } catch (error) {
         try {

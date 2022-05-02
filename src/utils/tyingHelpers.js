@@ -1,9 +1,36 @@
 import { isTest } from "../api/constants"
-import { arrDef, createDef, funcDef, specDef, strDef } from "../api/definitions"
+import {
+    anyDef,
+    arrDef,
+    createDef,
+    funcDef,
+    idxDef,
+    specDef,
+    strDef,
+} from "../api/definitions"
 import { createValidateFunc } from "./createValidateFunc"
 import { innerLogError } from "./innerConstants"
 
 export const handledFuncs = new WeakMap()
+
+export const tieSpec = [
+    createDef({
+        strictProps: {
+            descr: strDef,
+            onTry: funcDef,
+            onCatch: funcDef,
+        },
+        props: {
+            spec: specDef,
+            isPure: createDef({
+                getMsg: arg =>
+                    typeof arg !== "boolean" && arg !== undefined
+                        ? "must be boolean or undefined"
+                        : "",
+            }),
+        },
+    }),
+]
 
 const toKeys = Object.getOwnPropertyNames
 
@@ -105,23 +132,82 @@ export const getCacheIdx = (args, cacheKeys) => {
     }
 }
 
-const isPureDef = createDef({
-    getMsg: arg =>
-        typeof arg !== "boolean" && arg !== undefined
-            ? "must be boolean or undefined"
-            : "",
-})
+const manageCachePartialValidate = createValidateFunc([arrDef, arrDef])
+const manageCacheValidate = createValidateFunc([idxDef, arrDef, anyDef])
 
-export const tieSpec = [
-    createDef({
-        strictProps: {
-            descr: strDef,
-            onTry: funcDef,
-            onCatch: funcDef,
-        },
-        props: {
-            spec: specDef,
-            isPure: isPureDef,
-        },
-    }),
-]
+export const manageCachePartial = (cacheKeys, cacheValues) => {
+    try {
+        if (isTest) {
+            manageCachePartialValidate([cacheKeys, cacheValues])
+        }
+
+        return (idx, key, value) => {
+            try {
+                if (isTest) {
+                    manageCacheValidate([idx, key, value])
+                }
+
+                for (let i = idx > 4 ? 4 : idx; i--; ) {
+                    cacheKeys[i + 1] = cacheKeys[i]
+                    cacheValues[i + 1] = cacheValues[i]
+                }
+
+                cacheKeys[0] = key
+                cacheValues[0] = value
+            } catch (error) {
+                try {
+                    innerLogError({
+                        descr: "[manageCache] from the library",
+                        args: [idx, key, value],
+                        error,
+                    })
+                } catch {
+                    // nothing
+                }
+            }
+        }
+    } catch (error) {
+        try {
+            innerLogError({
+                descr: "[manageCachePartial] from the library",
+                args: [cacheKeys, cacheValues],
+                error,
+            })
+        } catch {
+            // nothing
+        }
+
+        return () => {}
+    }
+}
+
+const createCurryValidate = createValidateFunc([arrDef, idxDef, funcDef])
+
+export const createCurry = (oldArgs, funcLen, func) => {
+    try {
+        if (isTest) {
+            createCurryValidate([oldArgs, funcLen, func])
+        }
+
+        return function (...newArgs) {
+            return func.apply(
+                this,
+                newArgs.length === 0 && funcLen - oldArgs.length === 1
+                    ? oldArgs.concat([undefined])
+                    : oldArgs.concat(newArgs)
+            )
+        }
+    } catch (error) {
+        try {
+            innerLogError({
+                descr: "[createCurry] from the library",
+                args: [oldArgs, funcLen, func],
+                error,
+            })
+        } catch {
+            // nothing
+        }
+
+        return () => {}
+    }
+}

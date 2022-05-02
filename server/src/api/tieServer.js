@@ -1,5 +1,4 @@
 import {
-    SpecError,
     createDef,
     funcDef,
     isServer,
@@ -66,10 +65,8 @@ export const tieServer = tie({
         return server
     },
     onCatch: props => {
-        const { areArgsValid, descr, args, error } = props
+        const server = props.args[0]
 
-        if (areArgsValid) return args[0]
-
-        throw new SpecError(`at [${descr}], ${error.message}`)
+        return server
     },
 })

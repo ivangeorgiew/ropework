@@ -1,12 +1,4 @@
-import {
-    SpecError,
-    createDef,
-    funcDef,
-    isServer,
-    objTypeDef,
-    strDef,
-    tie,
-} from "tied-up"
+import { createDef, funcDef, isServer, objTypeDef, strDef, tie } from "tied-up"
 
 const funcOrUndefDef = createDef({
     getMsg: arg =>
@@ -24,25 +16,20 @@ export const createServerRoute = tie({
         }
 
         const defaultOnCatch = props => {
-            const { areArgsValid, descr, error, args } = props
+            const { descr, error, args } = props
+            const res = args[1]
+            const message = error instanceof Error ? error.message : error
+            const stack = error instanceof Error ? error.stack : ""
 
-            if (areArgsValid) {
-                const res = args[1]
-                const message = error instanceof Error ? error.message : error
-                const stack = error instanceof Error ? error.stack : ""
-
-                if (!res.headersSent) {
-                    res.status(500).json({
-                        error: {
-                            name: `Server issue with: ${descr}`,
-                            message,
-                            stack,
-                        },
-                    })
-                }
+            if (!res.headersSent) {
+                res.status(500).json({
+                    error: {
+                        name: `Server issue with: ${descr}`,
+                        message,
+                        stack,
+                    },
+                })
             }
-
-            throw new SpecError(`at [${descr}], ${error.message}`)
         }
 
         app[method](

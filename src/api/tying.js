@@ -1,12 +1,17 @@
 import { createValidateFunc } from "../utils/createValidateFunc"
 import { innerLogError, options } from "../utils/innerConstants"
 import { logError } from "../utils/logging"
-import { getCacheIdx, handledFuncs, tieSpec } from "../utils/tyingHelpers"
-import { isDev, isTest } from "./constants"
-import { arrDef, errorDef, idxDef } from "./definitions"
+import {
+    createCurry,
+    getCacheIdx,
+    handledFuncs,
+    manageCachePartial,
+    tieSpec,
+} from "../utils/tyingHelpers"
+import { SpecError, isDev, isTest } from "./constants"
+import { arrDef, errorDef } from "./definitions"
 
 const tieValidate = createValidateFunc(tieSpec)
-const manageCacheValidate = createValidateFunc([idxDef, arrDef])
 const innerCatchValidate = createValidateFunc([arrDef, errorDef])
 
 export const tie = props => {
@@ -21,41 +26,16 @@ export const tie = props => {
             return onTry
         }
 
-        const validateArgs = createValidateFunc(spec)
         const funcLen = onTry.length
         const cacheKeys = []
         const cacheValues = []
+        const manageCache = manageCachePartial(cacheKeys, cacheValues)
+        const validateArgs = createValidateFunc(spec)
 
         let isNextCallFirst = true
         let areArgsValid = true
 
-        const manageCache = (idx, key, value) => {
-            try {
-                if (isTest) {
-                    manageCacheValidate([idx, key, value])
-                }
-
-                for (let i = idx > 4 ? 4 : idx; i--; ) {
-                    cacheKeys[i + 1] = cacheKeys[i]
-                    cacheValues[i + 1] = cacheValues[i]
-                }
-
-                cacheKeys[0] = key
-                cacheValues[0] = value
-            } catch (error) {
-                try {
-                    innerLogError({
-                        descr: "[manageCache] from the library",
-                        args: [idx, key, value],
-                        error,
-                    })
-                } catch {
-                    // nothing
-                }
-            }
-        }
-
-        const innerCatch = (args, error) => {
+        const innerCatch = (args, error, isFirstCall) => {
             if (isTest) {
                 try {
                     innerCatchValidate([args, error])
@@ -74,26 +54,19 @@ export const tie = props => {
                 }
             }
 
+            if (!isFirstCall || !areArgsValid) throw error
+
             try {
+                isNextCallFirst = true
+
                 logError({ descr, error, args })
             } catch {
                 // nothing
             }
 
             // ability to manually throw from onCatch
-            return onCatch({ descr, args, error, areArgsValid })
+            return onCatch({ descr, args, error })
         }
-
-        const getCurry = oldArgs =>
-            function (...newArgs) {
-                const args =
-                    newArgs.length === 0 && funcLen - oldArgs.length === 1
-                        ? oldArgs.concat([undefined])
-                        : oldArgs.concat(newArgs)
-
-                // eslint-disable-next-line no-use-before-define
-                return innerFunc.apply(this, args)
-            }
 
         const innerFunc = function (...args) {
             let isFirstCall
@@ -118,17 +91,23 @@ export const tie = props => {
                 isFirstCall = isNextCallFirst
                 isNextCallFirst = false
 
-                if (options.shouldValidate && spec.length > 0) {
-                    areArgsValid = false
-                    validateArgs(args)
+                if (options.shouldValidate && args.length >= funcLen) {
                     areArgsValid = true
+
+                    const msg = validateArgs(args)
+
+                    if (msg !== "") {
+                        areArgsValid = false
+
+                        throw new SpecError(`at [${descr}], ${msg}`)
+                    }
                 }
 
                 // normal call or constructor
                 if (new.target === undefined) {
                     if (funcLen > 1 && args.length < funcLen) {
                         shouldStore = true
-                        result = getCurry(args)
+                        result = createCurry(args, funcLen, innerFunc)
                     } else {
                         shouldStore = isPure
                         result = onTry.apply(this, args)
@@ -152,11 +131,7 @@ export const tie = props => {
 
                                 return res
                             } catch (error) {
-                                if (!isFirstCall) throw error
-
-                                isNextCallFirst = true
-
-                                return innerCatch(args, error)
+                                return innerCatch(args, error, isFirstCall)
                             }
                         })(result)
                     } else if (typeof result[Symbol.iterator] === "function") {
@@ -171,11 +146,7 @@ export const tie = props => {
 
                                 return res
                             } catch (error) {
-                                if (!isFirstCall) throw error
-
-                                isNextCallFirst = true
-
-                                return innerCatch(args, error)
+                                return innerCatch(args, error, isFirstCall)
                             }
                         })(result)
                     } else if (typeof result.then === "function") {
@@ -190,31 +161,22 @@ export const tie = props => {
 
                                 return res
                             } catch (error) {
-                                if (!isFirstCall) throw error
-
-                                isNextCallFirst = true
-
-                                return innerCatch(args, error)
+                                return innerCatch(args, error, isFirstCall)
                             }
                         })(result)
                     }
                 }
 
+                isNextCallFirst = true
+
                 if (shouldStore) {
                     manageCache(cacheKeys.length, args, result)
                 }
+
+                return result
             } catch (error) {
-                if (!isFirstCall) throw error
-
-                isNextCallFirst = true
-                result = innerCatch(args, error)
+                return innerCatch(args, error, isFirstCall)
             }
-
-            if (isFirstCall) {
-                isNextCallFirst = true
-            }
-
-            return result
         }
 
         if (isDev) {
