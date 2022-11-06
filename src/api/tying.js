@@ -91,7 +91,7 @@ export const tie = props => {
                 isFirstCall = isNextCallFirst
                 isNextCallFirst = false
 
-                if (options.shouldValidate && args.length >= funcLen) {
+                if (options.shouldValidate && spec.length > 0) {
                     areArgsValid = true
 
                     const msg = validateArgs(args)

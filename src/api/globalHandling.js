@@ -7,7 +7,7 @@ const uncaughtErrorListener = tie({
     descr: "listening for uncaught errors",
     spec: [anyDef],
     onTry: eventOrError => {
-        const descr = "unhandled error"
+        const descr = "Global Level"
         const unknownMsg = "Unknown error"
 
         if (isWeb) {

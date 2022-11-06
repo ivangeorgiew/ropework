@@ -165,7 +165,6 @@
 // const addTenTo = addNumbers(10)
 // const copyOfAddTenTo = addNumbers(10)
 
-// console.log(addSupTo(5))
 // console.log(addTenTo(5))
 // console.log(copyOfAddTenTo(5))
 // console.log(copyOfAddTenTo("bla"))
