@@ -2,6 +2,7 @@ import { isTest } from "../api/constants"
 import {
     anyDef,
     arrDef,
+    boolDef,
     createDef,
     funcDef,
     idxDef,
@@ -22,12 +23,7 @@ export const tieSpec = [
         },
         props: {
             spec: specDef,
-            isPure: createDef({
-                getMsg: arg =>
-                    typeof arg !== "boolean" && arg !== undefined
-                        ? "must be boolean or undefined"
-                        : "",
-            }),
+            isPure: boolDef,
         },
     }),
 ]
@@ -72,7 +68,7 @@ const checkEqual = (a, b) => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "[checkEqual] from the library",
+                descr: "[checkEqual] from library tied-up",
                 args: [a, b],
                 error,
             })
@@ -120,7 +116,7 @@ export const getCacheIdx = (args, cacheKeys) => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "[getCacheIdx] from the library",
+                descr: "[getCacheIdx] from library tied-up",
                 args: [args, cacheKeys],
                 error,
             })
@@ -157,7 +153,7 @@ export const manageCachePartial = (cacheKeys, cacheValues) => {
             } catch (error) {
                 try {
                     innerLogError({
-                        descr: "[manageCache] from the library",
+                        descr: "[manageCache] from library tied-up",
                         args: [idx, key, value],
                         error,
                     })
@@ -169,7 +165,7 @@ export const manageCachePartial = (cacheKeys, cacheValues) => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "[manageCachePartial] from the library",
+                descr: "[manageCachePartial] from library tied-up",
                 args: [cacheKeys, cacheValues],
                 error,
             })
@@ -200,7 +196,7 @@ export const createCurry = (oldArgs, funcLen, func) => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "[createCurry] from the library",
+                descr: "[createCurry] from library tied-up",
                 args: [oldArgs, funcLen, func],
                 error,
             })

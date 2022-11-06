@@ -79,7 +79,7 @@ export const specDef = createDef({
             } catch (error) {
                 try {
                     innerLogError({
-                        descr: "[addProps] from the library",
+                        descr: "[addProps] from library tied-up",
                         args: [key, props],
                         error,
                     })

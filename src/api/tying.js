@@ -42,7 +42,7 @@ export const tie = props => {
                 } catch (e) {
                     try {
                         innerLogError({
-                            descr: "[innerCatch] from the library",
+                            descr: "[innerCatch] from library tied-up",
                             args: [args, error],
                             error: e,
                         })
@@ -192,7 +192,7 @@ export const tie = props => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "[tie] from the library",
+                descr: "[tie] from library tied-up",
                 args: [props],
                 error,
             })
