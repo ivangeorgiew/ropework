@@ -1,6 +1,6 @@
 import { options, optsKeysGetMsg } from "../utils/innerConstants"
-import { handledFuncs, tieSpec } from "../utils/tyingHelpers"
-import { boolDef, createDef, funcDef, idxDef } from "./definitions"
+import { handledFuncs } from "../utils/tyingHelpers"
+import { boolDef, createDef, funcDef } from "./definitions"
 import { tie } from "./tying"
 
 const optionsDef = createDef({
@@ -47,18 +47,4 @@ export const getPropsOf = tie({
         return {}
     },
     onCatch: () => ({}),
-})
-
-export const tieTimeout = tie({
-    descr: "creating tied setTimeout",
-    spec: [...tieSpec, idxDef],
-    onTry: (props, delay, ...args) => setTimeout(tie(props), delay, ...args),
-    onCatch: () => -1,
-})
-
-export const tieInterval = tie({
-    descr: "creating tied setInterval",
-    spec: [...tieSpec, idxDef],
-    onTry: (props, delay, ...args) => setInterval(tie(props), delay, ...args),
-    onCatch: () => -1,
 })
