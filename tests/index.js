@@ -22,13 +22,9 @@
 //         return pre + prepre
 //     },
 //     onCatch: props => {
-//         const { areArgsValid, args, error } = props
+//         const { args, error } = props
 
-//         return areArgsValid &&
-//             args[0] > 4000 &&
-//             error.message.includes("Maximum call stack")
-//             ? Infinity
-//             : NaN
+//         return error.message.includes("Maximum call stack") ? Infinity : NaN
 //     },
 // })
 
