@@ -1,4 +1,4 @@
-import { isServer, isTest, isWeb } from "../api/constants"
+import { SpecError, isServer, isTest, isWeb } from "../api/constants"
 import { arrDef, createDef, errorDef, strDef } from "../api/definitions"
 import { createValidateFunc } from "./createValidateFunc"
 import { innerLogError, notify } from "./innerConstants"
@@ -14,11 +14,13 @@ const logErrorValidate = createValidateFunc([
 ])
 
 export const logError = props => {
-    try {
-        if (isTest) {
-            logErrorValidate([props])
-        }
+    if (isTest) {
+        const msg = logErrorValidate([props])
 
+        if (msg !== "") throw new SpecError(`when calling [logError], ${msg}`)
+    }
+
+    try {
         const { descr, args, error } = props
 
         const notifyProps = {

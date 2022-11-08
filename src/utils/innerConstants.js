@@ -36,7 +36,7 @@ const stringifyAll = data => {
     } catch (error) {
         try {
             defaultLogger(
-                "\n Error at: [stringifyAll] from library tied-up",
+                "\n Error at: [stringifyAll] from library tied-up\n",
                 `Function arguments: ${data}\n`,
                 error,
                 "\n"
@@ -50,13 +50,15 @@ const stringifyAll = data => {
 }
 
 const createArgsInfo = args => {
-    try {
-        if (isTest) {
-            if (!Array.isArray(args)) {
-                throw new SpecError("arguments[0] - must be array")
-            }
+    if (isTest) {
+        if (!Array.isArray(args)) {
+            throw new SpecError(
+                "calling [createArgsInfo], arguments[0] - must be array"
+            )
         }
+    }
 
+    try {
         const argsInfo = args.reduce((acc, arg, i) => {
             const stringified =
                 typeof arg === "function" ? "f(x)" : stringifyAll(arg)
@@ -78,7 +80,7 @@ const createArgsInfo = args => {
     } catch (error) {
         try {
             defaultLogger(
-                "\n Error at: [createArgsInfo] from library tied-up",
+                "\n Error at: [createArgsInfo] from library tied-up\n",
                 `Function arguments: ${args}\n`,
                 error,
                 "\n"
@@ -98,7 +100,7 @@ const errorLogger = (...args) => {
         } catch (error) {
             try {
                 defaultLogger(
-                    "\n Error at: [errorLogger] from library tied-up",
+                    "\n Error at: [errorLogger] from library tied-up\n",
                     `Function arguments: ${createArgsInfo(args)}\n`,
                     error,
                     "\n"
@@ -116,7 +118,7 @@ export const notify = (...args) => {
     } catch (error) {
         try {
             errorLogger(
-                "\n Error at: [notify] from library tied-up",
+                "\n Error at: [notify] from library tied-up\n",
                 `Function arguments: ${createArgsInfo(args)}\n`,
                 error,
                 "\n"
@@ -130,17 +132,21 @@ export const notify = (...args) => {
 const errorsCache = []
 
 export const getErrorsCacheIdx = (descr, msg) => {
-    try {
-        if (isTest) {
-            if (typeof descr !== "string") {
-                throw new SpecError("arguments[0] - must be string")
-            }
-
-            if (typeof msg !== "string") {
-                throw new SpecError("arguments[1] - must be string")
-            }
+    if (isTest) {
+        if (typeof descr !== "string") {
+            throw new SpecError(
+                "calling [getErrorsCacheIdx], arguments[0] - must be string"
+            )
         }
 
+        if (typeof msg !== "string") {
+            throw new SpecError(
+                "calling [getErrorsCacheIdx], arguments[1] - must be string"
+            )
+        }
+    }
+
+    try {
         const errorsCacheLen = errorsCache.length
 
         if (errorsCacheLen === 0) {
@@ -165,7 +171,7 @@ export const getErrorsCacheIdx = (descr, msg) => {
     } catch (error) {
         try {
             errorLogger(
-                "\n Error at: [getErrorsCacheIdx] from library tied-up",
+                "\n Error at: [getErrorsCacheIdx] from library tied-up\n",
                 `Function arguments: ${createArgsInfo([descr, msg])}\n`,
                 error,
                 "\n"
@@ -179,21 +185,27 @@ export const getErrorsCacheIdx = (descr, msg) => {
 }
 
 export const manageErrorsCache = (idx, descr, msg) => {
-    try {
-        if (isTest) {
-            if (!Number.isInteger(idx) || !Number.isFinite(idx) || idx < 0) {
-                throw new SpecError("arguments[0] - must be positive integer or 0")
-            }
-
-            if (typeof descr !== "string") {
-                throw new SpecError("arguments[1] - must be string")
-            }
-
-            if (typeof msg !== "string") {
-                throw new SpecError("arguments[2] - must be string")
-            }
+    if (isTest) {
+        if (!Number.isInteger(idx) || !Number.isFinite(idx) || idx < 0) {
+            throw new SpecError(
+                "calling [manageErrorsCache], arguments[0] - must be positive integer or 0"
+            )
         }
 
+        if (typeof descr !== "string") {
+            throw new SpecError(
+                "calling [manageErrorsCache], arguments[1] - must be string"
+            )
+        }
+
+        if (typeof msg !== "string") {
+            throw new SpecError(
+                "calling [manageErrorsCache], arguments[2] - must be string"
+            )
+        }
+    }
+
+    try {
         for (let i = idx > 4 ? 4 : idx; i--; ) {
             errorsCache[i + 1] = errorsCache[i]
         }
@@ -202,7 +214,7 @@ export const manageErrorsCache = (idx, descr, msg) => {
     } catch (error) {
         try {
             errorLogger(
-                "\n Error at: [manageErrorsCache] from library tied-up",
+                "\n Error at: [manageErrorsCache] from library tied-up\n",
                 `Function arguments: ${createArgsInfo([idx, descr, msg])}\n`,
                 error,
                 "\n"
@@ -214,25 +226,33 @@ export const manageErrorsCache = (idx, descr, msg) => {
 }
 
 export const innerLogError = props => {
-    try {
-        if (isTest) {
-            if (!(props instanceof Object)) {
-                throw new SpecError("arguments[0] - must be object")
-            }
-
-            if (typeof props.descr !== "string") {
-                throw new SpecError("arguments[0][descr] - must be string")
-            }
-
-            if (!Array.isArray(props.args)) {
-                throw new SpecError("arguments[0][args] - must be array")
-            }
-
-            if (!(props.error instanceof Error)) {
-                throw new SpecError("arguments[0][error] - must be error")
-            }
+    if (isTest) {
+        if (!(props instanceof Object)) {
+            throw new SpecError(
+                "calling [innerLogError], arguments[0] - must be object"
+            )
         }
 
+        if (typeof props.descr !== "string") {
+            throw new SpecError(
+                "calling [innerLogError], arguments[0][descr] - must be string"
+            )
+        }
+
+        if (!Array.isArray(props.args)) {
+            throw new SpecError(
+                "calling [innerLogError], arguments[0][args] - must be array"
+            )
+        }
+
+        if (!(props.error instanceof Error)) {
+            throw new SpecError(
+                "calling [innerLogError], arguments[0][error] - must be error"
+            )
+        }
+    }
+
+    try {
         const { descr, args, error } = props
         const errorMsg = error.message
         const cacheIdx = getErrorsCacheIdx(descr, errorMsg)
@@ -256,7 +276,7 @@ export const innerLogError = props => {
     } catch (error) {
         try {
             errorLogger(
-                "\n Error at: [innerLogError] from library tied-up",
+                "\n Error at: [innerLogError] from library tied-up\n",
                 `Function arguments: ${createArgsInfo([props])}\n`,
                 error,
                 "\n"
@@ -308,13 +328,15 @@ export const checkObj = a => {
 }
 
 export const optsKeysGetMsg = (a, keys) => {
-    try {
-        if (isTest) {
-            if (!Array.isArray(keys)) {
-                throw new SpecError("arguments[1] - must be array")
-            }
+    if (isTest) {
+        if (!Array.isArray(keys)) {
+            throw new SpecError(
+                "calling [optsKeysGetMsg], arguments[1] - must be array"
+            )
         }
+    }
 
+    try {
         if (!checkObj(a)) {
             return "must be object"
         }

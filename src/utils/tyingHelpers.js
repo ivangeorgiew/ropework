@@ -1,4 +1,4 @@
-import { isTest } from "../api/constants"
+import { SpecError, isTest } from "../api/constants"
 import {
     anyDef,
     arrDef,
@@ -83,11 +83,13 @@ const checkEqual = (a, b) => {
 const getCacheIdxValidate = createValidateFunc([arrDef, arrDef])
 
 export const getCacheIdx = (args, cacheKeys) => {
-    try {
-        if (isTest) {
-            getCacheIdxValidate([args, cacheKeys])
-        }
+    if (isTest) {
+        const msg = getCacheIdxValidate([args, cacheKeys])
 
+        if (msg !== "") throw new SpecError(`when calling [getCacheIdx], ${msg}`)
+    }
+
+    try {
         const cacheKeysLen = cacheKeys.length
 
         if (cacheKeysLen === 0) {
@@ -132,78 +134,58 @@ const manageCachePartialValidate = createValidateFunc([arrDef, arrDef])
 const manageCacheValidate = createValidateFunc([idxDef, arrDef, anyDef])
 
 export const manageCachePartial = (cacheKeys, cacheValues) => {
-    try {
+    if (isTest) {
+        const msg = manageCachePartialValidate([cacheKeys, cacheValues])
+
+        if (msg !== "") {
+            throw new SpecError(`when calling [manageCachePartial], ${msg}`)
+        }
+    }
+
+    return (idx, key, value) => {
         if (isTest) {
-            manageCachePartialValidate([cacheKeys, cacheValues])
+            const msg = manageCacheValidate([idx, key, value])
+
+            if (msg !== "") throw new SpecError(`when calling [manageCache], ${msg}`)
         }
 
-        return (idx, key, value) => {
+        try {
+            for (let i = idx > 4 ? 4 : idx; i--; ) {
+                cacheKeys[i + 1] = cacheKeys[i]
+                cacheValues[i + 1] = cacheValues[i]
+            }
+
+            cacheKeys[0] = key
+            cacheValues[0] = value
+        } catch (error) {
             try {
-                if (isTest) {
-                    manageCacheValidate([idx, key, value])
-                }
-
-                for (let i = idx > 4 ? 4 : idx; i--; ) {
-                    cacheKeys[i + 1] = cacheKeys[i]
-                    cacheValues[i + 1] = cacheValues[i]
-                }
-
-                cacheKeys[0] = key
-                cacheValues[0] = value
-            } catch (error) {
-                try {
-                    innerLogError({
-                        descr: "[manageCache] from library tied-up",
-                        args: [idx, key, value],
-                        error,
-                    })
-                } catch {
-                    // nothing
-                }
+                innerLogError({
+                    descr: "[manageCache] from library tied-up",
+                    args: [idx, key, value],
+                    error,
+                })
+            } catch {
+                // nothing
             }
         }
-    } catch (error) {
-        try {
-            innerLogError({
-                descr: "[manageCachePartial] from library tied-up",
-                args: [cacheKeys, cacheValues],
-                error,
-            })
-        } catch {
-            // nothing
-        }
-
-        return () => {}
     }
 }
 
 const createCurryValidate = createValidateFunc([arrDef, idxDef, funcDef])
 
 export const createCurry = (oldArgs, funcLen, func) => {
-    try {
-        if (isTest) {
-            createCurryValidate([oldArgs, funcLen, func])
-        }
+    if (isTest) {
+        const msg = createCurryValidate([oldArgs, funcLen, func])
 
-        return function (...newArgs) {
-            return func.apply(
-                this,
-                newArgs.length === 0 && funcLen - oldArgs.length === 1
-                    ? oldArgs.concat([undefined])
-                    : oldArgs.concat(newArgs)
-            )
-        }
-    } catch (error) {
-        try {
-            innerLogError({
-                descr: "[createCurry] from library tied-up",
-                args: [oldArgs, funcLen, func],
-                error,
-            })
-        } catch {
-            // nothing
-        }
+        if (msg !== "") throw new SpecError(`when calling [createCurry], ${msg}`)
+    }
 
-        return () => {}
+    return function (...newArgs) {
+        return func.apply(
+            this,
+            newArgs.length === 0 && funcLen - oldArgs.length === 1
+                ? oldArgs.concat([undefined])
+                : oldArgs.concat(newArgs)
+        )
     }
 }

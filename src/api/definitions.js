@@ -2,6 +2,7 @@ import {
     checkObj,
     checkObjType,
     innerLogError,
+    options,
     optsKeysGetMsg,
 } from "../utils/innerConstants"
 import { SpecError, isTest } from "./constants"
@@ -9,13 +10,15 @@ import { SpecError, isTest } from "./constants"
 const defKeys = ["getMsg", "props", "strictProps"]
 
 export const createDef = opts => {
-    try {
+    if (options.shouldValidate) {
         const msg = optsKeysGetMsg(opts, defKeys)
 
         if (msg !== "") {
-            throw new SpecError(`arguments[0] - ${msg}`)
+            throw new SpecError(`calling [createDef], arguments[0] - ${msg}`)
         }
+    }
 
+    try {
         const def = defKeys.reduce((acc, key) => {
             if (key in opts) {
                 acc[key] = opts[key]
@@ -56,17 +59,21 @@ export const specDef = createDef({
         const refs = new WeakSet()
 
         const addProps = (key, props) => {
-            try {
-                if (isTest) {
-                    if (typeof key !== "string") {
-                        throw new SpecError("arguments[0] - must be string")
-                    }
-
-                    if (!checkObjType(props)) {
-                        throw new SpecError("arguments[1] - must be of object type")
-                    }
+            if (isTest) {
+                if (typeof key !== "string") {
+                    throw new SpecError(
+                        "calling [addProps], arguments[0] - must be string"
+                    )
                 }
 
+                if (!checkObjType(props)) {
+                    throw new SpecError(
+                        "calling [addProps], arguments[1] - must be of object type"
+                    )
+                }
+            }
+
+            try {
                 const propKeys = Object.keys(props)
 
                 for (let m = 0; m < propKeys.length; m++) {

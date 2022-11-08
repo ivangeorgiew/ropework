@@ -9,17 +9,19 @@ import {
     tieSpec,
 } from "../utils/tyingHelpers"
 import { SpecError, isDev, isTest } from "./constants"
-import { arrDef, errorDef } from "./definitions"
+import { arrDef, boolDef, errorDef } from "./definitions"
 
 const tieValidate = createValidateFunc(tieSpec)
-const innerCatchValidate = createValidateFunc([arrDef, errorDef])
+const innerCatchValidate = createValidateFunc([arrDef, errorDef, boolDef])
 
 export const tie = props => {
-    try {
-        if (isTest) {
-            tieValidate([props])
-        }
+    if (options.shouldValidate) {
+        const msg = tieValidate([props])
 
+        if (msg !== "") throw new SpecError(`when calling [tie], ${msg}`)
+    }
+
+    try {
         const { descr, onTry, onCatch, spec = [], isPure = false } = props
 
         if (handledFuncs.has(onTry)) {
@@ -38,19 +40,22 @@ export const tie = props => {
         const innerCatch = (args, error, isFirstCall) => {
             if (isTest) {
                 try {
-                    innerCatchValidate([args, error])
+                    const msg = innerCatchValidate([args, error, isFirstCall])
+
+                    if (msg !== "")
+                        throw new SpecError(`when calling [innerCatch], ${msg}`)
                 } catch (e) {
                     try {
                         innerLogError({
                             descr: "[innerCatch] from library tied-up",
-                            args: [args, error],
+                            args: [args, error, isFirstCall],
                             error: e,
                         })
                     } catch {
                         // nothing
                     }
 
-                    throw e
+                    throw error
                 }
             }
 
@@ -99,7 +104,7 @@ export const tie = props => {
                     if (msg !== "") {
                         areArgsValid = false
 
-                        throw new SpecError(`at [${descr}], ${msg}`)
+                        throw new SpecError(`when calling [${descr}], ${msg}`)
                     }
                 }
 

@@ -21,11 +21,8 @@
 
 //         return pre + prepre
 //     },
-//     onCatch: props => {
-//         const { args, error } = props
-
-//         return error.message.includes("Maximum call stack") ? Infinity : NaN
-//     },
+//     onCatch: props =>
+//         props.error.message.includes("Maximum call stack") ? Infinity : NaN,
 // })
 
 // const a = () => {
@@ -157,7 +154,6 @@
 //     onCatch: () => NaN,
 // })
 
-// const addSupTo = addNumbers("sup")
 // const addTenTo = addNumbers(10)
 // const copyOfAddTenTo = addNumbers(10)
 
