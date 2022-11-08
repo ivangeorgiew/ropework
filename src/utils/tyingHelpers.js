@@ -1,32 +1,11 @@
 import { SpecError, isTest } from "../api/constants"
-import {
-    anyDef,
-    arrDef,
-    boolDef,
-    createDef,
-    funcDef,
-    idxDef,
-    specDef,
-    strDef,
-} from "../api/definitions"
+import { anyDef, arrDef, funcDef, idxDef, specDef, strDef } from "../api/definitions"
 import { createValidateFunc } from "./createValidateFunc"
 import { innerLogError } from "./innerConstants"
 
 export const handledFuncs = new WeakMap()
 
-export const tieSpec = [
-    createDef({
-        strictProps: {
-            descr: strDef,
-            onTry: funcDef,
-            onCatch: funcDef,
-        },
-        props: {
-            spec: specDef,
-            isPure: boolDef,
-        },
-    }),
-]
+export const tieSpec = [strDef, specDef, funcDef, funcDef]
 
 const toKeys = Object.getOwnPropertyNames
 

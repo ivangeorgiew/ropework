@@ -14,15 +14,15 @@ import { arrDef, boolDef, errorDef } from "./definitions"
 const tieValidate = createValidateFunc(tieSpec)
 const innerCatchValidate = createValidateFunc([arrDef, errorDef, boolDef])
 
-export const tie = props => {
+export const tie = (descr, spec, onTry, onCatch) => {
     if (options.shouldValidate) {
-        const msg = tieValidate([props])
+        const msg = tieValidate([descr, spec, onTry, onCatch])
 
         if (msg !== "") throw new SpecError(`when calling [tie], ${msg}`)
     }
 
     try {
-        const { descr, onTry, onCatch, spec = [], isPure = false } = props
+        const isPure = /^pure(?:ly)? /.test(descr.toLowerCase())
 
         if (handledFuncs.has(onTry)) {
             return onTry
@@ -191,14 +191,22 @@ export const tie = props => {
             })
         }
 
-        handledFuncs.set(innerFunc, { ...props, cacheKeys, cacheValues })
+        handledFuncs.set(innerFunc, {
+            descr,
+            spec,
+            onTry,
+            onCatch,
+            isPure,
+            cacheKeys,
+            cacheValues,
+        })
 
         return innerFunc
     } catch (error) {
         try {
             innerLogError({
                 descr: "[tie] from library tied-up",
-                args: [props],
+                args: [descr, spec, onTry, onCatch],
                 error,
             })
         } catch {

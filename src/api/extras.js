@@ -12,39 +12,39 @@ const optionsDef = createDef({
     },
 })
 
-export const changeOptions = tie({
-    descr: "changing global options",
-    spec: [optionsDef],
-    onTry: props => {
+export const changeOptions = tie(
+    "changing global options",
+    [optionsDef],
+    props => {
         Object.keys(props).forEach(key => {
             options[key] = props[key]
         })
     },
-    onCatch: () => {},
-})
+    () => {}
+)
 
-export const clearCacheOf = tie({
-    descr: "clear cache of a tied function",
-    spec: [funcDef],
-    onTry: tiedFunc => {
+export const clearCacheOf = tie(
+    "clear cache of a tied function",
+    [funcDef],
+    tiedFunc => {
         if (handledFuncs.has(tiedFunc)) {
             const { cacheKeys, cacheValues } = handledFuncs.get(tiedFunc)
 
             cacheKeys.length = cacheValues.length = 0
         }
     },
-    onCatch: () => {},
-})
+    () => {}
+)
 
-export const getPropsOf = tie({
-    descr: "getting props of a tied function",
-    spec: [funcDef],
-    onTry: tiedFunc => {
+export const getPropsOf = tie(
+    "getting props of a tied function",
+    [funcDef],
+    tiedFunc => {
         if (handledFuncs.has(tiedFunc)) {
             return handledFuncs.get(tiedFunc)
         }
 
         return {}
     },
-    onCatch: () => ({}),
-})
+    () => ({})
+)

@@ -3,10 +3,10 @@ import { browserErrorEvents, isServer, isWeb, nodeErrorEvents } from "./constant
 import { anyDef, boolDef } from "./definitions"
 import { tie } from "./tying"
 
-const uncaughtErrorListener = tie({
-    descr: "listening for uncaught errors",
-    spec: [anyDef],
-    onTry: eventOrError => {
+const uncaughtErrorListener = tie(
+    "listening for uncaught errors",
+    [anyDef],
+    eventOrError => {
         const descr = "Global Level"
         const unknownMsg = "Unknown error"
 
@@ -39,13 +39,13 @@ const uncaughtErrorListener = tie({
             }, 500).unref()
         }
     },
-    onCatch: () => {},
-})
+    () => {}
+)
 
-export const handleGlobalErrors = tie({
-    descr: "handling listeners for uncaught errors",
-    spec: [boolDef],
-    onTry: shouldAdd => {
+export const handleGlobalErrors = tie(
+    "handling listeners for uncaught errors",
+    [boolDef],
+    shouldAdd => {
         if (isWeb) {
             browserErrorEvents.forEach(event => {
                 self.removeEventListener(event, uncaughtErrorListener, true)
@@ -64,5 +64,5 @@ export const handleGlobalErrors = tie({
             })
         }
     },
-    onCatch: () => {},
-})
+    () => {}
+)
