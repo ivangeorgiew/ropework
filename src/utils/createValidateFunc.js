@@ -85,9 +85,7 @@ const getArgsErrorMsg = (spec, args) => {
     }
 
     try {
-        const initLen =
-            spec.length > 1 && args.length < spec.length ? args.length : spec.length
-
+        const initLen = args.length < spec.length ? args.length : spec.length
         const list = Array(initLen)
         const refs = new WeakSet()
 
@@ -148,10 +146,13 @@ const getArgsErrorMsg = (spec, args) => {
             }
         }
 
+        // list's length gets increased if props or strictProps is used
         for (let i = 0; i < list.length; i++) {
             const key = i < initLen ? `[${i}]` : list[i].key
             const specVal = i < initLen ? spec[i] : list[i].specVal
             const argsVal = i < initLen ? args[i] : list[i].argsVal
+
+            if (refs.has(argsVal)) continue
 
             if ("getMsg" in specVal) {
                 const msg = validateItem({
@@ -164,8 +165,6 @@ const getArgsErrorMsg = (spec, args) => {
                     return msg
                 }
             }
-
-            if (refs.has(argsVal)) continue
 
             if ("props" in specVal) {
                 if (checkObjType(argsVal)) {
