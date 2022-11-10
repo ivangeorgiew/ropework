@@ -5,7 +5,7 @@ import { innerLogError, notify } from "./innerConstants"
 
 const logErrorValidate = createValidateFunc([
     createDef({
-        strictProps: {
+        reqProps: {
             descr: strDef,
             args: arrDef,
             error: errorDef,

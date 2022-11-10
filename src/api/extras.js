@@ -5,7 +5,7 @@ import { tie } from "./tying"
 
 const optionsDef = createDef({
     getMsg: arg => optsKeysGetMsg(arg, Object.keys(options)),
-    props: {
+    optProps: {
         errorLogger: funcDef,
         notify: funcDef,
         shouldValidate: boolDef,

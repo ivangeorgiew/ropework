@@ -32,8 +32,8 @@
 
 // d.myself = d
 
-// const dDef = createDef({ strictProps: { a: idxDef } })
-// dDef.strictProps.myself = dDef
+// const dDef = createDef({ reqProps: { a: idxDef } })
+// dDef.reqProps.myself = dDef
 
 // const A = tie(
 //     "pure class A",

@@ -111,7 +111,7 @@ const getArgsErrorMsg = (spec, args) => {
 
                 if (typeof opts.isStrict !== "boolean") {
                     throw new SpecError(
-                        "calling [addProps], arguments[0][props] - must be boolean"
+                        "calling [addProps], arguments[0][isStrict] - must be boolean"
                     )
                 }
             }
@@ -146,7 +146,7 @@ const getArgsErrorMsg = (spec, args) => {
             }
         }
 
-        // list's length gets increased if props or strictProps is used
+        // list's length gets increased if optProps or reqProps is used
         for (let i = 0; i < list.length; i++) {
             const key = i < initLen ? `[${i}]` : list[i].key
             const specVal = i < initLen ? spec[i] : list[i].specVal
@@ -166,18 +166,18 @@ const getArgsErrorMsg = (spec, args) => {
                 }
             }
 
-            if ("props" in specVal) {
+            if ("optProps" in specVal) {
                 if (checkObjType(argsVal)) {
                     addProps({
                         key,
-                        props: specVal.props,
+                        props: specVal.optProps,
                         argsVal,
                         isStrict: false,
                     })
                 }
             }
 
-            if ("strictProps" in specVal) {
+            if ("reqProps" in specVal) {
                 const msg = validateItem({
                     key,
                     argsVal,
@@ -190,7 +190,7 @@ const getArgsErrorMsg = (spec, args) => {
 
                 addProps({
                     key,
-                    props: specVal.strictProps,
+                    props: specVal.reqProps,
                     argsVal,
                     isStrict: true,
                 })

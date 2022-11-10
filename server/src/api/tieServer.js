@@ -10,7 +10,7 @@ import {
 } from "tied-up"
 
 const serverDef = createDef({
-    strictProps: { on: funcDef, close: funcDef },
+    reqProps: { on: funcDef, close: funcDef },
 })
 const setOrUndefDef = createDef({
     getMsg: arg =>

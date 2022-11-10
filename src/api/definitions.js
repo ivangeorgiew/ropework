@@ -7,7 +7,7 @@ import {
 } from "../utils/innerConstants"
 import { SpecError, isTest } from "./constants"
 
-const defKeys = ["getMsg", "props", "strictProps"]
+const defKeys = ["getMsg", "optProps", "reqProps"]
 
 export const createDef = opts => {
     if (options.shouldValidate) {
@@ -113,20 +113,20 @@ export const specDef = createDef({
                 }
             }
 
-            if ("props" in specVal && !refs.has(specVal.props)) {
-                if (!checkObj(specVal.props)) {
-                    return `spec${key}[props] must be object when provided`
+            if ("optProps" in specVal && !refs.has(specVal.optProps)) {
+                if (!checkObj(specVal.optProps)) {
+                    return `spec${key}[optProps] must be object when provided`
                 }
 
-                addProps(key, specVal.props)
+                addProps(key, specVal.optProps)
             }
 
-            if ("strictProps" in specVal && !refs.has(specVal.strictProps)) {
-                if (!checkObj(specVal.strictProps)) {
-                    return `spec${key}[strictProps] must be object when provided`
+            if ("reqProps" in specVal && !refs.has(specVal.reqProps)) {
+                if (!checkObj(specVal.reqProps)) {
+                    return `spec${key}[reqProps] must be object when provided`
                 }
 
-                addProps(key, specVal.strictProps)
+                addProps(key, specVal.reqProps)
             }
         }
 
