@@ -5,6 +5,7 @@
 //     idxDef,
 //     definedDef,
 //     createDef,
+//     RETHROW,
 // } = require("../dist/index.cjs.test.js")
 
 // handleGlobalErrors(true)
@@ -44,7 +45,7 @@
 //             this.b = 6
 //         }
 //     },
-//     () => ({})
+//     () => RETHROW
 // )
 
 // const B = tie(
@@ -57,7 +58,7 @@
 //             this.c = props.a + 123
 //         }
 //     },
-//     () => ({})
+//     () => RETHROW
 // )
 
 // const e = new B(d)
@@ -85,7 +86,7 @@
 //         // throw new Error("intended")
 //         return i + 10
 //     },
-//     () => NaN
+//     () => RETHROW
 // )
 
 // ;(async () => {
@@ -106,7 +107,7 @@
 //         // throw new Error("intended")
 //         return i + 10
 //     },
-//     () => NaN
+//     () => RETHROW
 // )
 
 // const g1 = gen(10)
@@ -127,7 +128,7 @@
 //         // throw new Error("intended")
 //         return i
 //     },
-//     () => NaN
+//     () => RETHROW
 // )
 
 // ;(async () => {
@@ -143,7 +144,7 @@
 
 //         return a + b
 //     },
-//     () => NaN
+//     () => RETHROW
 // )
 
 // const addTenTo = addNumbers(10)

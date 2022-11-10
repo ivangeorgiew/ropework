@@ -37,7 +37,7 @@ const stringifyAll = data => {
         try {
             defaultLogger(
                 "\n Error at: [stringifyAll] from library tied-up\n",
-                `Function arguments: ${data}\n`,
+                `Function args: ${data}\n`,
                 error,
                 "\n"
             )
@@ -53,7 +53,7 @@ const createArgsInfo = args => {
     if (isTest) {
         if (!Array.isArray(args)) {
             throw new SpecError(
-                "calling [createArgsInfo], arguments[0] - must be array"
+                "when calling [createArgsInfo], args[0] - must be array"
             )
         }
     }
@@ -81,7 +81,7 @@ const createArgsInfo = args => {
         try {
             defaultLogger(
                 "\n Error at: [createArgsInfo] from library tied-up\n",
-                `Function arguments: ${args}\n`,
+                `Function args: ${args}\n`,
                 error,
                 "\n"
             )
@@ -101,7 +101,7 @@ const errorLogger = (...args) => {
             try {
                 defaultLogger(
                     "\n Error at: [errorLogger] from library tied-up\n",
-                    `Function arguments: ${createArgsInfo(args)}\n`,
+                    `Function args: ${createArgsInfo(args)}\n`,
                     error,
                     "\n"
                 )
@@ -119,7 +119,7 @@ export const notify = (...args) => {
         try {
             errorLogger(
                 "\n Error at: [notify] from library tied-up\n",
-                `Function arguments: ${createArgsInfo(args)}\n`,
+                `Function args: ${createArgsInfo(args)}\n`,
                 error,
                 "\n"
             )
@@ -135,13 +135,13 @@ export const getErrorsCacheIdx = (descr, msg) => {
     if (isTest) {
         if (typeof descr !== "string") {
             throw new SpecError(
-                "calling [getErrorsCacheIdx], arguments[0] - must be string"
+                "when calling [getErrorsCacheIdx], args[0] - must be string"
             )
         }
 
         if (typeof msg !== "string") {
             throw new SpecError(
-                "calling [getErrorsCacheIdx], arguments[1] - must be string"
+                "when calling [getErrorsCacheIdx], args[1] - must be string"
             )
         }
     }
@@ -172,7 +172,7 @@ export const getErrorsCacheIdx = (descr, msg) => {
         try {
             errorLogger(
                 "\n Error at: [getErrorsCacheIdx] from library tied-up\n",
-                `Function arguments: ${createArgsInfo([descr, msg])}\n`,
+                `Function args: ${createArgsInfo([descr, msg])}\n`,
                 error,
                 "\n"
             )
@@ -188,19 +188,19 @@ export const manageErrorsCache = (idx, descr, msg) => {
     if (isTest) {
         if (!Number.isInteger(idx) || !Number.isFinite(idx) || idx < 0) {
             throw new SpecError(
-                "calling [manageErrorsCache], arguments[0] - must be positive integer or 0"
+                "when calling [manageErrorsCache], args[0] - must be positive integer or 0"
             )
         }
 
         if (typeof descr !== "string") {
             throw new SpecError(
-                "calling [manageErrorsCache], arguments[1] - must be string"
+                "when calling [manageErrorsCache], args[1] - must be string"
             )
         }
 
         if (typeof msg !== "string") {
             throw new SpecError(
-                "calling [manageErrorsCache], arguments[2] - must be string"
+                "when calling [manageErrorsCache], args[2] - must be string"
             )
         }
     }
@@ -215,7 +215,7 @@ export const manageErrorsCache = (idx, descr, msg) => {
         try {
             errorLogger(
                 "\n Error at: [manageErrorsCache] from library tied-up\n",
-                `Function arguments: ${createArgsInfo([idx, descr, msg])}\n`,
+                `Function args: ${createArgsInfo([idx, descr, msg])}\n`,
                 error,
                 "\n"
             )
@@ -229,25 +229,25 @@ export const innerLogError = props => {
     if (isTest) {
         if (!(props instanceof Object)) {
             throw new SpecError(
-                "calling [innerLogError], arguments[0] - must be object"
+                "when calling [innerLogError], args[0] - must be object"
             )
         }
 
         if (typeof props.descr !== "string") {
             throw new SpecError(
-                "calling [innerLogError], arguments[0][descr] - must be string"
+                "when calling [innerLogError], args[0][descr] - must be string"
             )
         }
 
         if (!Array.isArray(props.args)) {
             throw new SpecError(
-                "calling [innerLogError], arguments[0][args] - must be array"
+                "when calling [innerLogError], args[0][args] - must be array"
             )
         }
 
         if (!(props.error instanceof Error)) {
             throw new SpecError(
-                "calling [innerLogError], arguments[0][error] - must be error"
+                "when calling [innerLogError], args[0][error] - must be error"
             )
         }
     }
@@ -267,7 +267,7 @@ export const innerLogError = props => {
 
         errorLogger(
             `\n Error at: ${descr}\n`,
-            `Function arguments: ${createArgsInfo(args)}\n`,
+            `Function args: ${createArgsInfo(args)}\n`,
             error,
             "\n"
         )
@@ -277,7 +277,7 @@ export const innerLogError = props => {
         try {
             errorLogger(
                 "\n Error at: [innerLogError] from library tied-up\n",
-                `Function arguments: ${createArgsInfo([props])}\n`,
+                `Function args: ${createArgsInfo([props])}\n`,
                 error,
                 "\n"
             )
@@ -331,7 +331,7 @@ export const optsKeysGetMsg = (a, keys) => {
     if (isTest) {
         if (!Array.isArray(keys)) {
             throw new SpecError(
-                "calling [optsKeysGetMsg], arguments[1] - must be array"
+                "when calling [optsKeysGetMsg], args[1] - must be array"
             )
         }
     }

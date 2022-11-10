@@ -8,7 +8,7 @@ import {
     manageCachePartial,
     tieSpec,
 } from "../utils/tyingHelpers"
-import { SpecError, isDev, isTest } from "./constants"
+import { RETHROW, SpecError, isDev, isTest } from "./constants"
 import { arrDef, boolDef, errorDef } from "./definitions"
 
 const tieValidate = createValidateFunc(tieSpec)
@@ -70,7 +70,13 @@ export const tie = (descr, spec, onTry, onCatch) => {
             }
 
             // ability to manually throw from onCatch
-            return onCatch({ descr, args, error })
+            const result = onCatch({ descr, args, error })
+
+            if (result === RETHROW) {
+                throw new Error(`when calling [${descr}], ${error.message}`)
+            }
+
+            return result
         }
 
         const innerFunc = function (...args) {

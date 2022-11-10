@@ -38,3 +38,5 @@ export const nodeErrorEvents = [
     "SIGINT",
     "SIGHUP",
 ]
+
+export const RETHROW = "__custom_string_for_rethrow_from_library__"
