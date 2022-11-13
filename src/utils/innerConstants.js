@@ -53,7 +53,7 @@ const createArgsInfo = args => {
     if (isTest) {
         if (!Array.isArray(args)) {
             throw new SpecError(
-                "when calling [createArgsInfo], args[0] - must be array"
+                "when calling [createArgsInfo]: args[0] - must be array"
             )
         }
     }
@@ -64,7 +64,7 @@ const createArgsInfo = args => {
                 typeof arg === "function" ? "f(x)" : stringifyAll(arg)
 
             const parsedArg =
-                stringified.length > 100
+                stringified.length > 1000
                     ? Array.isArray(arg)
                         ? "[large array]"
                         : `[large ${typeof arg}]`
@@ -135,13 +135,13 @@ export const getErrorsCacheIdx = (descr, msg) => {
     if (isTest) {
         if (typeof descr !== "string") {
             throw new SpecError(
-                "when calling [getErrorsCacheIdx], args[0] - must be string"
+                "when calling [getErrorsCacheIdx]: args[0] - must be string"
             )
         }
 
         if (typeof msg !== "string") {
             throw new SpecError(
-                "when calling [getErrorsCacheIdx], args[1] - must be string"
+                "when calling [getErrorsCacheIdx]: args[1] - must be string"
             )
         }
     }
@@ -188,19 +188,19 @@ export const manageErrorsCache = (idx, descr, msg) => {
     if (isTest) {
         if (!Number.isInteger(idx) || !Number.isFinite(idx) || idx < 0) {
             throw new SpecError(
-                "when calling [manageErrorsCache], args[0] - must be positive integer or 0"
+                "when calling [manageErrorsCache]: args[0] - must be positive integer or 0"
             )
         }
 
         if (typeof descr !== "string") {
             throw new SpecError(
-                "when calling [manageErrorsCache], args[1] - must be string"
+                "when calling [manageErrorsCache]: args[1] - must be string"
             )
         }
 
         if (typeof msg !== "string") {
             throw new SpecError(
-                "when calling [manageErrorsCache], args[2] - must be string"
+                "when calling [manageErrorsCache]: args[2] - must be string"
             )
         }
     }
@@ -229,25 +229,25 @@ export const innerLogError = props => {
     if (isTest) {
         if (!(props instanceof Object)) {
             throw new SpecError(
-                "when calling [innerLogError], args[0] - must be object"
+                "when calling [innerLogError]: args[0] - must be object"
             )
         }
 
         if (typeof props.descr !== "string") {
             throw new SpecError(
-                "when calling [innerLogError], args[0][descr] - must be string"
+                "when calling [innerLogError]: args[0][descr] - must be string"
             )
         }
 
         if (!Array.isArray(props.args)) {
             throw new SpecError(
-                "when calling [innerLogError], args[0][args] - must be array"
+                "when calling [innerLogError]: args[0][args] - must be array"
             )
         }
 
         if (!(props.error instanceof Error)) {
             throw new SpecError(
-                "when calling [innerLogError], args[0][error] - must be error"
+                "when calling [innerLogError]: args[0][error] - must be error"
             )
         }
     }
@@ -331,7 +331,7 @@ export const optsKeysGetMsg = (a, keys) => {
     if (isTest) {
         if (!Array.isArray(keys)) {
             throw new SpecError(
-                "when calling [optsKeysGetMsg], args[1] - must be array"
+                "when calling [optsKeysGetMsg]: args[1] - must be array"
             )
         }
     }

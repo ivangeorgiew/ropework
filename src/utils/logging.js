@@ -17,7 +17,7 @@ export const logError = props => {
     if (isTest) {
         const msg = logErrorValidate([props])
 
-        if (msg !== "") throw new SpecError(`when calling [logError], ${msg}`)
+        if (msg !== "") throw new SpecError(`when calling [logError]: ${msg}`)
     }
 
     try {

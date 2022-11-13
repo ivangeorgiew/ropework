@@ -18,7 +18,7 @@ export const tie = (descr, spec, onTry, onCatch) => {
     if (options.shouldValidate) {
         const msg = tieValidate([descr, spec, onTry, onCatch])
 
-        if (msg !== "") throw new SpecError(`when calling [tie], ${msg}`)
+        if (msg !== "") throw new SpecError(`when calling [tie]: ${msg}`)
     }
 
     try {
@@ -43,7 +43,7 @@ export const tie = (descr, spec, onTry, onCatch) => {
                     const msg = innerCatchValidate([args, error, isFirstCall])
 
                     if (msg !== "")
-                        throw new SpecError(`when calling [innerCatch], ${msg}`)
+                        throw new SpecError(`when calling [innerCatch]: ${msg}`)
                 } catch (e) {
                     try {
                         innerLogError({
@@ -69,14 +69,27 @@ export const tie = (descr, spec, onTry, onCatch) => {
                 // nothing
             }
 
-            // ability to manually throw from onCatch
-            const result = onCatch({ descr, args, error })
+            try {
+                const result = onCatch({ descr, args, error })
 
-            if (result === RETHROW) {
-                throw new Error(`when calling [${descr}], ${error.message}`)
+                if (result === RETHROW) {
+                    throw new Error(`when calling [${descr}]: ${error.message}`)
+                }
+
+                return result
+            } catch (e) {
+                try {
+                    logError({
+                        descr: `catching error for [${descr}]`,
+                        error: e,
+                        args: [{ descr, args, error }],
+                    })
+                } catch {
+                    // nothing
+                }
+
+                throw new Error(`when catching error for [${descr}]: ${e.message}`)
             }
-
-            return result
         }
 
         const innerFunc = function (...args) {
@@ -110,7 +123,7 @@ export const tie = (descr, spec, onTry, onCatch) => {
                     if (msg !== "") {
                         areArgsValid = false
 
-                        throw new SpecError(`when calling [${descr}], ${msg}`)
+                        throw new SpecError(`when calling [${descr}]: ${msg}`)
                     }
                 }
 

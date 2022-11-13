@@ -14,7 +14,7 @@ export const createDef = opts => {
         const msg = optsKeysGetMsg(opts, defKeys)
 
         if (msg !== "") {
-            throw new SpecError(`when calling [createDef], args[0] - ${msg}`)
+            throw new SpecError(`when calling [createDef]: args[0] - ${msg}`)
         }
     }
 
@@ -62,13 +62,13 @@ export const specDef = createDef({
             if (isTest) {
                 if (typeof key !== "string") {
                     throw new SpecError(
-                        "when calling [addProps], args[0] - must be string"
+                        "when calling [addProps]: args[0] - must be string"
                     )
                 }
 
                 if (!checkObjType(props)) {
                     throw new SpecError(
-                        "when calling [addProps], args[1] - must be of object type"
+                        "when calling [addProps]: args[1] - must be of object type"
                     )
                 }
             }
@@ -166,7 +166,7 @@ export const definedDef = createDef({
     getMsg: a => (a === undefined ? "must be defined" : ""),
 })
 
-export const undefinedDef = createDef({
+export const undefDef = createDef({
     getMsg: a => (a !== undefined ? "must be undefined" : ""),
 })
 
