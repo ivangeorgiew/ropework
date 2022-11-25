@@ -40,7 +40,7 @@ const validateItem = opts => {
                     // nothing
                 }
 
-                return ""
+                return `spec${key}[getMsg] threw an error`
             }
         })()
 
