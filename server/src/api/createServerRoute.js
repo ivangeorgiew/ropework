@@ -1,4 +1,4 @@
-import { createDef, funcDef, isServer, objTypeDef, strDef, tie } from "tied-up"
+import { createDef, funcDef, isServer, objTypeDef, strDef, tie } from "ropework"
 
 const funcOrUndefDef = createDef({
     getMsg: arg =>

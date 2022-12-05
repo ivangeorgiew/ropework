@@ -1,5 +1,5 @@
 {
-    "name": "tied-up",
+    "name": "ropework",
     "version": "1.0.0",
     "description": "Error-handling for functions",
     "private": true,
@@ -75,9 +75,9 @@
     ],
     "author": "Ivan Georgiev <ivan_georgiew@yahoo.com>",
     "license": "MIT",
-    "repository": "github:ivangeorgiew/tied-up",
-    "bugs": "https://github.com/ivangeorgiew/tied-up/issues",
-    "homepage": "https://github.com/ivangeorgiew/tied-up#readme",
+    "repository": "github:ivangeorgiew/ropework",
+    "bugs": "https://github.com/ivangeorgiew/ropework/issues",
+    "homepage": "https://github.com/ivangeorgiew/ropework#readme",
     "devDependencies": {
         "@ivan_georgiew/eslint-config": "^1.0.11",
         "@ivan_georgiew/prettier-config": "^1.0.4",

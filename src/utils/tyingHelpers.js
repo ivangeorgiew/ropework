@@ -1,7 +1,7 @@
 import { SpecError, isTest } from "../api/constants"
 import { anyDef, arrDef, funcDef, idxDef, specDef, strDef } from "../api/definitions"
 import { createValidateFunc } from "./createValidateFunc"
-import { innerLogError } from "./innerConstants"
+import { LIB_ERROR_TEXT, innerLogError } from "./innerConstants"
 
 export const handledFuncs = new WeakMap()
 
@@ -47,7 +47,7 @@ const checkEqual = (a, b) => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "[checkEqual] from library tied-up",
+                descr: `[checkEqual] ${LIB_ERROR_TEXT}`,
                 args: [a, b],
                 error,
             })
@@ -97,7 +97,7 @@ export const getCacheIdx = (args, cacheKeys) => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "[getCacheIdx] from library tied-up",
+                descr: `[getCacheIdx] ${LIB_ERROR_TEXT}`,
                 args: [args, cacheKeys],
                 error,
             })
@@ -139,7 +139,7 @@ export const manageCachePartial = (cacheKeys, cacheValues) => {
         } catch (error) {
             try {
                 innerLogError({
-                    descr: "[manageCache] from library tied-up",
+                    descr: `[manageCache] ${LIB_ERROR_TEXT}`,
                     args: [idx, key, value],
                     error,
                 })

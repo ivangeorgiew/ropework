@@ -4,13 +4,13 @@ import { terser } from "rollup-plugin-terser"
 import pkg from "./package.json"
 
 const entries = [
-    [".", "TiedUp"],
-    ["./server", "TiedUpServer"],
+    [".", "Ropework"],
+    ["./server", "RopeworkServer"],
 ]
 
 const globals = {
-    "tied-up": "TiedUp",
-    "tied-up/server": "TiedUpServer",
+    "ropework": "Ropework",
+    "ropework/server": "RopeworkServer",
 }
 
 const commonOutOpts = {
@@ -21,7 +21,7 @@ const commonOutOpts = {
 
 const makeInput = root => `${root}/src/index.js`
 
-const external = id => id.startsWith("tied-up")
+const external = id => id.startsWith("ropework")
 
 const terserOpts = {
     ecma: 6,

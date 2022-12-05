@@ -1,7 +1,7 @@
 import { SpecError, isServer, isTest, isWeb } from "../api/constants"
 import { arrDef, createDef, errorDef, strDef } from "../api/definitions"
 import { createValidateFunc } from "./createValidateFunc"
-import { innerLogError, notify } from "./innerConstants"
+import { LIB_ERROR_TEXT, innerLogError, notify } from "./innerConstants"
 
 const logErrorValidate = createValidateFunc([
     createDef({
@@ -52,7 +52,7 @@ export const logError = props => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "[logError] from library tied-up",
+                descr: `[logError] ${LIB_ERROR_TEXT}`,
                 args: [props],
                 error,
             })

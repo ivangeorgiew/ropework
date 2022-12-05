@@ -1,5 +1,7 @@
 import { SpecError, isDev, isTest } from "../api/constants"
 
+export const LIB_ERROR_TEXT = "from library ropework"
+
 const defaultLogger =
     isDev && console instanceof Object && typeof console.error === "function"
         ? console.error
@@ -11,7 +13,15 @@ export const options = Object.seal({
     shouldValidate: isDev,
 })
 
-const stringifyAll = data => {
+const stringifyAny = (data, shouldTrim) => {
+    if (isTest) {
+        if (typeof shouldTrim !== "boolean") {
+            throw new SpecError(
+                "when calling [stringifyAny]: args[1] - must be boolean"
+            )
+        }
+    }
+
     try {
         const seen = new WeakSet()
         const parser = (_key, val) => {
@@ -32,11 +42,21 @@ const stringifyAll = data => {
             }
         }
 
-        return JSON.stringify(data, parser, 0)
+        const stringified =
+            typeof data === "function" ? "f(x)" : JSON.stringify(data, parser, 0)
+
+        return shouldTrim && stringified.length > 1000
+            ? Array.isArray(data)
+                ? "[large array]"
+                : `[large ${typeof data}]`
+            : stringified.replace(
+                  /"#(Infinity|NaN|null|undefined|f\(x\)|\$ref)#"/g,
+                  "$1"
+              )
     } catch (error) {
         try {
             defaultLogger(
-                "\n Error at: [stringifyAll] from library tied-up\n",
+                `\n Error at: [stringifyAny] ${LIB_ERROR_TEXT}\n`,
                 `Function args: ${data}\n`,
                 error,
                 "\n"
@@ -45,7 +65,7 @@ const stringifyAll = data => {
             // nothing
         }
 
-        return '"[unknown]"'
+        return "[unknown]"
     }
 }
 
@@ -60,18 +80,7 @@ const createArgsInfo = args => {
 
     try {
         const argsInfo = args.reduce((acc, arg, i) => {
-            const stringified =
-                typeof arg === "function" ? "f(x)" : stringifyAll(arg)
-
-            const parsedArg =
-                stringified.length > 1000
-                    ? Array.isArray(arg)
-                        ? "[large array]"
-                        : `[large ${typeof arg}]`
-                    : stringified.replace(
-                          /"#(Infinity|NaN|null|undefined|f\(x\)|\$ref)#"/g,
-                          "$1"
-                      )
+            const parsedArg = stringifyAny(arg, true)
 
             return i === 0 ? parsedArg : `${acc} , ${parsedArg}`
         }, "")
@@ -80,7 +89,7 @@ const createArgsInfo = args => {
     } catch (error) {
         try {
             defaultLogger(
-                "\n Error at: [createArgsInfo] from library tied-up\n",
+                `\n Error at: [createArgsInfo] ${LIB_ERROR_TEXT}\n`,
                 `Function args: ${args}\n`,
                 error,
                 "\n"
@@ -100,7 +109,7 @@ const errorLogger = (...args) => {
         } catch (error) {
             try {
                 defaultLogger(
-                    "\n Error at: [errorLogger] from library tied-up\n",
+                    `\n Error at: [errorLogger] ${LIB_ERROR_TEXT}\n`,
                     `Function args: ${createArgsInfo(args)}\n`,
                     error,
                     "\n"
@@ -118,7 +127,7 @@ export const notify = (...args) => {
     } catch (error) {
         try {
             errorLogger(
-                "\n Error at: [notify] from library tied-up\n",
+                `\n Error at: [notify] ${LIB_ERROR_TEXT}\n`,
                 `Function args: ${createArgsInfo(args)}\n`,
                 error,
                 "\n"
@@ -171,7 +180,7 @@ export const getErrorsCacheIdx = (descr, msg) => {
     } catch (error) {
         try {
             errorLogger(
-                "\n Error at: [getErrorsCacheIdx] from library tied-up\n",
+                `\n Error at: [getErrorsCacheIdx] ${LIB_ERROR_TEXT}\n`,
                 `Function args: ${createArgsInfo([descr, msg])}\n`,
                 error,
                 "\n"
@@ -214,7 +223,7 @@ export const manageErrorsCache = (idx, descr, msg) => {
     } catch (error) {
         try {
             errorLogger(
-                "\n Error at: [manageErrorsCache] from library tied-up\n",
+                `\n Error at: [manageErrorsCache] ${LIB_ERROR_TEXT}\n`,
                 `Function args: ${createArgsInfo([idx, descr, msg])}\n`,
                 error,
                 "\n"
@@ -276,7 +285,7 @@ export const innerLogError = props => {
     } catch (error) {
         try {
             errorLogger(
-                "\n Error at: [innerLogError] from library tied-up\n",
+                `\n Error at: [innerLogError] ${LIB_ERROR_TEXT}\n`,
                 `Function args: ${createArgsInfo([props])}\n`,
                 error,
                 "\n"
@@ -295,7 +304,7 @@ export const checkObjType = a => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "[checkObjType] from library tied-up",
+                descr: `[checkObjType] ${LIB_ERROR_TEXT}`,
                 args: [a],
                 error,
             })
@@ -315,7 +324,7 @@ export const checkObj = a => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "[checkObj] from library tied-up",
+                descr: `[checkObj] ${LIB_ERROR_TEXT}`,
                 args: [a],
                 error,
             })
@@ -362,7 +371,7 @@ export const optsKeysGetMsg = (a, keys) => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "[optsKeysGetMsg] from library tied-up",
+                descr: `[optsKeysGetMsg] ${LIB_ERROR_TEXT}`,
                 args: [a, keys],
                 error,
             })

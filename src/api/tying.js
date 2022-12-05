@@ -1,5 +1,5 @@
 import { createValidateFunc } from "../utils/createValidateFunc"
-import { innerLogError, options } from "../utils/innerConstants"
+import { LIB_ERROR_TEXT, innerLogError, options } from "../utils/innerConstants"
 import { logError } from "../utils/logging"
 import {
     createCurry,
@@ -47,7 +47,7 @@ export const tie = (descr, spec, onTry, onCatch) => {
                 } catch (e) {
                     try {
                         innerLogError({
-                            descr: "[innerCatch] from library tied-up",
+                            descr: `[innerCatch] ${LIB_ERROR_TEXT}`,
                             args: [args, error, isFirstCall],
                             error: e,
                         })
@@ -224,7 +224,7 @@ export const tie = (descr, spec, onTry, onCatch) => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "[tie] from library tied-up",
+                descr: `[tie] ${LIB_ERROR_TEXT}`,
                 args: [descr, spec, onTry, onCatch],
                 error,
             })

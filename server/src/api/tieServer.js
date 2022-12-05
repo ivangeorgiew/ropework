@@ -7,7 +7,7 @@ import {
     setDef,
     strDef,
     tie,
-} from "tied-up"
+} from "ropework"
 
 const serverDef = createDef({
     reqProps: { on: funcDef, close: funcDef },

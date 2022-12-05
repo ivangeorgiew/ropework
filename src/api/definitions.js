@@ -1,4 +1,5 @@
 import {
+    LIB_ERROR_TEXT,
     checkObj,
     checkObjType,
     innerLogError,
@@ -86,7 +87,7 @@ export const specDef = createDef({
             } catch (error) {
                 try {
                     innerLogError({
-                        descr: "[addProps] from library tied-up",
+                        descr: `[addProps] ${LIB_ERROR_TEXT}`,
                         args: [key, props],
                         error,
                     })

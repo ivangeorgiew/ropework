@@ -1,7 +1,7 @@
 lockfileVersion: 5.4
 
 specifiers:
-  tied-up: link:..
+  ropework: link:..
 
 devDependencies:
-  tied-up: link:..
+  ropework: link:..

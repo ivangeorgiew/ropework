@@ -1,6 +1,11 @@
 import { SpecError, isTest } from "../api/constants"
 import { objTypeDef, specDef } from "../api/definitions"
-import { checkObj, checkObjType, innerLogError } from "./innerConstants"
+import {
+    LIB_ERROR_TEXT,
+    checkObj,
+    checkObjType,
+    innerLogError,
+} from "./innerConstants"
 
 const validateItem = opts => {
     if (isTest) {
@@ -56,7 +61,7 @@ const validateItem = opts => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "[validateItem] from library tied-up",
+                descr: `[validateItem] ${LIB_ERROR_TEXT}`,
                 args: [opts],
                 error,
             })
@@ -136,7 +141,7 @@ const getArgsErrorMsg = (spec, args) => {
             } catch (error) {
                 try {
                     innerLogError({
-                        descr: "[addProps] from library tied-up",
+                        descr: `[addProps] ${LIB_ERROR_TEXT}`,
                         args: [opts],
                         error,
                     })
@@ -201,7 +206,7 @@ const getArgsErrorMsg = (spec, args) => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "[getArgsErrorMsg] from library tied-up",
+                descr: `[getArgsErrorMsg] ${LIB_ERROR_TEXT}`,
                 args: [args],
                 error,
             })
@@ -239,7 +244,7 @@ export const createValidateFunc = spec => {
     } catch (error) {
         try {
             innerLogError({
-                descr: "[createValidateFunc] from library tied-up",
+                descr: `[createValidateFunc] ${LIB_ERROR_TEXT}`,
                 args: [spec],
                 error,
             })
