@@ -1,5 +1,4 @@
 import {
-    createDef,
     funcDef,
     isServer,
     nodeErrorEvents,
@@ -9,13 +8,11 @@ import {
     tie,
 } from "ropework"
 
-const serverDef = createDef({
-    reqProps: { on: funcDef, close: funcDef },
-})
-const setOrUndefDef = createDef({
+const serverDef = { reqProps: { on: funcDef, close: funcDef } }
+const setOrUndefDef = {
     getMsg: arg =>
         !(arg instanceof Set) && arg !== undefined ? "must be Set or undefined" : "",
-})
+}
 
 const onConnection = tie(
     "adding sockets to server",

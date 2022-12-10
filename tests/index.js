@@ -4,7 +4,6 @@
 //     handleGlobalErrors,
 //     idxDef,
 //     definedDef,
-//     createDef,
 //     RETHROW,
 // } = require("../dist/index.cjs.test.js")
 
@@ -33,7 +32,7 @@
 
 // d.myself = d
 
-// const dDef = createDef({ reqProps: { a: idxDef } })
+// const dDef = { reqProps: { a: idxDef } }
 // dDef.reqProps.myself = dDef
 
 // const A = tie(

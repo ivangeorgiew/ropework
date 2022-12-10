@@ -1,16 +1,10 @@
 import { SpecError, isServer, isTest, isWeb } from "../api/constants"
-import { arrDef, createDef, errorDef, strDef } from "../api/definitions"
+import { arrDef, errorDef, strDef } from "../api/definitions"
 import { createValidateFunc } from "./createValidateFunc"
 import { LIB_ERROR_TEXT, innerLogError, notify } from "./innerConstants"
 
 const logErrorValidate = createValidateFunc([
-    createDef({
-        reqProps: {
-            descr: strDef,
-            args: arrDef,
-            error: errorDef,
-        },
-    }),
+    { reqProps: { descr: strDef, args: arrDef, error: errorDef } },
 ])
 
 export const logError = props => {

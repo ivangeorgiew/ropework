@@ -1,11 +1,11 @@
-import { createDef, funcDef, isServer, objTypeDef, strDef, tie } from "ropework"
+import { funcDef, isServer, objTypeDef, strDef, tie } from "ropework"
 
-const funcOrUndefDef = createDef({
+const funcOrUndefDef = {
     getMsg: arg =>
         typeof arg !== "function" && arg !== undefined
             ? "must be function or undefined"
             : "",
-})
+}
 
 export const createServerRoute = tie(
     "creating route for the server",

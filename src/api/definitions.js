@@ -3,57 +3,13 @@ import {
     checkObj,
     checkObjType,
     innerLogError,
-    options,
-    optsKeysGetMsg,
 } from "../utils/innerConstants"
 import { SpecError, isTest } from "./constants"
 
-const defKeys = ["getMsg", "optProps", "reqProps"]
-
-export const createDef = opts => {
-    if (options.shouldValidate) {
-        const msg = optsKeysGetMsg(opts, defKeys)
-
-        if (msg !== "") {
-            throw new SpecError(`when calling [createDef]: args[0] - ${msg}`)
-        }
-    }
-
-    try {
-        const def = defKeys.reduce((acc, key) => {
-            if (key in opts) {
-                acc[key] = opts[key]
-            }
-
-            return acc
-        }, {})
-
-        def.constructor = createDef
-
-        return Object.freeze(def)
-    } catch (error) {
-        try {
-            innerLogError({
-                descr: "createDef",
-                args: [opts],
-                error,
-            })
-        } catch {
-            // nothing
-        }
-
-        const def = {}
-
-        def.constructor = createDef
-
-        return def
-    }
-}
-
-export const specDef = createDef({
+export const specDef = {
     getMsg: spec => {
         if (!Array.isArray(spec)) {
-            return "must be spec array"
+            return "must be array"
         }
 
         const list = Array(spec.length)
@@ -104,8 +60,17 @@ export const specDef = createDef({
             const key = isMain ? `[${i}]` : item[0]
             const specVal = isMain ? spec[i] : item[1]
 
-            if (!checkObjType(specVal) || specVal.constructor !== createDef) {
-                return `spec${key} must be made with createDef function`
+            if (!checkObj(specVal)) {
+                return `spec${key} must be object`
+            }
+
+            const validKeys = ["getMsg", "optProps", "reqProps"]
+            const invalidKeys = Object.keys(specVal).filter(
+                key => validKeys.indexOf(key) === -1
+            )
+
+            if (invalidKeys.length > 0) {
+                return `spec${key} has invalid keys: ${invalidKeys.join(", ")}`
             }
 
             if ("getMsg" in specVal) {
@@ -133,69 +98,69 @@ export const specDef = createDef({
 
         return ""
     },
-})
+}
 
-export const strDef = createDef({
+export const strDef = {
     getMsg: a => (typeof a !== "string" ? "must be string" : ""),
-})
+}
 
-export const numDef = createDef({
+export const numDef = {
     getMsg: a => (typeof a !== "number" ? "must be number" : ""),
-})
+}
 
-export const bigIntDef = createDef({
+export const bigIntDef = {
     getMsg: a => (typeof a !== "bigint" ? "must be BigInt" : ""),
-})
+}
 
-export const boolDef = createDef({
+export const boolDef = {
     getMsg: a => (typeof a !== "boolean" ? "must be boolean" : ""),
-})
+}
 
-export const symDef = createDef({
+export const symDef = {
     getMsg: a => (typeof a !== "symbol" ? "must be Symbol" : ""),
-})
+}
 
-export const funcDef = createDef({
+export const funcDef = {
     getMsg: a => (typeof a !== "function" ? "must be function" : ""),
-})
+}
 
-export const arrDef = createDef({
+export const arrDef = {
     getMsg: a => (!Array.isArray(a) ? "must be array" : ""),
-})
+}
 
-export const definedDef = createDef({
+export const definedDef = {
     getMsg: a => (a === undefined ? "must be defined" : ""),
-})
+}
 
-export const undefDef = createDef({
+export const undefDef = {
     getMsg: a => (a !== undefined ? "must be undefined" : ""),
-})
+}
 
-export const anyDef = createDef({
+export const anyDef = {
     getMsg: () => "",
-})
+}
 
-export const objTypeDef = createDef({
+export const objTypeDef = {
     getMsg: a => (!checkObjType(a) ? "must be of object type" : ""),
-})
+}
 
-export const objDef = createDef({
+export const objDef = {
     getMsg: a => (!checkObj(a) ? "must be regular object" : ""),
-})
+}
 
-export const intDef = createDef({
+export const intDef = {
     getMsg: a =>
         !Number.isInteger(a) || !Number.isFinite(a) ? "must be integer" : "",
-})
+}
 
-export const idxDef = createDef({
+export const idxDef = {
     getMsg: a =>
         !Number.isInteger(a) || !Number.isFinite(a) || a < 0
             ? "must be positive integer or 0"
             : "",
-})
+}
 
-export const constrDef = createDef({
+export const constrDef = {
     getMsg: a => {
         try {
             Reflect.construct(String, [], a)
@@ -205,24 +170,24 @@ export const constrDef = createDef({
             return "must be constructor"
         }
     },
-})
+}
 
-export const errorDef = createDef({
+export const errorDef = {
     getMsg: arg => (!(arg instanceof Error) ? "must be instance of Error" : ""),
-})
+}
 
-export const setDef = createDef({
+export const setDef = {
     getMsg: arg => (!(arg instanceof Set) ? "must be instance of Set" : ""),
-})
+}
 
-export const mapDef = createDef({
+export const mapDef = {
     getMsg: arg => (!(arg instanceof Map) ? "must be instance of Map" : ""),
-})
+}
 
-export const weakSetDef = createDef({
+export const weakSetDef = {
     getMsg: arg => (!(arg instanceof WeakSet) ? "must be instance of WeakSet" : ""),
-})
+}
 
-export const weakMapDef = createDef({
+export const weakMapDef = {
     getMsg: arg => (!(arg instanceof WeakMap) ? "must be instance of WeakMap" : ""),
-})
+}

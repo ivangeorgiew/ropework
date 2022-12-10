@@ -106,7 +106,7 @@ const reducer = (acc, [root, name]) =>
                     "find": /\[\s*(\w+Def(?:\s*,\s*|\s*))+\]/g,
                     "replace": "[]",
                 }),
-                strip({ functions: ["createValidateFunc", "createDef"] }),
+                strip({ functions: ["createValidateFunc"] }),
                 terser(terserOpts),
             ],
         },

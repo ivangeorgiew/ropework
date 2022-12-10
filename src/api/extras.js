@@ -1,16 +1,31 @@
-import { options, optsKeysGetMsg } from "../utils/innerConstants"
+import { checkObj, options } from "../utils/innerConstants"
 import { handledFuncs } from "../utils/tyingHelpers"
-import { boolDef, createDef, funcDef } from "./definitions"
+import { boolDef, funcDef } from "./definitions"
 import { tie } from "./tying"
 
-const optionsDef = createDef({
-    getMsg: arg => optsKeysGetMsg(arg, Object.keys(options)),
+const optionsDef = {
+    getMsg: arg => {
+        if (!checkObj(arg)) {
+            return "must be object"
+        }
+
+        const validKeys = Object.keys(options)
+        const invalidKeys = Object.keys(arg).filter(
+            key => validKeys.indexOf(key) === -1
+        )
+
+        if (invalidKeys.length > 0) {
+            return `has invalid keys: ${invalidKeys.join(", ")}`
+        }
+
+        return ""
+    },
     optProps: {
         errorLogger: funcDef,
         notify: funcDef,
         shouldValidate: boolDef,
     },
-})
+}
 
 export const changeOptions = tie(
     "changing global options",
