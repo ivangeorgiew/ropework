@@ -19,13 +19,13 @@ export const specDef = {
             if (isTest) {
                 if (typeof key !== "string") {
                     throw new SpecError(
-                        "when calling [addProps]: args[0] - must be string"
+                        "While calling [addProps]:\n  args[0] - must be string"
                     )
                 }
 
                 if (!checkObjType(props)) {
                     throw new SpecError(
-                        "when calling [addProps]: args[1] - must be of object type"
+                        "While calling [addProps]:\n  args[1] - must be of object type"
                     )
                 }
             }

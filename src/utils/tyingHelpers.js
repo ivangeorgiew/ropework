@@ -65,7 +65,7 @@ export const getCacheIdx = (args, cacheKeys) => {
     if (isTest) {
         const msg = getCacheIdxValidate([args, cacheKeys])
 
-        if (msg !== "") throw new SpecError(`when calling [getCacheIdx]: ${msg}`)
+        if (msg !== "") throw new SpecError(`While calling [getCacheIdx]:\n  ${msg}`)
     }
 
     try {
@@ -117,7 +117,7 @@ export const manageCachePartial = (cacheKeys, cacheValues) => {
         const msg = manageCachePartialValidate([cacheKeys, cacheValues])
 
         if (msg !== "") {
-            throw new SpecError(`when calling [manageCachePartial]: ${msg}`)
+            throw new SpecError(`While calling [manageCachePartial]:\n  ${msg}`)
         }
     }
 
@@ -125,7 +125,8 @@ export const manageCachePartial = (cacheKeys, cacheValues) => {
         if (isTest) {
             const msg = manageCacheValidate([idx, key, value])
 
-            if (msg !== "") throw new SpecError(`when calling [manageCache]: ${msg}`)
+            if (msg !== "")
+                throw new SpecError(`While calling [manageCache]:\n  ${msg}`)
         }
 
         try {
@@ -156,7 +157,7 @@ export const createCurry = (oldArgs, funcLen, func) => {
     if (isTest) {
         const msg = createCurryValidate([oldArgs, funcLen, func])
 
-        if (msg !== "") throw new SpecError(`when calling [createCurry]: ${msg}`)
+        if (msg !== "") throw new SpecError(`While calling [createCurry]:\n  ${msg}`)
     }
 
     return function (...newArgs) {

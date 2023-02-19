@@ -11,19 +11,19 @@ const validateItem = opts => {
     if (isTest) {
         if (!checkObj(opts)) {
             throw new SpecError(
-                "when calling [validateItem]: args[0] - must be object"
+                "While calling [validateItem]:\n  args[0] - must be object"
             )
         }
 
         if (typeof opts.key !== "string") {
             throw new SpecError(
-                "when calling [validateItem]: args[0][key] - must be string"
+                "While calling [validateItem]:\n  args[0][key] - must be string"
             )
         }
 
         if (typeof opts.getMsg !== "function") {
             throw new SpecError(
-                "when calling [validateItem]: args[0][getMsg] - must be function"
+                "While calling [validateItem]:\n  args[0][getMsg] - must be function"
             )
         }
     }
@@ -78,13 +78,13 @@ const getArgsErrorMsg = (spec, args) => {
         // spec is already checked to be valid in createValidateFunc
         if (!Array.isArray(spec)) {
             throw new SpecError(
-                "when calling [getArgsErrorMsg]: args[0] - must be array"
+                "While calling [getArgsErrorMsg]:\n  args[0] - must be array"
             )
         }
 
         if (!Array.isArray(args)) {
             throw new SpecError(
-                "when calling [getArgsErrorMsg]: args[1] - must be array"
+                "While calling [getArgsErrorMsg]:\n  args[1] - must be array"
             )
         }
     }
@@ -98,25 +98,25 @@ const getArgsErrorMsg = (spec, args) => {
             if (isTest) {
                 if (!checkObj(opts)) {
                     throw new SpecError(
-                        "when calling [addProps]: args[0] - must be object"
+                        "While calling [addProps]:\n  args[0] - must be object"
                     )
                 }
 
                 if (typeof opts.key !== "string") {
                     throw new SpecError(
-                        "when calling [addProps]: args[0][key] - must be string"
+                        "While calling [addProps]:\n  args[0][key] - must be string"
                     )
                 }
 
                 if (!checkObj(opts.props)) {
                     throw new SpecError(
-                        "when calling [addProps]: args[0][props] - must be object"
+                        "While calling [addProps]:\n  args[0][props] - must be object"
                     )
                 }
 
                 if (typeof opts.isStrict !== "boolean") {
                     throw new SpecError(
-                        "when calling [addProps]: args[0][isStrict] - must be boolean"
+                        "While calling [addProps]:\n  args[0][isStrict] - must be boolean"
                     )
                 }
             }
@@ -225,7 +225,7 @@ export const createValidateFunc = spec => {
 
             if (msg !== "") {
                 throw new SpecError(
-                    `when calling [createValidateFunc]: args[0] - ${msg}`
+                    `While calling [createValidateFunc]:\n  args[0] - ${msg}`
                 )
             }
         }
@@ -234,7 +234,7 @@ export const createValidateFunc = spec => {
             if (isTest) {
                 if (!Array.isArray(args)) {
                     throw new SpecError(
-                        "when calling [validation function]: args[0] - must be array"
+                        "While calling [validation function]:\n  args[0] - must be array"
                     )
                 }
             }

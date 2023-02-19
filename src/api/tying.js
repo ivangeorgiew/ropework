@@ -18,7 +18,7 @@ export const tie = (descr, spec, onTry, onCatch) => {
     if (options.shouldValidate) {
         const msg = tieValidate([descr, spec, onTry, onCatch])
 
-        if (msg !== "") throw new SpecError(`when calling [tie]: ${msg}`)
+        if (msg !== "") throw new SpecError(`While calling [tie]:\n  ${msg}`)
     }
 
     try {
@@ -43,7 +43,7 @@ export const tie = (descr, spec, onTry, onCatch) => {
                     const msg = innerCatchValidate([args, error, isFirstCall])
 
                     if (msg !== "")
-                        throw new SpecError(`when calling [innerCatch]: ${msg}`)
+                        throw new SpecError(`While calling [innerCatch]:\n  ${msg}`)
                 } catch (e) {
                     try {
                         innerLogError({
@@ -73,7 +73,7 @@ export const tie = (descr, spec, onTry, onCatch) => {
                 const result = onCatch({ descr, args, error })
 
                 if (result === RETHROW) {
-                    throw new Error(`when calling [${descr}]: ${error.message}`)
+                    throw new Error(`While calling [${descr}]:\n  ${error.message}`)
                 }
 
                 return result
@@ -88,7 +88,9 @@ export const tie = (descr, spec, onTry, onCatch) => {
                     // nothing
                 }
 
-                throw new Error(`when catching error for [${descr}]: ${e.message}`)
+                throw new Error(
+                    `While catching error for [${descr}]:\n  ${e.message}`
+                )
             }
         }
 
@@ -123,7 +125,7 @@ export const tie = (descr, spec, onTry, onCatch) => {
                     if (msg !== "") {
                         areArgsValid = false
 
-                        throw new SpecError(`when calling [${descr}]: ${msg}`)
+                        throw new SpecError(`While calling [${descr}]:\n  ${msg}`)
                     }
                 }
 

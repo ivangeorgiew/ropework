@@ -17,7 +17,7 @@ const stringifyAny = (data, shouldTrim) => {
     if (isTest) {
         if (typeof shouldTrim !== "boolean") {
             throw new SpecError(
-                "when calling [stringifyAny]: args[1] - must be boolean"
+                "While calling [stringifyAny]:\n  args[1] - must be boolean"
             )
         }
     }
@@ -56,7 +56,7 @@ const stringifyAny = (data, shouldTrim) => {
     } catch (error) {
         try {
             defaultLogger(
-                `\n Error at: [stringifyAny] ${LIB_ERROR_TEXT}\n`,
+                `\n Issue at: [stringifyAny] ${LIB_ERROR_TEXT}\n`,
                 `Function args: ${data}\n`,
                 error,
                 "\n"
@@ -73,7 +73,7 @@ const createArgsInfo = args => {
     if (isTest) {
         if (!Array.isArray(args)) {
             throw new SpecError(
-                "when calling [createArgsInfo]: args[0] - must be array"
+                "While calling [createArgsInfo]:\n  args[0] - must be array"
             )
         }
     }
@@ -89,7 +89,7 @@ const createArgsInfo = args => {
     } catch (error) {
         try {
             defaultLogger(
-                `\n Error at: [createArgsInfo] ${LIB_ERROR_TEXT}\n`,
+                `\n Issue at: [createArgsInfo] ${LIB_ERROR_TEXT}\n`,
                 `Function args: ${args}\n`,
                 error,
                 "\n"
@@ -109,7 +109,7 @@ const errorLogger = (...args) => {
         } catch (error) {
             try {
                 defaultLogger(
-                    `\n Error at: [errorLogger] ${LIB_ERROR_TEXT}\n`,
+                    `\n Issue at: [errorLogger] ${LIB_ERROR_TEXT}\n`,
                     `Function args: ${createArgsInfo(args)}\n`,
                     error,
                     "\n"
@@ -127,7 +127,7 @@ export const notify = (...args) => {
     } catch (error) {
         try {
             errorLogger(
-                `\n Error at: [notify] ${LIB_ERROR_TEXT}\n`,
+                `\n Issue at: [notify] ${LIB_ERROR_TEXT}\n`,
                 `Function args: ${createArgsInfo(args)}\n`,
                 error,
                 "\n"
@@ -144,13 +144,13 @@ export const getErrorsCacheIdx = (descr, msg) => {
     if (isTest) {
         if (typeof descr !== "string") {
             throw new SpecError(
-                "when calling [getErrorsCacheIdx]: args[0] - must be string"
+                "While calling [getErrorsCacheIdx]:\n  args[0] - must be string"
             )
         }
 
         if (typeof msg !== "string") {
             throw new SpecError(
-                "when calling [getErrorsCacheIdx]: args[1] - must be string"
+                "While calling [getErrorsCacheIdx]:\n  args[1] - must be string"
             )
         }
     }
@@ -180,7 +180,7 @@ export const getErrorsCacheIdx = (descr, msg) => {
     } catch (error) {
         try {
             errorLogger(
-                `\n Error at: [getErrorsCacheIdx] ${LIB_ERROR_TEXT}\n`,
+                `\n Issue at: [getErrorsCacheIdx] ${LIB_ERROR_TEXT}\n`,
                 `Function args: ${createArgsInfo([descr, msg])}\n`,
                 error,
                 "\n"
@@ -197,19 +197,19 @@ export const manageErrorsCache = (idx, descr, msg) => {
     if (isTest) {
         if (!Number.isInteger(idx) || !Number.isFinite(idx) || idx < 0) {
             throw new SpecError(
-                "when calling [manageErrorsCache]: args[0] - must be positive integer or 0"
+                "While calling [manageErrorsCache]:\n  args[0] - must be positive integer or 0"
             )
         }
 
         if (typeof descr !== "string") {
             throw new SpecError(
-                "when calling [manageErrorsCache]: args[1] - must be string"
+                "While calling [manageErrorsCache]:\n  args[1] - must be string"
             )
         }
 
         if (typeof msg !== "string") {
             throw new SpecError(
-                "when calling [manageErrorsCache]: args[2] - must be string"
+                "While calling [manageErrorsCache]:\n  args[2] - must be string"
             )
         }
     }
@@ -223,7 +223,7 @@ export const manageErrorsCache = (idx, descr, msg) => {
     } catch (error) {
         try {
             errorLogger(
-                `\n Error at: [manageErrorsCache] ${LIB_ERROR_TEXT}\n`,
+                `\n Issue at: [manageErrorsCache] ${LIB_ERROR_TEXT}\n`,
                 `Function args: ${createArgsInfo([idx, descr, msg])}\n`,
                 error,
                 "\n"
@@ -238,25 +238,25 @@ export const innerLogError = props => {
     if (isTest) {
         if (!(props instanceof Object)) {
             throw new SpecError(
-                "when calling [innerLogError]: args[0] - must be object"
+                "While calling [innerLogError]:\n  args[0] - must be object"
             )
         }
 
         if (typeof props.descr !== "string") {
             throw new SpecError(
-                "when calling [innerLogError]: args[0][descr] - must be string"
+                "While calling [innerLogError]:\n  args[0][descr] - must be string"
             )
         }
 
         if (!Array.isArray(props.args)) {
             throw new SpecError(
-                "when calling [innerLogError]: args[0][args] - must be array"
+                "While calling [innerLogError]:\n  args[0][args] - must be array"
             )
         }
 
         if (!(props.error instanceof Error)) {
             throw new SpecError(
-                "when calling [innerLogError]: args[0][error] - must be error"
+                "While calling [innerLogError]:\n  args[0][error] - must be error"
             )
         }
     }
@@ -275,7 +275,7 @@ export const innerLogError = props => {
         }
 
         errorLogger(
-            `\n Error at: ${descr}\n`,
+            `\n Issue at: [${descr}]\n`,
             `Function args: ${createArgsInfo(args)}\n`,
             error,
             "\n"
@@ -285,7 +285,7 @@ export const innerLogError = props => {
     } catch (error) {
         try {
             errorLogger(
-                `\n Error at: [innerLogError] ${LIB_ERROR_TEXT}\n`,
+                `\n Issue at: [innerLogError] ${LIB_ERROR_TEXT}\n`,
                 `Function args: ${createArgsInfo([props])}\n`,
                 error,
                 "\n"
