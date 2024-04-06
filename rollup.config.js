@@ -103,8 +103,9 @@ const reducer = (acc, [root, name]) =>
                 modify({
                     "process.env.NODE_ENV": JSON.stringify("production"),
                     "__TEST__": false,
-                    "find": /\[\s*(\w+Def(?:\s*,\s*|\s*))+\]/g,
-                    "replace": "[]",
+                    // maybe add it later?
+                    //"find": /\[\s*(\w+Def(?:\s*,\s*|\s*))+\]/g,
+                    //"replace": "[]",
                 }),
                 strip({ functions: ["createValidateFunc"] }),
                 terser(terserOpts),
