@@ -61,22 +61,12 @@ export const tie = (descr, spec, onTry, onCatch) => {
 
             if (!isFirstCall || !areArgsValid) throw error
 
-            try {
-                isNextCallFirst = true
+            isNextCallFirst = true
 
-                logError({ descr, error, args })
-            } catch {
-                // nothing
-            }
+            let result
 
             try {
-                const result = onCatch({ descr, args, error })
-
-                if (result === RETHROW) {
-                    throw new Error(`While calling [${descr}]:\n  ${error.message}`)
-                }
-
-                return result
+                result = onCatch({ descr, args, error })
             } catch (e) {
                 try {
                     logError({
@@ -91,6 +81,18 @@ export const tie = (descr, spec, onTry, onCatch) => {
                 throw new Error(
                     `While catching error for [${descr}]:\n  ${e.message}`
                 )
+            }
+
+            if (result === RETHROW) {
+                throw new Error(`While calling [${descr}]:\n  ${error.message}`)
+            } else {
+                try {
+                    logError({ descr, error, args })
+                } catch {
+                    // nothing
+                }
+
+                return result
             }
         }
 
@@ -118,14 +120,14 @@ export const tie = (descr, spec, onTry, onCatch) => {
                 isNextCallFirst = false
 
                 if (options.shouldValidate && spec.length > 0) {
-                    areArgsValid = true
-
                     const msg = validateArgs(args)
 
                     if (msg !== "") {
                         areArgsValid = false
 
                         throw new SpecError(`While calling [${descr}]:\n  ${msg}`)
+                    } else {
+                        areArgsValid = true
                     }
                 }
 
