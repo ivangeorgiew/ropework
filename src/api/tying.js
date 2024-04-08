@@ -120,14 +120,14 @@ export const tie = (descr, spec, onTry, onCatch) => {
                 isNextCallFirst = false
 
                 if (options.shouldValidate && spec.length > 0) {
+                    areArgsValid = true
+
                     const msg = validateArgs(args)
 
                     if (msg !== "") {
                         areArgsValid = false
 
                         throw new SpecError(`While calling [${descr}]:\n  ${msg}`)
-                    } else {
-                        areArgsValid = true
                     }
                 }
 

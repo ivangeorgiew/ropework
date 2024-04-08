@@ -1,7 +1,10 @@
-lockfileVersion: 5.4
+lockfileVersion: '6.0'
 
-specifiers:
-  ropework: link:..
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
 
 devDependencies:
-  ropework: link:..
+  ropework:
+    specifier: link:..
+    version: link:..
