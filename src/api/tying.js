@@ -63,28 +63,18 @@ export const tie = (descr, spec, onTry, onCatch) => {
 
             isNextCallFirst = true
 
-            let result
+            let result; let catchErr
 
             try {
                 result = onCatch({ descr, args, error })
             } catch (e) {
-                try {
-                    logError({
-                        descr: `catching error for [${descr}]`,
-                        error: e,
-                        args: [{ descr, args, error }],
-                    })
-                } catch {
-                    // nothing
-                }
-
-                throw new Error(
-                    `While catching error for [${descr}]:\n  ${e.message}`
-                )
+                catchErr = new Error(`While catching error for [${descr}]:`, {
+                    cause: e,
+                })
             }
 
             if (result === RETHROW) {
-                throw new Error(`While calling [${descr}]:\n  ${error.message}`)
+                throw new Error(`While calling [${descr}]:`, { cause: error })
             } else {
                 try {
                     logError({ descr, error, args })
@@ -92,8 +82,10 @@ export const tie = (descr, spec, onTry, onCatch) => {
                     // nothing
                 }
 
-                return result
+                if (catchErr instanceof Error) throw catchErr
             }
+
+            return result
         }
 
         const innerFunc = function (...args) {
