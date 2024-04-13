@@ -1,13 +1,7 @@
 import { createValidateFunc } from "../utils/createValidateFunc"
 import { LIB_ERROR_TEXT, innerLogError, options } from "../utils/innerConstants"
 import { logError } from "../utils/logging"
-import {
-    createCurry,
-    getCacheIdx,
-    handledFuncs,
-    manageCachePartial,
-    tieSpec,
-} from "../utils/tyingHelpers"
+import { createCurry, getCacheIdx, handledFuncs, manageCachePartial, tieSpec } from "../utils/tyingHelpers"
 import { RETHROW, SpecError, isDev, isTest } from "./constants"
 import { arrDef, boolDef, errorDef } from "./definitions"
 
@@ -42,8 +36,7 @@ export const tie = (descr, spec, onTry, onCatch) => {
                 try {
                     const msg = innerCatchValidate([args, error, isFirstCall])
 
-                    if (msg !== "")
-                        throw new SpecError(`While calling [innerCatch]:\n  ${msg}`)
+                    if (msg !== "") throw new SpecError(`While calling [innerCatch]:\n  ${msg}`)
                 } catch (e) {
                     try {
                         innerLogError({
@@ -63,14 +56,13 @@ export const tie = (descr, spec, onTry, onCatch) => {
 
             isNextCallFirst = true
 
-            let result; let catchErr
+            let result
+            let catchErr
 
             try {
                 result = onCatch({ descr, args, error })
             } catch (e) {
-                catchErr = new Error(`While catching error for [${descr}]:`, {
-                    cause: e,
-                })
+                catchErr = new Error(`While catching error for [${descr}]:`, { cause: e })
             }
 
             if (result === RETHROW) {
@@ -98,11 +90,7 @@ export const tie = (descr, spec, onTry, onCatch) => {
 
                 if (cacheIdx !== -1) {
                     if (cacheIdx !== 0) {
-                        manageCache(
-                            cacheIdx,
-                            cacheKeys[cacheIdx],
-                            cacheValues[cacheIdx]
-                        )
+                        manageCache(cacheIdx, cacheKeys[cacheIdx], cacheValues[cacheIdx])
                     }
 
                     return cacheValues[0]

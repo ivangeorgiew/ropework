@@ -80,7 +80,7 @@
     "homepage": "https://github.com/ivangeorgiew/ropework#readme",
     "devDependencies": {
         "@ivan_georgiew/eslint-config": "^1.0.11",
-        "@ivan_georgiew/prettier-config": "^1.0.4",
+        "@ivan_georgiew/prettier-config": "^1.0.5",
         "@rollup/plugin-strip": "^2.1.0",
         "eslint": "^7.32.0",
         "husky": "^7.0.1",

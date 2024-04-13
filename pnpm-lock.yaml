@@ -9,8 +9,8 @@ devDependencies:
     specifier: ^1.0.11
     version: 1.0.11(eslint@7.32.0)
   '@ivan_georgiew/prettier-config':
-    specifier: ^1.0.4
-    version: 1.0.4(prettier@2.3.2)
+    specifier: ^1.0.5
+    version: 1.0.5(prettier@2.3.2)
   '@rollup/plugin-strip':
     specifier: ^2.1.0
     version: 2.1.0(rollup@2.56.0)
@@ -119,8 +119,8 @@ packages:
       - supports-color
     dev: true
 
-  /@ivan_georgiew/prettier-config@1.0.4(prettier@2.3.2):
-    resolution: {integrity: sha512-tEIzQmx058rHD2Y/QWGeF02f9HDcoOmSxLb2NUH48DkVnYJvQuO5E8dre1EjPe3jXzz6dpczPQMMx+5Mo8YDUw==}
+  /@ivan_georgiew/prettier-config@1.0.5(prettier@2.3.2):
+    resolution: {integrity: sha512-0lqxPLmojMRBp6qWX4RIGD2rCKKLY/CVHV23R9LTlQWRTaK5Pg/MZyX78ONrjV2GJxX8XJxdAI5FgtLNzmT8SQ==}
     requiresBuild: true
     peerDependencies:
       prettier: '>= 2.3.2'
