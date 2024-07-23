@@ -15,12 +15,7 @@ const checkEqual = (a, b) => {
     try {
         if (a === b) {
             return true
-        } else if (
-            a &&
-            b &&
-            a.constructor === b.constructor &&
-            (a.constructor === Object || a.constructor === Array)
-        ) {
+        } else if (a && b && a.constructor === b.constructor && (a.constructor === Object || a.constructor === Array)) {
             const objKeys = toKeys(a)
             const objKeysLen = objKeys.length
 
@@ -31,11 +26,7 @@ const checkEqual = (a, b) => {
             } else if (objKeysLen === 1) {
                 return checkSVZ(a[objKeys[0]], b[objKeys[0]])
             } else {
-                for (
-                    let m = 0;
-                    m < objKeysLen && checkSVZ(a[objKeys[m]], b[objKeys[m]]);
-                    m++
-                ) {
+                for (let m = 0; m < objKeysLen && checkSVZ(a[objKeys[m]], b[objKeys[m]]); m++) {
                     if (m === objKeysLen - 1) return true
                 }
 
@@ -125,8 +116,7 @@ export const manageCachePartial = (cacheKeys, cacheValues) => {
         if (isTest) {
             const msg = manageCacheValidate([idx, key, value])
 
-            if (msg !== "")
-                throw new SpecError(`While calling [manageCache]:\n  ${msg}`)
+            if (msg !== "") throw new SpecError(`While calling [manageCache]:\n  ${msg}`)
         }
 
         try {

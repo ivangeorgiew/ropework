@@ -1,9 +1,7 @@
 // so that process.env.NODE_ENV can be replaced and doesn't throw
 const glProcess = globalThis.process
 const process =
-    glProcess instanceof Object &&
-    glProcess.env instanceof Object &&
-    typeof glProcess.env.NODE_ENV === "string"
+    glProcess instanceof Object && glProcess.env instanceof Object && typeof glProcess.env.NODE_ENV === "string"
         ? glProcess
         : { env: { NODE_ENV: "development" } }
 
@@ -31,12 +29,6 @@ export const SpecError = class extends Error {
 
 export const browserErrorEvents = ["error", "unhandledrejection"]
 
-export const nodeErrorEvents = [
-    "uncaughtException",
-    "unhandledRejection",
-    "SIGTERM",
-    "SIGINT",
-    "SIGHUP",
-]
+export const nodeErrorEvents = ["uncaughtException", "unhandledRejection", "SIGTERM", "SIGINT", "SIGHUP"]
 
 export const RETHROW = "__custom_string_for_error_rethrow__"

@@ -10,9 +10,7 @@ const optionsDef = {
         }
 
         const validKeys = Object.keys(options)
-        const invalidKeys = Object.keys(arg).filter(
-            key => validKeys.indexOf(key) === -1
-        )
+        const invalidKeys = Object.keys(arg).filter(key => validKeys.indexOf(key) === -1)
 
         if (invalidKeys.length > 0) {
             return `has invalid keys: ${invalidKeys.join(", ")}`

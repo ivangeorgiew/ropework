@@ -1,30 +1,19 @@
 import { SpecError, isTest } from "../api/constants"
 import { objTypeDef, specDef } from "../api/definitions"
-import {
-    LIB_ERROR_TEXT,
-    checkObj,
-    checkObjType,
-    innerLogError,
-} from "./innerConstants"
+import { LIB_ERROR_TEXT, checkObj, checkObjType, innerLogError } from "./innerConstants"
 
 const validateItem = opts => {
     if (isTest) {
         if (!checkObj(opts)) {
-            throw new SpecError(
-                "While calling [validateItem]:\n  args[0] - must be object"
-            )
+            throw new SpecError("While calling [validateItem]:\n  args[0] - must be object")
         }
 
         if (typeof opts.key !== "string") {
-            throw new SpecError(
-                "While calling [validateItem]:\n  args[0][key] - must be string"
-            )
+            throw new SpecError("While calling [validateItem]:\n  args[0][key] - must be string")
         }
 
         if (typeof opts.getMsg !== "function") {
-            throw new SpecError(
-                "While calling [validateItem]:\n  args[0][getMsg] - must be function"
-            )
+            throw new SpecError("While calling [validateItem]:\n  args[0][getMsg] - must be function")
         }
     }
 
@@ -77,15 +66,11 @@ const getArgsErrorMsg = (spec, args) => {
     if (isTest) {
         // spec is already checked to be valid in createValidateFunc
         if (!Array.isArray(spec)) {
-            throw new SpecError(
-                "While calling [getArgsErrorMsg]:\n  args[0] - must be array"
-            )
+            throw new SpecError("While calling [getArgsErrorMsg]:\n  args[0] - must be array")
         }
 
         if (!Array.isArray(args)) {
-            throw new SpecError(
-                "While calling [getArgsErrorMsg]:\n  args[1] - must be array"
-            )
+            throw new SpecError("While calling [getArgsErrorMsg]:\n  args[1] - must be array")
         }
     }
 
@@ -97,27 +82,19 @@ const getArgsErrorMsg = (spec, args) => {
         const addProps = opts => {
             if (isTest) {
                 if (!checkObj(opts)) {
-                    throw new SpecError(
-                        "While calling [addProps]:\n  args[0] - must be object"
-                    )
+                    throw new SpecError("While calling [addProps]:\n  args[0] - must be object")
                 }
 
                 if (typeof opts.key !== "string") {
-                    throw new SpecError(
-                        "While calling [addProps]:\n  args[0][key] - must be string"
-                    )
+                    throw new SpecError("While calling [addProps]:\n  args[0][key] - must be string")
                 }
 
                 if (!checkObj(opts.props)) {
-                    throw new SpecError(
-                        "While calling [addProps]:\n  args[0][props] - must be object"
-                    )
+                    throw new SpecError("While calling [addProps]:\n  args[0][props] - must be object")
                 }
 
                 if (typeof opts.isStrict !== "boolean") {
-                    throw new SpecError(
-                        "While calling [addProps]:\n  args[0][isStrict] - must be boolean"
-                    )
+                    throw new SpecError("While calling [addProps]:\n  args[0][isStrict] - must be boolean")
                 }
             }
 
@@ -224,18 +201,14 @@ export const createValidateFunc = spec => {
             const msg = specDef.getMsg(spec)
 
             if (msg !== "") {
-                throw new SpecError(
-                    `While calling [createValidateFunc]:\n  args[0] - ${msg}`
-                )
+                throw new SpecError(`While calling [createValidateFunc]:\n  args[0] - ${msg}`)
             }
         }
 
         return args => {
             if (isTest) {
                 if (!Array.isArray(args)) {
-                    throw new SpecError(
-                        "While calling [validation function]:\n  args[0] - must be array"
-                    )
+                    throw new SpecError("While calling [validation function]:\n  args[0] - must be array")
                 }
             }
 

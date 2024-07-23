@@ -20,7 +20,7 @@
 
 //         return pre + prepre
 //     },
-//     props => (props.error.message.includes("Maximum call stack") ? Infinity : NaN)
+//     props => (props.error.message.includes("Maximum call stack") ? Infinity : RETHROW)
 // )
 
 // const a = () => {

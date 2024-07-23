@@ -56,6 +56,12 @@ export const tie = (descr, spec, onTry, onCatch) => {
 
             isNextCallFirst = true
 
+            try {
+                logError({ descr, error, args })
+            } catch {
+                // nothing
+            }
+
             let result
             let catchErr
 
@@ -67,14 +73,8 @@ export const tie = (descr, spec, onTry, onCatch) => {
 
             if (result === RETHROW) {
                 throw new Error(`While calling [${descr}]:`, { cause: error })
-            } else {
-                try {
-                    logError({ descr, error, args })
-                } catch {
-                    // nothing
-                }
-
-                if (catchErr instanceof Error) throw catchErr
+            } else if (catchErr instanceof Error) {
+                throw catchErr
             }
 
             return result

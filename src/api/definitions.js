@@ -1,9 +1,4 @@
-import {
-    LIB_ERROR_TEXT,
-    checkObj,
-    checkObjType,
-    innerLogError,
-} from "../utils/innerConstants"
+import { LIB_ERROR_TEXT, checkObj, checkObjType, innerLogError } from "../utils/innerConstants"
 import { SpecError, isTest } from "./constants"
 
 export const specDef = {
@@ -18,15 +13,11 @@ export const specDef = {
         const addProps = (key, props) => {
             if (isTest) {
                 if (typeof key !== "string") {
-                    throw new SpecError(
-                        "While calling [addProps]:\n  args[0] - must be string"
-                    )
+                    throw new SpecError("While calling [addProps]:\n  args[0] - must be string")
                 }
 
                 if (!checkObjType(props)) {
-                    throw new SpecError(
-                        "While calling [addProps]:\n  args[1] - must be of object type"
-                    )
+                    throw new SpecError("While calling [addProps]:\n  args[1] - must be of object type")
                 }
             }
 
@@ -65,9 +56,7 @@ export const specDef = {
             }
 
             const validKeys = ["getMsg", "optProps", "reqProps"]
-            const invalidKeys = Object.keys(specVal).filter(
-                key => validKeys.indexOf(key) === -1
-            )
+            const invalidKeys = Object.keys(specVal).filter(key => validKeys.indexOf(key) === -1)
 
             if (invalidKeys.length > 0) {
                 return `spec${key} has invalid keys: ${invalidKeys.join(", ")}`
@@ -149,15 +138,11 @@ export const objDef = {
 }
 
 export const intDef = {
-    getMsg: a =>
-        !Number.isInteger(a) || !Number.isFinite(a) ? "must be integer" : "",
+    getMsg: a => (!Number.isInteger(a) || !Number.isFinite(a) ? "must be integer" : ""),
 }
 
 export const idxDef = {
-    getMsg: a =>
-        !Number.isInteger(a) || !Number.isFinite(a) || a < 0
-            ? "must be positive integer or 0"
-            : "",
+    getMsg: a => (!Number.isInteger(a) || !Number.isFinite(a) || a < 0 ? "must be positive integer or 0" : ""),
 }
 
 export const constrDef = {

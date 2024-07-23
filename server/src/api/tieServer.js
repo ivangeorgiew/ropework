@@ -1,17 +1,8 @@
-import {
-    funcDef,
-    isServer,
-    nodeErrorEvents,
-    objDef,
-    setDef,
-    strDef,
-    tie,
-} from "ropework"
+import { funcDef, isServer, nodeErrorEvents, objDef, setDef, strDef, tie, RETHROW } from "ropework"
 
 const serverDef = { reqProps: { on: funcDef, close: funcDef } }
 const setOrUndefDef = {
-    getMsg: arg =>
-        !(arg instanceof Set) && arg !== undefined ? "must be Set or undefined" : "",
+    getMsg: arg => (!(arg instanceof Set) && arg !== undefined ? "must be Set or undefined" : ""),
 }
 
 const onConnection = tie(
@@ -24,7 +15,7 @@ const onConnection = tie(
 
         sockets.add(socket)
     },
-    () => {}
+    () => RETHROW
 )
 
 const onClose = tie(
@@ -39,7 +30,7 @@ const onClose = tie(
 
         process.removeListener(eventName, onClose(server, sockets, eventName))
     },
-    () => {}
+    () => RETHROW
 )
 
 export const tieServer = tie(

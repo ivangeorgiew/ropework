@@ -3,9 +3,7 @@ import { arrDef, errorDef, strDef } from "../api/definitions"
 import { createValidateFunc } from "./createValidateFunc"
 import { LIB_ERROR_TEXT, innerLogError, notify } from "./innerConstants"
 
-const logErrorValidate = createValidateFunc([
-    { reqProps: { descr: strDef, args: arrDef, error: errorDef } },
-])
+const logErrorValidate = createValidateFunc([{ reqProps: { descr: strDef, args: arrDef, error: errorDef } }])
 
 export const logError = props => {
     if (isTest) {
