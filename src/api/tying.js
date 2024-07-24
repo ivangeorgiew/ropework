@@ -68,13 +68,13 @@ export const tie = (descr, spec, onTry, onCatch) => {
             try {
                 result = onCatch({ descr, args, error })
             } catch (e) {
-                catchErr = new Error(`While catching error for [${descr}]:`, { cause: e })
+                catchErr = e
             }
 
             if (result === RETHROW) {
                 throw new Error(`While calling [${descr}]:`, { cause: error })
             } else if (catchErr instanceof Error) {
-                throw catchErr
+                throw new Error(`While catching error for [${descr}]:`, { cause: catchErr })
             }
 
             return result

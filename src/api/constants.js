@@ -31,4 +31,4 @@ export const browserErrorEvents = ["error", "unhandledrejection"]
 
 export const nodeErrorEvents = ["uncaughtException", "unhandledRejection", "SIGTERM", "SIGINT", "SIGHUP"]
 
-export const RETHROW = "__custom_string_for_error_rethrow__"
+export const RETHROW = "__ropework_custom_string_RETHROW__"
